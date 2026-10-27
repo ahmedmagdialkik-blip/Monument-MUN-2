@@ -660,6 +660,13 @@
         color: #ef4444;
       }
 
+      .status-banner.info {
+        display: block;
+        background: rgba(59, 130, 246, 0.15);
+        border: 1px solid rgba(59, 130, 246, 0.45);
+        color: #60a5fa;
+      }
+
       /* ----------------------------------------------------
          PHONE REVEAL ANIMATIONS (NO BLUR ON PHONE)
          ---------------------------------------------------- */
@@ -1308,6 +1315,438 @@
       }
 
       /* ----------------------------------------------------
+         EXECUTIVE BOARD ACCESS & SUPABASE PORTAL
+         ---------------------------------------------------- */
+      .eb-portal-container {
+        margin-top: 3.5rem;
+        padding: 2.2rem 1.4rem;
+        background: rgba(8, 10, 30, 0.95);
+        border: 1px solid rgba(217, 180, 90, 0.32);
+        border-radius: var(--card-radius);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 28px rgba(217, 180, 90, 0.12);
+        max-width: 860px;
+        margin-left: auto;
+        margin-right: auto;
+        text-align: left;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .eb-portal-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      }
+
+      .eb-portal-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold);
+        background: rgba(217, 180, 90, 0.1);
+        border: 1px solid rgba(217, 180, 90, 0.28);
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+        margin-bottom: 1rem;
+      }
+
+      .eb-portal-title {
+        font-family: var(--font-display);
+        font-size: clamp(1.5rem, 5vw, 2.2rem);
+        font-weight: 800;
+        line-height: 1.15;
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+      }
+
+      .eb-portal-title em {
+        font-style: italic;
+        font-family: var(--font-serif);
+        color: var(--gold);
+        font-weight: 600;
+      }
+
+      .eb-portal-sub {
+        font-size: 0.98rem;
+        color: rgba(242, 244, 255, 0.82);
+        line-height: 1.55;
+        margin-bottom: 1.8rem;
+      }
+
+      .eb-tabs {
+        display: flex;
+        gap: 0.4rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        margin-bottom: 1.75rem;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+
+      .eb-tabs::-webkit-scrollbar {
+        display: none;
+      }
+
+      .eb-tab {
+        padding: 0.75rem 1.1rem;
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: rgba(242, 244, 255, 0.6);
+        font-family: var(--font-display);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: color var(--fast) var(--ease), border-color var(--fast) var(--ease);
+      }
+
+      .eb-tab:hover {
+        color: #ffffff;
+      }
+
+      .eb-tab.active {
+        color: var(--gold);
+        border-bottom-color: var(--gold);
+      }
+
+      .eb-form-info-callout {
+        background: rgba(217, 180, 90, 0.08);
+        border: 1px solid rgba(217, 180, 90, 0.25);
+        border-left: 3px solid var(--gold);
+        padding: 0.85rem 1.1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-start;
+        font-size: 0.88rem;
+        color: rgba(242, 244, 255, 0.92);
+        line-height: 1.5;
+      }
+
+      .eb-form-info-callout .info-icon {
+        font-size: 1.1rem;
+        color: var(--gold);
+        flex-shrink: 0;
+      }
+
+      .form-row-2 {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      @media (min-width: 700px) {
+        .form-row-2 {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .form-help-text {
+        display: block;
+        font-size: 0.76rem;
+        color: rgba(242, 244, 255, 0.6);
+        font-family: var(--font-serif);
+        font-style: italic;
+        margin-top: 0.35rem;
+      }
+
+      .eb-checkbox-group {
+        margin: 1.25rem 0 1.5rem 0;
+      }
+
+      .eb-checkbox-label {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-start;
+        font-size: 0.88rem;
+        color: rgba(242, 244, 255, 0.88);
+        cursor: pointer;
+        line-height: 1.45;
+      }
+
+      .eb-checkbox-label input[type='checkbox'] {
+        accent-color: var(--gold);
+        margin-top: 3px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      .eb-submit-btn {
+        width: 100%;
+        min-height: 52px;
+        background: linear-gradient(135deg, #d9b45a, #c49e44);
+        color: #080a1e;
+        font-weight: 800;
+        font-family: var(--font-display);
+        font-size: 0.92rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease), filter var(--fast) var(--ease);
+        box-shadow: 0 4px 18px var(--gold-glow);
+      }
+
+      .eb-submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .eb-form-helpers {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: -0.5rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .eb-link-btn {
+        background: none;
+        border: none;
+        color: var(--gold);
+        font-family: var(--font-display);
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: underline;
+        padding: 0;
+        transition: opacity var(--fast) var(--ease);
+      }
+
+      .eb-link-btn:hover {
+        opacity: 0.8;
+      }
+
+      /* Authenticated Dashboard State */
+      .eb-authenticated-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(217, 180, 90, 0.25);
+        border-radius: 16px;
+        padding: 1.85rem 1.4rem;
+      }
+
+      .eb-auth-header {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+      }
+
+      .eb-user-avatar {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        background: rgba(217, 180, 90, 0.15);
+        border: 2px solid var(--gold);
+        color: var(--gold);
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 16px var(--gold-glow);
+        flex-shrink: 0;
+      }
+
+      .eb-user-meta {
+        flex: 1;
+        min-width: 200px;
+      }
+
+      .eb-user-badge {
+        display: inline-block;
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #2ecc71;
+        margin-bottom: 0.25rem;
+      }
+
+      .eb-user-name {
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin: 0;
+      }
+
+      .eb-user-role {
+        font-family: var(--font-display);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin: 0.2rem 0;
+      }
+
+      .eb-user-email-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-top: 0.35rem;
+        flex-wrap: wrap;
+      }
+
+      .eb-user-email {
+        font-family: var(--font-serif);
+        font-size: 0.92rem;
+        color: rgba(242, 244, 255, 0.75);
+      }
+
+      .eb-verified-tag {
+        display: inline-block;
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        background: rgba(46, 204, 113, 0.18);
+        border: 1px solid #2ecc71;
+        color: #2ecc71;
+        padding: 0.2rem 0.65rem;
+        border-radius: 9999px;
+      }
+
+      .eb-pending-tag {
+        display: inline-block;
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        background: rgba(241, 196, 15, 0.18);
+        border: 1px solid #f1c40f;
+        color: #f1c40f;
+        padding: 0.2rem 0.65rem;
+        border-radius: 9999px;
+      }
+
+      .eb-portal-actions-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+      }
+
+      @media (min-width: 700px) {
+        .eb-portal-actions-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      .eb-action-card {
+        padding: 1.25rem 1.1rem;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        display: flex;
+        flex-direction: column;
+        transition: transform var(--fast) var(--ease), border-color var(--fast) var(--ease);
+      }
+
+      .eb-action-card:hover {
+        border-color: rgba(217, 180, 90, 0.35);
+        transform: translateY(-2px);
+      }
+
+      .eb-action-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .eb-action-title {
+        font-family: var(--font-display);
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #ffffff;
+        margin-bottom: 0.4rem;
+      }
+
+      .eb-action-desc {
+        font-size: 0.84rem;
+        color: rgba(242, 244, 255, 0.7);
+        line-height: 1.45;
+        margin-bottom: 0.85rem;
+        flex: 1;
+      }
+
+      .eb-action-status {
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+
+      .eb-auth-footer {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .eb-signout-btn {
+        padding: 0.65rem 1.35rem;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 9999px;
+        color: #ffffff;
+        font-family: var(--font-display);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease);
+      }
+
+      .eb-signout-btn:hover {
+        background: rgba(231, 76, 60, 0.2);
+        border-color: #e74c3c;
+        color: #ff7675;
+      }
+
+      /* Header EB pill */
+      .eb-header-pill {
+        border: 1px solid rgba(217, 180, 90, 0.35) !important;
+        border-radius: 9999px;
+        padding: 0.35rem 0.85rem;
+        background: rgba(217, 180, 90, 0.08);
+        transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease);
+      }
+
+      .eb-header-pill:hover {
+        background: rgba(217, 180, 90, 0.2);
+        border-color: var(--gold) !important;
+      }
+
+      .eb-header-pill.eb-logged-in {
+        background: rgba(46, 204, 113, 0.12);
+        border-color: rgba(46, 204, 113, 0.45) !important;
+        color: #2ecc71 !important;
+      }
+
+      /* ----------------------------------------------------
          MEET THE TEAM (12 DEPARTMENTS)
          ---------------------------------------------------- */
       #team {
@@ -1414,7 +1853,8 @@
       }
 
       #view-committees,
-      #view-apply {
+      #view-apply,
+      #view-admin {
         padding-top: calc(56px + env(safe-area-inset-top) + 2rem);
         padding-bottom: 110px;
         max-width: 1300px;
@@ -2603,8 +3043,9 @@
           <li><a href="#/committees" class="route-link">Committees</a></li>
           <li><a href="#about" class="section-link">About</a></li>
           <li><a href="#board" class="section-link">EB</a></li>
+          <li><a href="#eb-portal" class="section-link eb-header-pill" id="header-eb-pill">EB Portal</a></li>
           <li><a href="#updates" class="section-link">Updates</a></li>
-          <li>
+          <li id="header-auth-container">
             <a href="#/apply" class="apply-pill-btn magnetic-btn route-link">
               Apply Now
             </a>
@@ -2624,6 +3065,7 @@
       <a href="#/committees" class="mobile-link route-link">Committees</a>
       <a href="#about" class="mobile-link section-link">About Monument MUN</a>
       <a href="#board" class="mobile-link section-link">EB Members</a>
+      <a href="#eb-portal" class="mobile-link section-link">EB Portal & Sign Up</a>
       <a href="#updates" class="mobile-link section-link">Live Updates</a>
       <a href="#suggestions" class="mobile-link section-link">Suggestions</a>
       <a href="#/apply" class="apply-pill-btn mobile-link route-link" style="margin-top: 1rem;">Apply Now</a>
@@ -3025,6 +3467,195 @@
               <p class="board-note">Operational execution, committee logistical administration and delegate affairs.</p>
             </div>
           </div>
+
+          <!-- EXECUTIVE BOARD ACCESS & REAL EMAIL REGISTRATION PORTAL -->
+          <div id="eb-portal" class="eb-portal-container reveal-item">
+            <div class="eb-portal-badge">
+              <span class="eb-badge-icon">🏛</span>
+              <span>SECRETARIAT PORTAL · SUPABASE AUTH</span>
+            </div>
+
+            <h3 class="eb-portal-title">EXECUTIVE BOARD <em>REGISTRATION & ACCESS.</em></h3>
+            <p class="eb-portal-sub">
+              Official verification for Secretariat leaders, Committee Directors, and Crisis Staff. Sign up with your <strong>real, active email</strong> to receive official conference credentials and committee dispatch via Supabase.
+            </p>
+
+            <!-- AUTHENTICATED STATE (DISPLAYED WHEN LOGGED IN) -->
+            <div id="eb-authenticated-card" class="eb-authenticated-card" style="display: none;">
+              <div class="eb-auth-header">
+                <div class="eb-user-avatar" id="eb-user-avatar">EB</div>
+                <div class="eb-user-meta">
+                  <div class="eb-user-badge">✓ Active Executive Board Member</div>
+                  <h4 class="eb-user-name" id="eb-user-name">Welcome Back</h4>
+                  <div class="eb-user-role" id="eb-user-role">Committee Director</div>
+                  <div class="eb-user-email-row">
+                    <span class="eb-user-email" id="eb-user-email">email@domain.com</span>
+                    <span class="eb-verified-tag" id="eb-email-verified-tag">Real Email Confirmed ✓</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="eb-portal-actions-grid">
+                <div class="eb-action-card">
+                  <span class="eb-action-icon">📋</span>
+                  <div class="eb-action-title">Committee Directives & Agendas</div>
+                  <p class="eb-action-desc">Access 2027 background guides, crisis trees, and motion matrix.</p>
+                  <span class="eb-action-status">Authorized · Live</span>
+                </div>
+                <div class="eb-action-card">
+                  <span class="eb-action-icon">👥</span>
+                  <div class="eb-action-title">Delegate Matrix & Allocations</div>
+                  <p class="eb-action-desc">Review assigned delegations across all seven civilizational stops.</p>
+                  <span class="eb-action-status">Authorized · Live</span>
+                </div>
+                <div class="eb-action-card">
+                  <span class="eb-action-icon">📜</span>
+                  <div class="eb-action-title">Secretariat Dispatch</div>
+                  <p class="eb-action-desc">Direct communications with Rayan Abutair and the board.</p>
+                  <span class="eb-action-status">Encrypted Channel</span>
+                </div>
+              </div>
+
+              <div class="eb-auth-footer">
+                <button type="button" id="eb-signout-btn" class="eb-signout-btn">
+                  Sign Out from EB Portal
+                </button>
+              </div>
+            </div>
+
+            <!-- UNAUTHENTICATED STATE (SIGN UP / SIGN IN / RESET TABS) -->
+            <div id="eb-guest-card" class="eb-guest-card">
+              <!-- Tab Navigation -->
+              <div class="eb-tabs" role="tablist">
+                <button type="button" class="eb-tab active" id="tab-btn-signup" data-tab="signup" role="tab" aria-selected="true">
+                  Sign Up (New EB Member)
+                </button>
+                <button type="button" class="eb-tab" id="tab-btn-signin" data-tab="signin" role="tab" aria-selected="false">
+                  Sign In (Existing Member)
+                </button>
+                <button type="button" class="eb-tab" id="tab-btn-reset" data-tab="reset" role="tab" aria-selected="false">
+                  Reset Password
+                </button>
+              </div>
+
+              <!-- Status Banner -->
+              <div id="eb-form-status" class="status-banner" role="alert"></div>
+
+              <!-- 1. SIGN UP FORM -->
+              <form id="eb-signup-form" class="eb-form active-form" novalidate>
+                <div class="eb-form-info-callout">
+                  <span class="info-icon">✉</span>
+                  <div>
+                    <strong>Real Email Requirement:</strong> Supabase will transmit an authentic verification email to the address entered below. You must enter a real, reachable email inbox.
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="eb-signup-name">Full Name *</label>
+                  <input type="text" id="eb-signup-name" class="form-input" placeholder="e.g. Mazen Alaa or Rayan Abutair" required autocomplete="name" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="eb-signup-email">Real Email Address *</label>
+                  <input type="email" id="eb-signup-email" class="form-input" placeholder="e.g. yourname@institution.edu or personal email" required autocomplete="email" />
+                  <span class="form-help-text">Must be a valid, real email inbox where you can receive your verification email.</span>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="eb-signup-role">Executive Board Role / Assignment *</label>
+                  <select id="eb-signup-role" class="form-select" required>
+                    <option value="" disabled selected>Select your EB role...</option>
+                    <optgroup label="Secretariat Leadership">
+                      <option value="Secretary-General">Secretary-General</option>
+                      <option value="Deputy Secretary-General">Deputy Secretary-General</option>
+                      <option value="Under-Secretary-General">Under-Secretary-General</option>
+                    </optgroup>
+                    <optgroup label="Committee Directors">
+                      <option value="Director · Security Council (Great Wall of China)">Director · Security Council (Great Wall of China)</option>
+                      <option value="Director · ECOSOC (Petra)">Director · ECOSOC (Petra)</option>
+                      <option value="Director · UNESCO (Pyramids of Giza)">Director · UNESCO (Pyramids of Giza)</option>
+                      <option value="Director · UNEP (Eiffel Tower)">Director · UNEP (Eiffel Tower)</option>
+                      <option value="Director · Human Rights Council (Chichén Itzá)">Director · Human Rights Council (Chichén Itzá)</option>
+                      <option value="Director · DISEC (Colosseum)">Director · DISEC (Colosseum)</option>
+                      <option value="Director · UN Women (Taj Mahal)">Director · UN Women (Taj Mahal)</option>
+                    </optgroup>
+                    <optgroup label="Staff Directors & Crisis">
+                      <option value="Crisis Director / Crisis Staff">Crisis Director / Crisis Staff</option>
+                      <option value="Logistics & Delegate Affairs Director">Logistics & Delegate Affairs Director</option>
+                      <option value="Media & Communications Director">Media & Communications Director</option>
+                      <option value="Finance & Operations Director">Finance & Operations Director</option>
+                    </optgroup>
+                  </select>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="form-group">
+                    <label class="form-label" for="eb-signup-password">Password *</label>
+                    <input type="password" id="eb-signup-password" class="form-input" placeholder="Min. 6 characters" required autocomplete="new-password" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="eb-signup-confirm">Confirm Password *</label>
+                    <input type="password" id="eb-signup-confirm" class="form-input" placeholder="Re-enter password" required autocomplete="new-password" />
+                  </div>
+                </div>
+
+                <div class="eb-checkbox-group">
+                  <label class="eb-checkbox-label">
+                    <input type="checkbox" id="eb-real-email-consent" required />
+                    <span>I confirm that this is my <strong>real and active email address</strong> and I can access it to receive verification mail.</span>
+                  </label>
+                </div>
+
+                <button type="submit" id="eb-signup-submit-btn" class="form-submit-btn btn-interactive eb-submit-btn">
+                  Create Executive Board Account
+                </button>
+              </form>
+
+              <!-- 2. SIGN IN FORM -->
+              <form id="eb-signin-form" class="eb-form" style="display: none;" novalidate>
+                <div class="form-group">
+                  <label class="form-label" for="eb-signin-email">Registered Real Email *</label>
+                  <input type="email" id="eb-signin-email" class="form-input" placeholder="your-email@address.com" required autocomplete="email" />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="eb-signin-password">Password *</label>
+                  <input type="password" id="eb-signin-password" class="form-input" placeholder="Your password" required autocomplete="current-password" />
+                </div>
+
+                <div class="eb-form-helpers">
+                  <button type="button" class="eb-link-btn" id="go-to-reset-btn">Forgot password?</button>
+                </div>
+
+                <button type="submit" id="eb-signin-submit-btn" class="form-submit-btn btn-interactive eb-submit-btn">
+                  Sign In to EB Portal
+                </button>
+              </form>
+
+              <!-- 3. RESET PASSWORD FORM -->
+              <form id="eb-reset-form" class="eb-form" style="display: none;" novalidate>
+                <div class="eb-form-info-callout">
+                  <span class="info-icon">🔑</span>
+                  <div>
+                    Enter the real email associated with your Executive Board registration. Supabase will send an authorized password reset link.
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="eb-reset-email">Real Email Address *</label>
+                  <input type="email" id="eb-reset-email" class="form-input" placeholder="your-email@address.com" required autocomplete="email" />
+                </div>
+
+                <button type="submit" id="eb-reset-submit-btn" class="form-submit-btn btn-interactive eb-submit-btn">
+                  Send Password Reset Email
+                </button>
+
+                <div style="text-align: center; margin-top: 1rem;">
+                  <button type="button" class="eb-link-btn" id="back-to-signin-btn">← Back to Sign In</button>
+                </div>
+              </form>
+            </div>
+          </div>
         </section>
 
         <!-- 7. MEET THE TEAM (12 DEPARTMENTS) -->
@@ -3168,42 +3799,15 @@
         </div>
       </div>
 
-      <!-- NOTIFY-ME FORM -->
-      <div class="suggestion-box tilt-card" style="max-width: 680px; margin: 0 auto;">
-        <span class="eyebrow">Priority Notification</span>
-        <h3 style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem; color: #ffffff;">
-          GET <em>NOTIFIED.</em>
-        </h3>
-        <p style="font-size: 0.95rem; color: rgba(242, 244, 255, 0.75); margin-bottom: 1.5rem;">
-          Leave your details to receive an instant dispatch the moment registration matrix allocations open.
-        </p>
-
-        <div id="apply-form-status" class="status-banner"></div>
-
-        <div class="form-group">
-          <label class="form-label" for="apply-name">Full Name *</label>
-          <input type="text" id="apply-name" class="form-input" placeholder="Your name" />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="apply-email">Email Address *</label>
-          <input type="email" id="apply-email" class="form-input" placeholder="email@address.com" />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="apply-role">Role of Interest</label>
-          <select id="apply-role" class="form-select">
-            <option value="Delegate">Delegate</option>
-            <option value="Chair">Chair / Director</option>
-            <option value="Secretariat Team">Secretariat Team</option>
-          </select>
-        </div>
-
-        <button type="button" id="apply-notify-btn" class="form-submit-btn btn-interactive">
-          Notify me
-        </button>
-      </div>
+      <!-- DYNAMIC DELEGATE REGISTRATION & APPROVAL STATUS PORTAL -->
+      <div id="apply-portal-mount" style="margin-top: 2.5rem;"></div>
     </div>
+
+    <!-- ====================================================
+         VIEW 4: HIDDEN ADMIN BOARD (ONLY /admin or #admin)
+         Zero links anywhere in the site or navigation.
+         ==================================================== -->
+    <div id="view-admin" class="app-view"></div>
 
     <!-- ----------------------------------------------------
          10. FOOTER
@@ -3241,6 +3845,7 @@
             <li><a href="#about" class="section-link">About Monument MUN</a></li>
             <li><a href="#diplomacy" class="section-link">The Global Stage</a></li>
             <li><a href="#board" class="section-link">Executive Board</a></li>
+            <li><a href="#eb-portal" class="section-link">EB Portal & Sign Up</a></li>
             <li><a href="#team" class="section-link">Meet the Team</a></li>
             <li><a href="#updates" class="section-link">Live Updates</a></li>
           </ul>
@@ -3288,9 +3893,16 @@
     <!-- ----------------------------------------------------
          VANILLA JAVASCRIPT: ROUTING, ENGINE & FITTING
          ---------------------------------------------------- -->
-    <script>
+    <script type="module">
+      import { supabase } from '/src/lib/supabase.ts';
+      import { initPortal, isAdminRoute, renderAdminRoute } from '/src/portal.ts';
+      import { getCachedUser, isAuthReady, signUpWithEmail, signInWithEmail, signOut, subscribeAuth } from '/src/auth.ts';
+
       (function () {
         'use strict';
+
+        // Initialize dynamic portal logic (Apply page registration, admin board, header auth)
+        initPortal();
 
         const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const isTouch = window.matchMedia('(hover: none)').matches;
@@ -3349,21 +3961,32 @@
         window.addEventListener('resize', debounce(fitHeroWordmark, 150));
         window.addEventListener('orientationchange', debounce(fitHeroWordmark, 150));
 
-        // 2. HASH ROUTING (#/ or #/committees or #/apply)
+        // 2. HASH ROUTING (#/ or #/committees or #/apply or hidden /admin and #admin)
         const viewHome = document.getElementById('view-home');
         const viewCommittees = document.getElementById('view-committees');
         const viewApply = document.getElementById('view-apply');
+        const viewAdmin = document.getElementById('view-admin');
         const dotNav = document.getElementById('dot-nav');
         const mobileCounter = document.getElementById('mobile-stop-counter');
 
         function switchView(hash) {
-          const cleanHash = hash.replace(/^#\/?/, '').toLowerCase();
+          const path = window.location.pathname.toLowerCase();
+          const cleanHash = (hash || window.location.hash || '').replace(/^#\/?/, '').toLowerCase();
+          const isTargetAdmin = path.endsWith('/admin') || path.endsWith('/admin/') || cleanHash === 'admin';
 
-          [viewHome, viewCommittees, viewApply].forEach((view) => {
+          [viewHome, viewCommittees, viewApply, viewAdmin].forEach((view) => {
             if (view) view.classList.remove('active-view');
           });
 
           window.scrollTo(0, 0);
+
+          if (isTargetAdmin) {
+            if (dotNav) dotNav.classList.add('nav-hidden');
+            if (mobileCounter) mobileCounter.classList.remove('visible');
+            lockBackgroundToStop6();
+            renderAdminRoute(getCachedUser(), !isAuthReady());
+            return;
+          }
 
           if (cleanHash === 'committees') {
             if (viewCommittees) viewCommittees.classList.add('active-view');
@@ -3375,13 +3998,22 @@
             if (dotNav) dotNav.classList.add('nav-hidden');
             if (mobileCounter) mobileCounter.classList.remove('visible');
             lockBackgroundToStop6();
+          } else if (cleanHash === 'eb-portal' || cleanHash === 'eb') {
+            if (viewHome) viewHome.classList.add('active-view');
+            if (dotNav) dotNav.classList.remove('nav-hidden');
+            releaseBackground();
+            fitHeroWordmark();
+            setTimeout(() => {
+              const ebEl = document.getElementById('eb-portal');
+              if (ebEl) ebEl.scrollIntoView({ behavior: 'smooth' });
+            }, 120);
           } else {
             if (viewHome) viewHome.classList.add('active-view');
             if (dotNav) dotNav.classList.remove('nav-hidden');
             releaseBackground();
             fitHeroWordmark();
 
-            if (hash.startsWith('#') && !hash.startsWith('#/')) {
+            if (hash && hash.startsWith('#') && !hash.startsWith('#/')) {
               const anchor = document.querySelector(hash);
               if (anchor) {
                 setTimeout(() => {
@@ -4891,7 +5523,380 @@
           }
         }
 
-        // 19. LOGO INTRO SEQUENCE
+        // ====================================================
+        // 19. EXECUTIVE BOARD REAL EMAIL AUTHENTICATION (SUPABASE)
+        // ====================================================
+        const ebStatusBanner = document.getElementById('eb-form-status');
+        const tabBtnSignup = document.getElementById('tab-btn-signup');
+        const tabBtnSignin = document.getElementById('tab-btn-signin');
+        const tabBtnReset = document.getElementById('tab-btn-reset');
+
+        const ebSignupForm = document.getElementById('eb-signup-form');
+        const ebSigninForm = document.getElementById('eb-signin-form');
+        const ebResetForm = document.getElementById('eb-reset-form');
+
+        const goToResetBtn = document.getElementById('go-to-reset-btn');
+        const backToSigninBtn = document.getElementById('back-to-signin-btn');
+        const ebSignoutBtn = document.getElementById('eb-signout-btn');
+
+        // Real Email validation
+        function isValidRealEmail(email) {
+          if (!email || typeof email !== 'string') return false;
+          const trimmed = email.trim().toLowerCase();
+          const emailPattern = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+          if (!emailPattern.test(trimmed)) return false;
+
+          const parts = trimmed.split('@');
+          if (parts.length !== 2) return false;
+          const domain = parts[1];
+          const domainParts = domain.split('.');
+          if (domainParts.length < 2) return false;
+          const tld = domainParts[domainParts.length - 1];
+          if (tld.length < 2) return false;
+
+          const obviousFakes = [
+            'test@test.com',
+            'test@gmail.com',
+            'test@test.org',
+            'fake@fake.com',
+            'asdf@asdf.com',
+            'example@example.com',
+            'user@user.com',
+            'admin@admin.com',
+            'none@none.com',
+            '123@123.com'
+          ];
+          if (obviousFakes.includes(trimmed)) return false;
+
+          return true;
+        }
+
+        function showEBStatus(type, htmlMessage) {
+          if (!ebStatusBanner) return;
+          ebStatusBanner.className = 'status-banner ' + type;
+          ebStatusBanner.innerHTML = htmlMessage;
+          ebStatusBanner.style.display = 'block';
+        }
+
+        function clearEBStatus() {
+          if (!ebStatusBanner) return;
+          ebStatusBanner.style.display = 'none';
+          ebStatusBanner.innerHTML = '';
+        }
+
+        // Tab switching logic
+        function switchEBTab(tabName) {
+          clearEBStatus();
+          [tabBtnSignup, tabBtnSignin, tabBtnReset].forEach((btn) => {
+            if (btn) {
+              const isMatch = btn.dataset.tab === tabName;
+              btn.classList.toggle('active', isMatch);
+              btn.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+            }
+          });
+
+          if (ebSignupForm) ebSignupForm.style.display = tabName === 'signup' ? 'block' : 'none';
+          if (ebSigninForm) ebSigninForm.style.display = tabName === 'signin' ? 'block' : 'none';
+          if (ebResetForm) ebResetForm.style.display = tabName === 'reset' ? 'block' : 'none';
+        }
+
+        if (tabBtnSignup) tabBtnSignup.addEventListener('click', () => switchEBTab('signup'));
+        if (tabBtnSignin) tabBtnSignin.addEventListener('click', () => switchEBTab('signin'));
+        if (tabBtnReset) tabBtnReset.addEventListener('click', () => switchEBTab('reset'));
+        if (goToResetBtn) goToResetBtn.addEventListener('click', () => switchEBTab('reset'));
+        if (backToSigninBtn) backToSigninBtn.addEventListener('click', () => switchEBTab('signin'));
+
+        // Render Authenticated vs Guest EB state
+        function renderEBUserState(user) {
+          const guestCard = document.getElementById('eb-guest-card');
+          const authCard = document.getElementById('eb-authenticated-card');
+          const headerPill = document.getElementById('header-eb-pill');
+          const userNameEl = document.getElementById('eb-user-name');
+          const userRoleEl = document.getElementById('eb-user-role');
+          const userEmailEl = document.getElementById('eb-user-email');
+          const userAvatarEl = document.getElementById('eb-user-avatar');
+          const verifiedTag = document.getElementById('eb-email-verified-tag');
+
+          if (user) {
+            if (guestCard) guestCard.style.display = 'none';
+            if (authCard) authCard.style.display = 'block';
+
+            const fullName = user.user_metadata?.full_name || 'Executive Board Member';
+            const ebRole = user.user_metadata?.eb_role || 'Executive Board';
+            const email = user.email || '';
+
+            if (userNameEl) userNameEl.textContent = fullName;
+            if (userRoleEl) userRoleEl.textContent = ebRole;
+            if (userEmailEl) userEmailEl.textContent = email;
+
+            if (userAvatarEl) {
+              const names = fullName.trim().split(' ');
+              const initials = names.length > 1
+                ? (names[0][0] + names[names.length - 1][0]).toUpperCase()
+                : fullName.slice(0, 2).toUpperCase();
+              userAvatarEl.textContent = initials || 'EB';
+            }
+
+            if (verifiedTag) {
+              if (user.email_confirmed_at) {
+                verifiedTag.className = 'eb-verified-tag';
+                verifiedTag.textContent = 'Real Email Confirmed ✓';
+              } else {
+                verifiedTag.className = 'eb-pending-tag';
+                verifiedTag.textContent = 'Awaiting Real Email Confirmation ✉';
+              }
+            }
+
+            if (headerPill) {
+              const firstName = fullName.split(' ')[0] || 'EB';
+              headerPill.innerHTML = `EB: ${firstName} <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#2ecc71; margin-left:5px; vertical-align:middle; box-shadow:0 0 6px #2ecc71;"></span>`;
+              headerPill.classList.add('eb-logged-in');
+            }
+          } else {
+            if (guestCard) guestCard.style.display = 'block';
+            if (authCard) authCard.style.display = 'none';
+            if (headerPill) {
+              headerPill.textContent = 'EB Portal';
+              headerPill.classList.remove('eb-logged-in');
+            }
+          }
+        }
+
+        // SIGN UP HANDLER
+        if (ebSignupForm) {
+          ebSignupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('eb-signup-name');
+            const emailInput = document.getElementById('eb-signup-email');
+            const roleSelect = document.getElementById('eb-signup-role');
+            const passInput = document.getElementById('eb-signup-password');
+            const confirmInput = document.getElementById('eb-signup-confirm');
+            const consentBox = document.getElementById('eb-real-email-consent');
+            const submitBtn = document.getElementById('eb-signup-submit-btn');
+
+            const name = nameInput ? nameInput.value.trim() : '';
+            const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+            const role = roleSelect ? roleSelect.value : '';
+            const password = passInput ? passInput.value : '';
+            const confirm = confirmInput ? confirmInput.value : '';
+
+            if (!name) {
+              showEBStatus('error', 'Please enter your full legal or preferred name.');
+              if (nameInput) nameInput.focus();
+              return;
+            }
+
+            if (!email || !isValidRealEmail(email)) {
+              showEBStatus(
+                'error',
+                '<strong>Real Email Required:</strong> Please enter a valid, reachable email address (e.g. <em>name@domain.com</em>). Supabase validates and sends a real confirmation link to this address.'
+              );
+              if (emailInput) emailInput.focus();
+              return;
+            }
+
+            if (!role) {
+              showEBStatus('error', 'Please select your Executive Board role or assignment.');
+              if (roleSelect) roleSelect.focus();
+              return;
+            }
+
+            if (!password || password.length < 6) {
+              showEBStatus('error', 'Password must be at least 6 characters long.');
+              if (passInput) passInput.focus();
+              return;
+            }
+
+            if (password !== confirm) {
+              showEBStatus('error', 'Passwords do not match. Please verify your password entry.');
+              if (confirmInput) confirmInput.focus();
+              return;
+            }
+
+            if (consentBox && !consentBox.checked) {
+              showEBStatus('error', 'Please confirm that this is your real, active email address where you can receive verification emails.');
+              consentBox.focus();
+              return;
+            }
+
+            if (submitBtn) {
+              submitBtn.disabled = true;
+              submitBtn.textContent = 'Contacting Supabase Auth...';
+            }
+            showEBStatus('info', 'Connecting to Supabase to register your Executive Board account...');
+
+            try {
+              const result = await signUpWithEmail(name, email, password);
+
+              if (result.error) {
+                if (result.error.toLowerCase().includes('already registered')) {
+                  showEBStatus(
+                    'error',
+                    `An account with the email <strong>${email}</strong> already exists. Please click the <strong>Sign In</strong> tab to log in.`
+                  );
+                } else {
+                  showEBStatus('error', result.error);
+                }
+                if (submitBtn) {
+                  submitBtn.disabled = false;
+                  submitBtn.textContent = 'Create Executive Board Account';
+                }
+                return;
+              }
+
+              showEBStatus('success', `✓ Welcome, <strong>${name}</strong>! Your account has been created and you are now logged in.`);
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Account Created ✓';
+              }
+              const u = getCachedUser();
+              renderEBUserState(u ? { id: u.id, email: u.email, user_metadata: { full_name: u.fullName } } : null);
+            } catch (err) {
+              showEBStatus('error', err?.message || 'An unexpected error occurred during account creation.');
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Executive Board Account';
+              }
+            }
+          });
+        }
+
+        // SIGN IN HANDLER
+        if (ebSigninForm) {
+          ebSigninForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const emailInput = document.getElementById('eb-signin-email');
+            const passInput = document.getElementById('eb-signin-password');
+            const submitBtn = document.getElementById('eb-signin-submit-btn');
+
+            const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+            const password = passInput ? passInput.value : '';
+
+            if (!email || !isValidRealEmail(email)) {
+              showEBStatus('error', 'Please enter your registered real email address.');
+              if (emailInput) emailInput.focus();
+              return;
+            }
+
+            if (!password) {
+              showEBStatus('error', 'Please enter your account password.');
+              if (passInput) passInput.focus();
+              return;
+            }
+
+            if (submitBtn) {
+              submitBtn.disabled = true;
+              submitBtn.textContent = 'Verifying Credentials...';
+            }
+            showEBStatus('info', 'Authenticating credentials...');
+
+            try {
+              const result = await signInWithEmail(email, password);
+
+              if (result.error) {
+                showEBStatus('error', result.error || 'Invalid email or password. Please check your credentials.');
+                if (submitBtn) {
+                  submitBtn.disabled = false;
+                  submitBtn.textContent = 'Sign In to EB Portal';
+                }
+                return;
+              }
+
+              showEBStatus('success', '✓ Welcome back! Authentication successful.');
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Sign In to EB Portal';
+              }
+              const u = getCachedUser();
+              renderEBUserState(u ? { id: u.id, email: u.email, user_metadata: { full_name: u.fullName } } : null);
+            } catch (err) {
+              showEBStatus('error', err?.message || 'Unable to connect to authentication service.');
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Sign In to EB Portal';
+              }
+            }
+          });
+        }
+
+        // RESET PASSWORD HANDLER
+        if (ebResetForm) {
+          ebResetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const emailInput = document.getElementById('eb-reset-email');
+            const submitBtn = document.getElementById('eb-reset-submit-btn');
+
+            const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+
+            if (!email || !isValidRealEmail(email)) {
+              showEBStatus('error', 'Please enter the real email address associated with your Executive Board account.');
+              if (emailInput) emailInput.focus();
+              return;
+            }
+
+            if (submitBtn) {
+              submitBtn.disabled = true;
+              submitBtn.textContent = 'Transmitting Reset Link...';
+            }
+            showEBStatus('info', 'Requesting password reset...');
+
+            try {
+              const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin
+              });
+
+              if (error) {
+                showEBStatus('error', error.message || 'Unable to process password reset request.');
+                if (submitBtn) {
+                  submitBtn.disabled = false;
+                  submitBtn.textContent = 'Send Password Reset Email';
+                }
+                return;
+              }
+
+              showEBStatus(
+                'success',
+                `✓ If an account exists for <strong>${email}</strong>, a password reset link has been dispatched to your email inbox.`
+              );
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Reset Email Dispatched ✓';
+              }
+            } catch (err) {
+              showEBStatus('error', err?.message || 'Connection failed.');
+              if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Password Reset Email';
+              }
+            }
+          });
+        }
+
+        // SIGN OUT HANDLER
+        if (ebSignoutBtn) {
+          ebSignoutBtn.addEventListener('click', async () => {
+            ebSignoutBtn.disabled = true;
+            ebSignoutBtn.textContent = 'Signing out...';
+            try {
+              await signOut();
+              renderEBUserState(null);
+              showEBStatus('info', 'You have successfully signed out.');
+            } catch (err) {
+              console.error('Sign out error:', err);
+              renderEBUserState(null);
+            } finally {
+              ebSignoutBtn.disabled = false;
+              ebSignoutBtn.textContent = 'Sign Out from EB Portal';
+            }
+          });
+        }
+
+        // Sync EB User state with global auth manager
+        subscribeAuth((user) => {
+          renderEBUserState(user ? { id: user.id, email: user.email, user_metadata: { full_name: user.fullName } } : null);
+        });
+
+        // 20. LOGO INTRO SEQUENCE
         const introOverlay = document.getElementById('intro-overlay');
         const introDustCanvas = document.getElementById('intro-dust-canvas');
         const introProgressBar = document.getElementById('intro-progress-bar');
