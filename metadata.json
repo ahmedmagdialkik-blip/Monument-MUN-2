@@ -1,6 +1,6 @@
 {
-  "name": "Terra Model United Nations 2026",
-  "description": "The official conference portal for Terra MUN 2026. A scroll journey through seven world monuments and seven international committees.",
+  "name": "Monument Model United Nations 2027",
+  "description": "The official conference portal for Monument MUN 2027. Where every monument has a seat. A scroll journey through seven world monuments and seven international committees.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -1,5 +1,5 @@
 import { supabase } from './lib/supabase';
-import type { Profile, UserRole } from './types/database';
+import type { Profile, TeamStatus, UserRole } from './types/database';
 
 export interface CurrentUser {
   id: string;
@@ -7,6 +7,8 @@ export interface CurrentUser {
   fullName: string;
   role: UserRole;
   profile: Profile | null;
+  teamId?: string | null;
+  teamStatus?: TeamStatus;
 }
 
 type AuthCallback = (user: CurrentUser | null, loading: boolean) => void;
@@ -45,7 +47,7 @@ export async function fetchProfile(userId: string): Promise<Profile | null> {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, role, full_name, email, eb_position, created_at')
+      .select('id, role, full_name, email, eb_position, team_id, team_status, created_at')
       .eq('id', userId)
       .maybeSingle();
 
@@ -53,11 +55,21 @@ export async function fetchProfile(userId: string): Promise<Profile | null> {
       console.warn('Could not load profile from profiles table:', error.message);
       return null;
     }
-    return (data as Profile) || null;
+    return (data as unknown as Profile) || null;
   } catch (err) {
     console.error('Exception fetching profile:', err);
     return null;
   }
+}
+
+export async function refreshCurrentUserProfile(): Promise<CurrentUser | null> {
+  if (!currentUserState) return null;
+  await syncUserState({
+    id: currentUserState.id,
+    email: currentUserState.email,
+    user_metadata: { full_name: currentUserState.fullName }
+  });
+  return currentUserState;
 }
 
 async function syncUserState(sessionUser: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null) {
@@ -81,7 +93,9 @@ async function syncUserState(sessionUser: { id: string; email?: string; user_met
     email: sessionUser.email,
     fullName,
     role,
-    profile
+    profile,
+    teamId: profile?.team_id || null,
+    teamStatus: profile?.team_status || null
   };
 
   isAuthLoading = false;
@@ -232,7 +246,7 @@ export async function signOut(): Promise<{ error?: string }> {
 })();
 
 // Real-time auth listener
-supabase.auth.onAuthStateChange(async (_event, session) => {
+supabase.auth.onAuthStateChange(async (_event: unknown, session: { user?: { id: string; email?: string; user_metadata?: Record<string, unknown> } } | null) => {
   if (session?.user) {
     await syncUserState(session.user);
   } else {

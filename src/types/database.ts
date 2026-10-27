@@ -1,6 +1,20 @@
-export type UserRole = 'user' | 'eb' | 'security' | 'admin';
+export type UserRole = 'user' | 'eb' | 'security' | 'head' | 'admin';
 
 export type RegistrationStatus = 'pending' | 'approved' | 'rejected';
+export type TeamStatus = 'pending' | 'approved' | 'rejected' | null;
+export type TeamKind = 'committee' | 'department';
+export type TeamDecision = 'approved' | 'rejected' | 'removed';
+
+export interface Team {
+  id: string;
+  name: string;
+  kind: TeamKind;
+  created_at?: string;
+  head_name?: string | null;
+  head_email?: string | null;
+  approved_count?: number;
+  pending_count?: number;
+}
 
 export interface Profile {
   id: string;
@@ -8,6 +22,8 @@ export interface Profile {
   full_name: string | null;
   email: string | null;
   eb_position?: string | null;
+  team_id?: string | null;
+  team_status?: TeamStatus;
   created_at?: string;
 }
 

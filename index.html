@@ -3714,6 +3714,9 @@
           <div class="team-grid" id="team-grid-container">
             <!-- Populated via JavaScript -->
           </div>
+
+          <!-- Join a Team Member Portal Mount -->
+          <div id="team-join-mount" style="max-width: 760px; margin: 3rem auto 0 auto;"></div>
         </section>
 
         <!-- 8. LIVE UPDATES & SUGGESTIONS -->
@@ -3839,6 +3842,8 @@
             Join the secretariat across twelve specialized organizing departments and support systems.
           </p>
           <span class="apply-status-pill">Status: TBA</span>
+          <!-- Dynamic Join Team Mount inside Apply card -->
+          <div id="apply-team-join-mount" style="margin-top: 1.5rem;"></div>
         </div>
       </div>
 
@@ -3851,6 +3856,12 @@
          Zero links anywhere in the site or navigation.
          ==================================================== -->
     <div id="view-admin" class="app-view"></div>
+
+    <!-- ====================================================
+         VIEW 5: HEAD DASHBOARD (#team-head or #/team-head)
+         Dedicated to role 'head' (and admins)
+         ==================================================== -->
+    <div id="view-team-head" class="app-view"></div>
 
     <!-- ----------------------------------------------------
          10. FOOTER
@@ -3938,13 +3949,13 @@
          ---------------------------------------------------- -->
     <script type="module">
       import { supabase } from '/src/lib/supabase.ts';
-      import { initPortal, isAdminRoute, renderAdminRoute } from '/src/portal.ts';
+      import { initPortal, isAdminRoute, renderAdminRoute, renderTeamHeadRoute } from '/src/portal.ts';
       import { getCachedUser, isAuthReady, signUpWithEmail, signInWithEmail, signOut, subscribeAuth } from '/src/auth.ts';
 
       (function () {
         'use strict';
 
-        // Initialize dynamic portal logic (Apply page registration, admin board, header auth)
+        // Initialize dynamic portal logic (Apply page registration, admin board, head dashboard, header auth)
         initPortal();
 
         const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -4004,11 +4015,12 @@
         window.addEventListener('resize', debounce(fitHeroWordmark, 150));
         window.addEventListener('orientationchange', debounce(fitHeroWordmark, 150));
 
-        // 2. HASH ROUTING (#/ or #/committees or #/apply or hidden /admin and #admin)
+        // 2. HASH ROUTING (#/ or #/committees or #/apply or hidden /admin and #team-head)
         const viewHome = document.getElementById('view-home');
         const viewCommittees = document.getElementById('view-committees');
         const viewApply = document.getElementById('view-apply');
         const viewAdmin = document.getElementById('view-admin');
+        const viewTeamHead = document.getElementById('view-team-head');
         const dotNav = document.getElementById('dot-nav');
         const mobileCounter = document.getElementById('mobile-stop-counter');
 
@@ -4016,8 +4028,9 @@
           const path = window.location.pathname.toLowerCase();
           const cleanHash = (hash || window.location.hash || '').replace(/^#\/?/, '').toLowerCase();
           const isTargetAdmin = path.endsWith('/admin') || path.endsWith('/admin/') || cleanHash === 'admin';
+          const isTargetTeamHead = path.endsWith('/team-head') || path.endsWith('/team-head/') || cleanHash === 'team-head' || cleanHash === 'my-team';
 
-          [viewHome, viewCommittees, viewApply, viewAdmin].forEach((view) => {
+          [viewHome, viewCommittees, viewApply, viewAdmin, viewTeamHead].forEach((view) => {
             if (view) view.classList.remove('active-view');
           });
 
@@ -4029,6 +4042,15 @@
             if (mobileCounter) mobileCounter.classList.remove('visible');
             lockBackgroundToStop6();
             renderAdminRoute(getCachedUser(), !isAuthReady());
+            return;
+          }
+
+          if (isTargetTeamHead) {
+            document.body.classList.add('admin-mode-active');
+            if (dotNav) dotNav.classList.add('nav-hidden');
+            if (mobileCounter) mobileCounter.classList.remove('visible');
+            lockBackgroundToStop6();
+            renderTeamHeadRoute(getCachedUser(), !isAuthReady());
             return;
           }
 
