@@ -1,0 +1,5127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Monument MUN | Where every monument has a seat.</title>
+    <meta
+      name="description"
+      content="Monument Model United Nations (Monument MUN 2027). Where every monument has a seat. Seven committees, seven civilizational monuments. Dates and venue TBA."
+    />
+    <meta property="og:title" content="Monument MUN | Where every monument has a seat." />
+    <meta
+      property="og:description"
+      content="Where every monument has a seat. A scroll journey through seven world monuments and seven committees."
+    />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Google Fonts: Bricolage Grotesque (500, 800) & Newsreader (body & italic accent) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400;1,6..72,600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* ----------------------------------------------------
+         GLOBAL SAFETY RULES (PHASE 2 MANDATE)
+         ---------------------------------------------------- */
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      html, body {
+        max-width: 100%;
+        overflow-x: clip;
+      }
+      *, *::before, *::after {
+        box-sizing: border-box;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+      }
+      img, svg, canvas, video {
+        max-width: 100%;
+        display: block;
+      }
+      h1, h2, h3, p, a, li, span {
+        overflow-wrap: anywhere;
+      }
+      h1, h2, h3, .section-heading, .monument-heading {
+        text-wrap: balance;
+      }
+
+      /* Scroll margin for fixed header clearance */
+      [id], section, .committee-stop {
+        scroll-margin-top: 76px;
+      }
+
+      /* ----------------------------------------------------
+         TOKENS & THEME
+         ---------------------------------------------------- */
+      :root {
+        --font-display: 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --font-serif: 'Newsreader', Georgia, Cambria, 'Times New Roman', Times, serif;
+
+        /* Easing & Timing tokens */
+        --ease: cubic-bezier(0.28, 0.11, 0.32, 1);
+        --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+        --fast: 0.25s;
+        --med: 0.5s;
+        --slow: 0.9s;
+
+        /* Dynamic Interpolated Palette (Stop 0 defaults) */
+        --sky-top: #9fb4c7;
+        --sky-bottom: #e4e0d6;
+        --monument-ink: #3b4a58;
+        --text-color: #1d2a36;
+
+        /* Design tokens */
+        --gold: #d9b45a;
+        --gold-glow: rgba(217, 180, 90, 0.35);
+        --gold-subtle: rgba(217, 180, 90, 0.12);
+        --navy-surface: rgba(8, 10, 30, 0.92);
+        --card-radius: 24px;
+      }
+
+      /* ----------------------------------------------------
+         BASE MOBILE STYLES (360px TARGET)
+         ---------------------------------------------------- */
+      html {
+        scroll-behavior: auto;
+        background-color: #141a3d;
+        color: var(--text-color);
+        font-family: var(--font-serif);
+        font-size: 17px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+
+      body {
+        position: relative;
+        min-height: 100vh;
+        min-height: 100svh;
+        overflow-x: clip;
+      }
+
+      section,
+      .section-container,
+      #hero,
+      #about,
+      .committee-stop,
+      #diplomacy,
+      #board,
+      #team,
+      #updates,
+      #view-committees,
+      #view-apply,
+      #site-footer {
+        padding-inline: max(20px, env(safe-area-inset-left));
+        padding-inline: max(20px, env(safe-area-inset-right));
+        contain: layout paint;
+      }
+
+      /* Typography Scale (Phone Base 360px) */
+      .eyebrow {
+        font-family: var(--font-display);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--gold);
+        display: block;
+        margin-bottom: 0.65rem;
+      }
+
+      .section-heading {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: clamp(2.1rem, 9.5vw, 3.2rem);
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        text-transform: uppercase;
+        margin-bottom: 1.25rem;
+        color: inherit;
+      }
+
+      .section-heading em,
+      .section-heading i {
+        font-family: var(--font-serif);
+        font-style: italic;
+        font-weight: 400;
+        text-transform: none;
+        color: var(--gold);
+        letter-spacing: 0;
+      }
+
+      .monument-heading {
+        font-family: var(--font-display);
+        font-size: clamp(2.4rem, 12vw, 4rem);
+        font-weight: 800;
+        line-height: 0.95;
+        letter-spacing: -0.03em;
+        text-transform: uppercase;
+        color: var(--text-color);
+        margin-bottom: 0.4rem;
+      }
+
+      .committee-name,
+      .apply-role-name,
+      .board-name,
+      .timeline-title {
+        font-size: 20px;
+        font-family: var(--font-display);
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .section-divider {
+        color: var(--gold);
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        display: inline-block;
+      }
+
+      /* ----------------------------------------------------
+         FIXED LAYERS AND VIEWPORT UNITS
+         ---------------------------------------------------- */
+      #fixed-stage {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100vh;
+        height: 100lvh;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+        transform: translateZ(0);
+        background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
+        transition: background 140ms var(--ease);
+      }
+
+      #sky-moon {
+        position: absolute;
+        top: 14%;
+        right: 18%;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: #fdfaf0;
+        box-shadow: 0 0 28px rgba(253, 250, 240, 0.85);
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity var(--med) var(--ease), transform var(--med) var(--ease);
+        pointer-events: none;
+      }
+
+      .monument-layer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 34vh;
+        height: 34lvh;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        opacity: 0;
+        transform: translateY(40px) translateZ(0);
+        will-change: transform, opacity;
+        pointer-events: none;
+        z-index: 1;
+        transition: opacity 100ms linear, transform 100ms linear;
+      }
+
+      .monument-svg {
+        width: 100%;
+        height: 100%;
+        fill: var(--monument-ink);
+        transition: fill 140ms var(--ease);
+      }
+
+      #ground-strip {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        background: var(--monument-ink);
+        z-index: 2;
+        transform: translateZ(0);
+        transition: background 140ms var(--ease);
+      }
+
+      /* Full-height sections */
+      #hero,
+      .committee-stop {
+        min-height: 100vh;
+        min-height: 100svh;
+      }
+
+      /* ----------------------------------------------------
+         TOP PROGRESS BAR & MOBILE STOP COUNTER
+         ---------------------------------------------------- */
+      #scroll-progress {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--gold), #fbe3a6);
+        z-index: 100;
+        transform-origin: 0 50%;
+        transform: scaleX(0);
+        will-change: transform;
+        box-shadow: 0 0 8px var(--gold-glow);
+        pointer-events: none;
+      }
+
+      .mobile-stop-counter {
+        position: fixed;
+        top: calc(56px + env(safe-area-inset-top) + 8px);
+        right: max(16px, env(safe-area-inset-right));
+        z-index: 45;
+        background: rgba(8, 10, 30, 0.9);
+        border: 1px solid var(--gold);
+        color: var(--gold);
+        font-family: var(--font-display);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        padding: 4px 10px;
+        border-radius: 9999px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        pointer-events: none;
+        transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+        opacity: 0;
+      }
+
+      .mobile-stop-counter.visible {
+        opacity: 1;
+      }
+
+      /* ----------------------------------------------------
+         NAVIGATION HEADER (56px + safe-area-inset-top)
+         ---------------------------------------------------- */
+      #site-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: calc(56px + env(safe-area-inset-top));
+        padding-top: env(safe-area-inset-top);
+        padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transform: translateY(-100%);
+        transition: transform 0.75s var(--ease), background-color 0.4s var(--ease), border-color 0.4s var(--ease), box-shadow 0.4s var(--ease);
+        border-bottom: 1px solid transparent;
+      }
+
+      #site-header.header-visible {
+        transform: translateY(0);
+      }
+
+      #site-header.scrolled {
+        background-color: rgba(8, 10, 30, 0.88);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(217, 180, 90, 0.25);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+      }
+
+      .brand-link {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        text-decoration: none;
+        color: inherit;
+      }
+
+      .nav-logo-img {
+        height: 38px;
+        width: auto;
+        border-radius: 6px;
+        object-fit: contain;
+      }
+
+      .brand-stacked-wordmark {
+        display: flex;
+        flex-direction: column;
+        line-height: 1;
+      }
+
+      .brand-main {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 1.05rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-color);
+      }
+
+      #site-header.scrolled .brand-main {
+        color: #ffffff;
+      }
+
+      .brand-sub {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: 0.58rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-top: 2px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .mobile-menu-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 0 14px;
+        background: color-mix(in srgb, var(--text-color) 10%, transparent);
+        border: 1px solid color-mix(in srgb, var(--text-color) 25%, transparent);
+        border-radius: 9999px;
+        color: var(--text-color);
+        font-family: var(--font-display);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      #site-header.scrolled .mobile-menu-btn {
+        color: #f2f4ff;
+        border-color: rgba(217, 180, 90, 0.4);
+        background: rgba(217, 180, 90, 0.12);
+      }
+
+      /* ----------------------------------------------------
+         MOBILE MENU OVERLAY
+         ---------------------------------------------------- */
+      #mobile-nav-panel {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        overflow-y: auto;
+        padding: calc(64px + env(safe-area-inset-top)) 24px 32px 24px;
+        z-index: 70;
+        background: rgba(8, 10, 30, 0.98);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 1.5rem;
+        opacity: 0;
+        transform: scale(0.98);
+        pointer-events: none;
+        transition: opacity var(--med) var(--ease), transform var(--med) var(--ease);
+      }
+
+      #mobile-nav-panel.open {
+        opacity: 1;
+        transform: scale(1);
+        pointer-events: auto;
+      }
+
+      .mobile-close-btn {
+        position: absolute;
+        top: max(16px, env(safe-area-inset-top));
+        right: max(16px, env(safe-area-inset-right));
+        min-width: 44px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #fff;
+        font-family: var(--font-display);
+        font-size: 0.85rem;
+        font-weight: 800;
+        padding: 0 14px;
+        border-radius: 9999px;
+        cursor: pointer;
+      }
+
+      .mobile-link {
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #f2f4ff;
+        text-decoration: none;
+        opacity: 0;
+        transform: translateY(16px);
+        transition: opacity var(--fast) var(--ease), transform var(--fast) var(--ease), color var(--fast) var(--ease);
+      }
+
+      #mobile-nav-panel.open .mobile-link {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .mobile-social-line {
+        font-family: var(--font-display);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-top: 1rem;
+      }
+
+      /* ----------------------------------------------------
+         BUTTONS & PILLS (16px base on phone)
+         ---------------------------------------------------- */
+      .btn-interactive,
+      .apply-pill-btn,
+      .hero-outline-btn,
+      .form-submit-btn,
+      .back-home-link {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        cursor: pointer;
+        user-select: none;
+        text-decoration: none;
+        transition: transform var(--fast) var(--ease), background var(--fast) var(--ease), border-color var(--fast) var(--ease), color var(--fast) var(--ease);
+      }
+
+      .btn-interactive:active,
+      .apply-pill-btn:active,
+      .hero-outline-btn:active,
+      .form-submit-btn:active,
+      .mobile-menu-btn:active,
+      .mobile-close-btn:active,
+      .footer-replay-pill:active,
+      .replay-intro-btn:active,
+      .intro-skip-pill:active {
+        transform: scale(0.96) !important;
+        transition: transform 0.12s var(--ease) !important;
+      }
+
+      .btn-interactive:focus-visible,
+      .apply-pill-btn:focus-visible,
+      .hero-outline-btn:focus-visible,
+      .form-submit-btn:focus-visible {
+        outline: 3px solid var(--gold);
+        outline-offset: 3px;
+      }
+
+      .apply-pill-btn {
+        background: var(--gold);
+        color: #080a1e !important;
+        font-family: var(--font-display);
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding: 0.75rem 1.6rem;
+        border-radius: 9999px;
+        border: 1px solid var(--gold);
+        box-shadow: 0 4px 18px var(--gold-glow);
+      }
+
+      .hero-outline-btn {
+        background: transparent;
+        color: var(--text-color);
+        border: 2px solid var(--text-color);
+        padding: 0.85rem 1.8rem;
+        border-radius: 9999px;
+        font-family: var(--font-display);
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+      }
+
+      .hero-outline-btn::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--text-color);
+        transform: translateX(-101%);
+        transition: transform var(--med) var(--ease);
+        z-index: -1;
+      }
+
+      .form-submit-btn {
+        width: 100%;
+        min-height: 52px;
+        background: var(--gold);
+        color: #080a1e;
+        border: none;
+        border-radius: 12px;
+        font-family: var(--font-display);
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        box-shadow: 0 4px 18px var(--gold-glow);
+      }
+
+      /* ----------------------------------------------------
+         FORM CONTROLS (min-height 52px, font-size 16px)
+         ---------------------------------------------------- */
+      .form-group {
+        margin-bottom: 1.25rem;
+      }
+
+      .form-label {
+        font-family: var(--font-display);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #f2f4ff;
+        display: block;
+        margin-bottom: 0.45rem;
+      }
+
+      .form-input,
+      .form-select,
+      .form-textarea {
+        width: 100%;
+        min-height: 52px;
+        height: 52px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1.5px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 0 16px;
+        font-family: var(--font-serif);
+        font-size: 16px; /* Strictly 16px prevents iOS zoom */
+        color: #ffffff;
+        outline: none;
+        transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+      }
+
+      .form-textarea {
+        height: auto;
+        min-height: 110px;
+        padding: 14px 16px;
+      }
+
+      .form-input:focus,
+      .form-select:focus,
+      .form-textarea:focus {
+        border-color: var(--gold);
+        box-shadow: 0 0 14px var(--gold-glow);
+      }
+
+      .form-select option {
+        background: #080a1e;
+        color: #ffffff;
+      }
+
+      .status-banner {
+        padding: 0.85rem 1.15rem;
+        border-radius: 10px;
+        font-family: var(--font-display);
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-bottom: 1.25rem;
+        display: none;
+      }
+
+      .status-banner.success {
+        display: block;
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid rgba(34, 197, 94, 0.45);
+        color: #22c55e;
+      }
+
+      .status-banner.error {
+        display: block;
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.45);
+        color: #ef4444;
+      }
+
+      /* ----------------------------------------------------
+         PHONE REVEAL ANIMATIONS (NO BLUR ON PHONE)
+         ---------------------------------------------------- */
+      .reveal-item {
+        opacity: 0;
+        transform: translateY(22px);
+        will-change: transform, opacity;
+        transition: opacity var(--med) var(--ease), transform var(--med) var(--ease);
+      }
+
+      .reveal-item.revealed {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .word-mask {
+        display: inline-block;
+        overflow: hidden;
+        vertical-align: top;
+      }
+
+      .word-inner {
+        display: inline-block;
+        transform: translateY(110%);
+        transition: transform var(--slow) var(--ease);
+      }
+
+      .revealed .word-inner {
+        transform: translateY(0);
+      }
+
+      /* ----------------------------------------------------
+         HERO SECTION (HOME)
+         ---------------------------------------------------- */
+      #hero {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        text-align: left;
+        padding-top: calc(56px + env(safe-area-inset-top) + 1.25rem);
+        padding-bottom: 4.5rem;
+        position: relative;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .hero-inner {
+        max-width: 54rem;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+        will-change: transform, opacity;
+      }
+
+      .hero-brand-row {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .hero-logo-mark {
+        height: 52px;
+        width: auto;
+        border-radius: 10px;
+        object-fit: contain;
+      }
+
+      .hero-wordmark {
+        margin: 0.5rem 0 1.25rem 0;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      .hero-line {
+        display: block;
+        font-family: var(--font-display);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        text-transform: uppercase;
+        color: var(--text-color);
+        white-space: nowrap;
+        line-height: 0.85;
+      }
+
+      .hero-char {
+        display: inline-block;
+        opacity: 0;
+        transform: translateY(30px);
+        animation: heroCharRise 0.65s var(--ease) forwards;
+      }
+
+      @keyframes heroCharRise {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .hero-tagline {
+        font-family: var(--font-display);
+        font-size: clamp(1rem, 4.2vw, 1.45rem);
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-color);
+        margin-bottom: 0.35rem;
+      }
+
+      .hero-subline {
+        font-family: var(--font-serif);
+        font-size: clamp(1.1rem, 4.5vw, 1.55rem);
+        font-style: italic;
+        color: var(--text-color);
+        opacity: 0.92;
+        margin-bottom: 1.4rem;
+      }
+
+      .hero-dates-venue {
+        font-family: var(--font-display);
+        font-size: 0.85rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 2rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+      }
+
+      .hero-scroll-indicator {
+        position: absolute;
+        bottom: 1.8rem;
+        left: max(20px, env(safe-area-inset-left));
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--text-color);
+        opacity: 0.7;
+        animation: scrollBounce 2s infinite ease-in-out;
+      }
+
+      @keyframes scrollBounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(6px); }
+      }
+
+      /* ----------------------------------------------------
+         MARQUEE (NO VERTICAL OVERFLOW, PADDING-BLOCK <= 10px)
+         ---------------------------------------------------- */
+      .marquee-wrapper {
+        width: 100%;
+        overflow: hidden;
+        height: auto;
+        padding-block: 8px;
+        background: color-mix(in srgb, var(--monument-ink) 12%, transparent);
+        border-top: 1px solid color-mix(in srgb, var(--text-color) 12%, transparent);
+        border-bottom: 1px solid color-mix(in srgb, var(--text-color) 12%, transparent);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .marquee-track {
+        display: flex;
+        width: max-content;
+        gap: 2rem;
+        will-change: transform;
+      }
+
+      .marquee-item {
+        font-family: var(--font-display);
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-color);
+        display: inline-flex;
+        align-items: center;
+        gap: 1.5rem;
+        white-space: nowrap;
+      }
+
+      .marquee-item .sep {
+        color: var(--gold);
+        font-size: 0.9em;
+      }
+
+      /* ----------------------------------------------------
+         EDITORIAL ABOUT SECTION
+         ---------------------------------------------------- */
+      #about {
+        padding-top: 5rem;
+        padding-bottom: 5rem;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      .about-container {
+        max-width: 50rem;
+      }
+
+      .about-lead {
+        font-size: clamp(1.2rem, 4.8vw, 1.7rem);
+        line-height: 1.5;
+        color: var(--text-color);
+        margin-bottom: 1.4rem;
+      }
+
+      .about-body {
+        font-size: 1.12rem;
+        line-height: 1.75;
+        color: color-mix(in srgb, var(--text-color) 88%, transparent);
+      }
+
+      .about-body em {
+        font-family: var(--font-serif);
+        font-style: italic;
+        color: var(--gold);
+      }
+
+      /* ----------------------------------------------------
+         COMMITTEES SCROLL JOURNEY STOPS (HOME)
+         (Upper 60% text placement to clear 34lvh silhouette)
+         ---------------------------------------------------- */
+      #committee-stops-container {
+        position: relative;
+        width: 100%;
+      }
+
+      .committee-stop {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        text-align: left;
+        padding-top: calc(56px + env(safe-area-inset-top) + 1.25rem);
+        padding-bottom: 36lvh;
+        max-width: 1400px;
+        margin: 0 auto;
+        position: relative;
+      }
+
+      .stop-content-wrapper {
+        max-width: 34rem;
+        width: 100%;
+      }
+
+      .stop-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: var(--font-display);
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 0.5rem;
+      }
+
+      .monument-location {
+        font-family: var(--font-display);
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 0.85rem;
+      }
+
+      .monument-atmosphere {
+        font-family: var(--font-serif);
+        font-size: clamp(1.1rem, 4.2vw, 1.4rem);
+        font-style: italic;
+        line-height: 1.45;
+        color: var(--text-color);
+        opacity: 0.92;
+        margin-bottom: 1.6rem;
+      }
+
+      .committee-block {
+        background: rgba(8, 10, 30, 0.9);
+        border: 1px solid rgba(217, 180, 90, 0.3);
+        border-left: 4px solid var(--gold);
+        padding: 1.4rem 1.4rem;
+        border-radius: 0 var(--card-radius) var(--card-radius) 0;
+        width: 100%;
+        color: #f2f4ff;
+      }
+
+      .committee-block .committee-name {
+        color: #f2f4ff;
+        margin-bottom: 0.6rem;
+      }
+
+      .committee-agenda {
+        font-size: 1.05rem;
+        line-height: 1.5;
+        font-style: italic;
+        color: rgba(242, 244, 255, 0.9);
+        margin-bottom: 0.8rem;
+      }
+
+      .committee-agenda strong {
+        font-family: var(--font-display);
+        font-style: normal;
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold);
+        display: block;
+        margin-bottom: 0.25rem;
+      }
+
+      /* ----------------------------------------------------
+         DARK PANELS & PERFORMANCE DISCIPLINE
+         (Solid dark surface on mobile, backdrop-filter disabled)
+         ---------------------------------------------------- */
+      .dark-section-panel {
+        position: relative;
+        background: rgba(8, 10, 30, 0.92);
+        color: #f2f4ff;
+        padding-top: 4.5rem;
+      }
+
+      .dark-section-panel .section-heading,
+      .dark-section-panel .stat-label,
+      .dark-section-panel .board-name,
+      .dark-section-panel .dept-member-name,
+      .dark-section-panel .timeline-title {
+        color: #f2f4ff !important;
+      }
+
+      .dark-section-panel .stat-sub,
+      .dark-section-panel .board-note,
+      .dark-section-panel .timeline-desc,
+      .dark-section-panel .globe-hint {
+        color: rgba(242, 244, 255, 0.75) !important;
+      }
+
+      /* ----------------------------------------------------
+         THE GLOBAL STAGE (CANVAS GLOBE & STATS)
+         (width 88%, max 420px, aspect-ratio 1, touch-action pan-y)
+         ---------------------------------------------------- */
+      #diplomacy {
+        padding-top: 5rem;
+        padding-bottom: 4.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      .globe-stage-wrapper {
+        position: relative;
+        width: 88%;
+        max-width: 460px;
+        aspect-ratio: 1;
+        margin: 1.5rem auto 1rem auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #globeCanvas {
+        width: 100%;
+        height: 100%;
+        aspect-ratio: 1;
+        cursor: grab;
+        touch-action: pan-y;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      #globeCanvas:active {
+        cursor: grabbing;
+      }
+
+      .globe-tooltip {
+        position: absolute;
+        pointer-events: auto;
+        background: rgba(8, 10, 30, 0.95);
+        border: 1px solid var(--gold);
+        padding: 0.5rem 0.9rem;
+        border-radius: 8px;
+        font-family: var(--font-display);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: #ffffff;
+        text-transform: uppercase;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.55), 0 0 12px rgba(217, 180, 90, 0.25);
+        transform: translate(-50%, -135%) scale(0.96);
+        opacity: 0;
+        transition: opacity var(--fast) var(--ease), transform var(--fast) var(--ease);
+        white-space: nowrap;
+        z-index: 20;
+        cursor: pointer;
+        text-align: center;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+
+      .globe-tooltip.visible {
+        opacity: 1;
+        transform: translate(-50%, -142%) scale(1);
+      }
+
+      .globe-tooltip .comm {
+        display: block;
+        color: var(--gold);
+        font-size: 0.76em;
+        font-family: var(--font-serif);
+        font-style: italic;
+        text-transform: none;
+        letter-spacing: normal;
+        margin-top: 2px;
+      }
+
+      .globe-tooltip .tap-cta {
+        display: block;
+        color: rgba(242, 244, 255, 0.65);
+        font-size: 0.62em;
+        font-family: var(--font-display);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 3px;
+      }
+
+      .globe-drag-hint {
+        font-family: var(--font-display);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-top: 0.25rem;
+        margin-bottom: 1.25rem;
+        transition: opacity var(--med) var(--ease);
+      }
+
+      /* 7 Monument Chips horizontal snap row */
+      .globe-chips-wrapper {
+        width: 100%;
+        max-width: 760px;
+        margin: 0.25rem auto 2.5rem auto;
+        padding: 0 0.5rem;
+      }
+
+      .globe-chips-scroll {
+        display: flex;
+        gap: 0.55rem;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding: 0.35rem 0.25rem 0.75rem 0.25rem;
+      }
+
+      .globe-chips-scroll::-webkit-scrollbar {
+        display: none;
+      }
+
+      .monument-chip {
+        flex: 0 0 auto;
+        scroll-snap-align: center;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        min-height: 44px;
+        padding: 0.45rem 0.95rem;
+        background: rgba(18, 24, 58, 0.8);
+        border: 1px solid rgba(217, 180, 90, 0.25);
+        border-radius: 9999px;
+        color: #f2f4ff;
+        font-family: var(--font-display);
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease), transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+      }
+
+      .monument-chip:focus-visible {
+        outline: 2px solid var(--gold);
+        outline-offset: 2px;
+      }
+
+      .monument-chip.active {
+        background: rgba(217, 180, 90, 0.22);
+        border-color: var(--gold);
+        color: #ffffff;
+        box-shadow: 0 0 14px rgba(217, 180, 90, 0.35);
+      }
+
+      .chip-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--gold);
+        box-shadow: 0 0 6px var(--gold);
+        flex-shrink: 0;
+      }
+
+      .monument-chip.active .chip-dot {
+        background: #ffffff;
+        box-shadow: 0 0 8px #ffffff;
+      }
+
+      .chip-comm {
+        font-size: 0.72rem;
+        opacity: 0.75;
+        font-family: var(--font-serif);
+        font-style: italic;
+        font-weight: 400;
+      }
+
+      /* ----------------------------------------------------
+         CARDS (1 COLUMN AT 360px)
+         ---------------------------------------------------- */
+      .stat-cards-grid,
+      .board-grid,
+      .team-grid,
+      .committees-grid,
+      .apply-status-cards {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+      }
+
+      .stat-card,
+      .board-card,
+      .team-dept-card,
+      .update-glass-card,
+      .suggestion-box,
+      .committee-card-full,
+      .apply-card {
+        padding: 1.85rem 1.4rem;
+        background: rgba(8, 10, 30, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: var(--card-radius);
+      }
+
+      .stat-card {
+        text-align: center;
+      }
+
+      .stat-number {
+        font-family: var(--font-display);
+        font-size: 3rem;
+        font-weight: 800;
+        color: var(--gold);
+        line-height: 1;
+        margin-bottom: 0.4rem;
+      }
+
+      .stat-label {
+        font-family: var(--font-display);
+        font-size: 0.85rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        margin-bottom: 0.3rem;
+      }
+
+      /* ----------------------------------------------------
+         EXECUTIVE BOARD (96px PORTRAITS, EXACTLY 3 CARDS)
+         ---------------------------------------------------- */
+      #board {
+        padding-top: 5rem;
+        padding-bottom: 4.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        text-align: center;
+      }
+
+      .board-grid {
+        margin-top: 2.5rem;
+      }
+
+      .board-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+
+      .board-avatar {
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        background: rgba(217, 180, 90, 0.12);
+        border: 2px solid var(--gold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.25rem;
+        color: var(--gold);
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 1.5rem;
+        box-shadow: 0 4px 18px var(--gold-glow);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .board-avatar-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        display: block;
+      }
+
+      .board-avatar-fallback {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .board-role {
+        font-family: var(--font-display);
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 0.35rem;
+      }
+
+      .board-name {
+        margin-bottom: 0.5rem;
+      }
+
+      /* ----------------------------------------------------
+         MEET THE TEAM (12 DEPARTMENTS)
+         ---------------------------------------------------- */
+      #team {
+        padding-top: 5rem;
+        padding-bottom: 4.5rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .team-grid {
+        margin-top: 2.5rem;
+      }
+
+      .dept-eyebrow {
+        font-family: var(--font-display);
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 0.85rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 0.45rem;
+      }
+
+      .dept-member-unit {
+        margin-bottom: 0.65rem;
+      }
+
+      .dept-member-unit:last-child {
+        margin-bottom: 0;
+      }
+
+      .dept-role-title {
+        font-size: 0.82rem;
+        color: rgba(242, 244, 255, 0.7);
+        font-style: italic;
+      }
+
+      .dept-person-name {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 1rem;
+        color: #ffffff;
+      }
+
+      /* ----------------------------------------------------
+         LIVE UPDATES & SUGGESTIONS
+         (Last section before footer: padding-bottom 110px)
+         ---------------------------------------------------- */
+      #updates {
+        padding-top: 5rem;
+        padding-bottom: 110px; /* Phase 2 requirement */
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      .updates-split {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+
+      .update-cards-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        margin-top: 1.25rem;
+      }
+
+      .update-date-badge {
+        display: inline-block;
+        background: var(--gold);
+        color: #080a1e;
+        font-family: var(--font-display);
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        padding: 0.3rem 0.75rem;
+        border-radius: 9999px;
+        margin-bottom: 0.75rem;
+      }
+
+      /* ----------------------------------------------------
+         ROUTING VIEW CONTAINERS (Home, Committees, Apply)
+         ---------------------------------------------------- */
+      .app-view {
+        display: none;
+        opacity: 0;
+        transform: translateY(15px);
+        transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        min-height: 100vh;
+        min-height: 100svh;
+      }
+
+      .app-view.active-view {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      #view-committees,
+      #view-apply {
+        padding-top: calc(56px + env(safe-area-inset-top) + 2rem);
+        padding-bottom: 110px;
+        max-width: 1300px;
+        margin: 0 auto;
+      }
+
+      .back-home-link {
+        font-family: var(--font-display);
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 1.75rem;
+        display: inline-flex;
+        gap: 0.45rem;
+      }
+
+      .comm-icon-wrapper {
+        width: 100%;
+        height: 96px;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 0.85rem;
+      }
+
+      .comm-icon-svg {
+        height: 100%;
+        width: auto;
+        fill: var(--gold);
+        opacity: 0.9;
+      }
+
+      .comm-meta-grid {
+        margin-top: 1.25rem;
+        padding-top: 0.85rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        font-family: var(--font-display);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(242, 244, 255, 0.75);
+      }
+
+      .comm-bg-guide-badge {
+        display: inline-block;
+        background: rgba(217, 180, 90, 0.15);
+        color: var(--gold);
+        border: 1px solid var(--gold);
+        padding: 0.25rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.7rem;
+      }
+
+      .apply-role-icon {
+        font-size: 1.8rem;
+        color: var(--gold);
+        margin-bottom: 0.85rem;
+      }
+
+      .apply-status-pill {
+        display: inline-block;
+        background: rgba(217, 180, 90, 0.15);
+        border: 1px solid var(--gold);
+        color: var(--gold);
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding: 0.35rem 0.85rem;
+        border-radius: 9999px;
+        margin-top: 0.5rem;
+      }
+
+      /* ----------------------------------------------------
+         RIGHT-SIDE VERTICAL DOT NAVIGATION (HIDDEN ON PHONE)
+         ---------------------------------------------------- */
+      #dot-nav {
+        display: none;
+        position: fixed;
+        right: 1.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 50;
+        flex-direction: column;
+        gap: 1rem;
+        list-style: none;
+        transition: opacity var(--med) var(--ease), transform var(--med) var(--ease);
+      }
+
+      #dot-nav.nav-hidden {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-50%) translateX(30px);
+      }
+
+      .dot-nav-item {
+        position: relative;
+        display: flex;
+        align-items: center;
+      }
+
+      .dot-nav-btn {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--text-color) 25%, transparent);
+        border: 2px solid transparent;
+        cursor: pointer;
+        padding: 0;
+        transition: transform 0.35s var(--spring), background-color var(--fast) var(--ease), box-shadow 0.35s var(--spring);
+      }
+
+      .dot-nav-btn.active {
+        background: var(--gold);
+        transform: scale(1.5);
+        box-shadow: 0 0 12px var(--gold-glow);
+      }
+
+      .dot-tooltip {
+        position: absolute;
+        right: calc(100% + 14px);
+        background: rgba(8, 10, 30, 0.95);
+        color: #f2f4ff;
+        padding: 0.4rem 0.85rem;
+        border-radius: 8px;
+        border: 1px solid var(--gold);
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateX(8px);
+        transition: opacity var(--fast) var(--ease), transform var(--fast) var(--ease);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+      }
+
+      /* ----------------------------------------------------
+         BOTTOM ANNOUNCEMENT PILL
+         (Fixed bottom, safe-area-inset-bottom, max 1 line)
+         ---------------------------------------------------- */
+      #announcement-pill {
+        position: fixed;
+        bottom: max(16px, env(safe-area-inset-bottom));
+        left: 16px;
+        right: 16px;
+        max-width: calc(100% - 32px);
+        margin: 0 auto;
+        transform: translateY(140%);
+        z-index: 50;
+        background: rgba(8, 10, 30, 0.94);
+        border: 1px solid var(--gold);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 0.65rem 1rem;
+        border-radius: 9999px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.65rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 14px var(--gold-glow);
+        transition: transform 0.6s var(--spring), opacity 0.4s var(--ease);
+        opacity: 0;
+      }
+
+      #announcement-pill.visible {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      #announcement-pill.hidden {
+        transform: translateY(140%);
+        opacity: 0;
+      }
+
+      #announcement-pill a {
+        font-family: var(--font-display);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #ffffff;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      #announcement-pill .pill-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      #announcement-pill a span.view-link {
+        color: var(--gold);
+        margin-left: 0.2rem;
+        flex-shrink: 0;
+      }
+
+      #announcement-pill .pill-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--gold);
+        box-shadow: 0 0 10px var(--gold);
+        flex-shrink: 0;
+        animation: pulseDot 2s infinite ease-in-out;
+      }
+
+      @keyframes pulseDot {
+        0%, 100% { transform: scale(1); opacity: 0.8; }
+        50% { transform: scale(1.3); opacity: 1; }
+      }
+
+      #announcement-pill .dismiss-pill {
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.55);
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0 0.25rem;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+
+      /* ----------------------------------------------------
+         FOOTER
+         ---------------------------------------------------- */
+      #site-footer {
+        padding-top: 4.5rem;
+        padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
+        background: #05060f;
+        color: #f2f4ff;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        position: relative;
+        overflow: hidden;
+        z-index: 20;
+      }
+
+      .footer-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+        position: relative;
+        z-index: 2;
+      }
+
+      .footer-logo-img {
+        height: 84px;
+        width: auto;
+        object-fit: contain;
+        margin-bottom: 0.85rem;
+      }
+
+      .replay-intro-btn {
+        background: transparent;
+        border: 1px solid rgba(217, 180, 90, 0.4);
+        color: var(--gold);
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        cursor: pointer;
+        padding: 0.45rem 1rem;
+        border-radius: 9999px;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .footer-sub-model {
+        font-family: var(--font-display);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 1rem;
+      }
+
+      .footer-instagram-card {
+        padding: 1.15rem;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+        margin-top: 1.15rem;
+        font-family: var(--font-display);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gold);
+      }
+
+      .footer-col-title {
+        font-family: var(--font-display);
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 1.15rem;
+      }
+
+      .footer-links-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+
+      .footer-links-list a {
+        font-size: 0.92rem;
+        color: rgba(242, 244, 255, 0.7);
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .giant-footer-wordmark {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: clamp(3rem, 13vw, 10rem);
+        text-transform: uppercase;
+        line-height: 0.85;
+        letter-spacing: -0.04em;
+        color: rgba(255, 255, 255, 0.12);
+        margin-top: 3.5rem;
+        text-align: center;
+        user-select: none;
+        pointer-events: none;
+      }
+
+      .footer-bottom-bar {
+        max-width: 1200px;
+        margin: 2.25rem auto 0 auto;
+        padding-top: 1.75rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.25rem;
+        text-align: center;
+        font-family: var(--font-display);
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        color: rgba(255, 255, 255, 0.4);
+      }
+
+      .footer-replay-container {
+        order: -1;
+      }
+
+      .footer-replay-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        min-height: 44px;
+        background: rgba(217, 180, 90, 0.1);
+        color: var(--gold);
+        border: 1px solid rgba(217, 180, 90, 0.4);
+        font-family: var(--font-display);
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding: 0.6rem 1.4rem;
+        border-radius: 9999px;
+        cursor: pointer;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+      }
+
+      /* ----------------------------------------------------
+         INTRO OVERLAY
+         ---------------------------------------------------- */
+      #intro-overlay {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100vh;
+        height: 100lvh;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        pointer-events: auto;
+      }
+
+      .intro-curtain {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 50.5%;
+        background: #080a1e;
+        z-index: 1;
+        will-change: transform;
+        transition: transform 0.9s var(--ease);
+      }
+
+      #intro-curtain-top {
+        top: 0;
+        transform-origin: top center;
+      }
+
+      #intro-curtain-bottom {
+        bottom: 0;
+        transform-origin: bottom center;
+      }
+
+      #intro-overlay.split #intro-curtain-top {
+        transform: translateY(-100%);
+      }
+
+      #intro-overlay.split #intro-curtain-bottom {
+        transform: translateY(100%);
+      }
+
+      #intro-radial-glow {
+        position: absolute;
+        width: min(650px, 90vw);
+        height: min(650px, 90vw);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(circle, rgba(217, 180, 90, 0.45) 0%, rgba(217, 180, 90, 0) 70%);
+        border-radius: 50%;
+        z-index: 2;
+        pointer-events: none;
+        animation: introGlowBreathe 4s ease-in-out infinite alternate;
+        will-change: opacity;
+      }
+
+      @keyframes introGlowBreathe {
+        from { opacity: 0.12; }
+        to { opacity: 0.22; }
+      }
+
+      #intro-dust-canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 3;
+        pointer-events: none;
+      }
+
+      #intro-content {
+        position: relative;
+        z-index: 4;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 1.5rem;
+        pointer-events: none;
+        will-change: transform, opacity;
+        transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+      }
+
+      #intro-overlay.content-exit #intro-content {
+        opacity: 0;
+        transform: scale(1.06);
+      }
+
+      #intro-logo-wrap {
+        position: relative;
+        width: 260px;
+        max-width: 62vw;
+        margin-bottom: 1.25rem;
+      }
+
+      #intro-logo-img {
+        width: 100%;
+        height: auto;
+        display: block;
+        opacity: 0;
+        filter: blur(14px);
+        transform: scale(0.92);
+        transition: opacity 1.4s var(--ease), filter 1.4s var(--ease), transform 1.4s var(--ease);
+        will-change: opacity, filter, transform;
+      }
+
+      #intro-overlay.logo-in #intro-logo-img {
+        opacity: 1;
+        filter: blur(0);
+        transform: scale(1);
+      }
+
+      #intro-light-sweep {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        -webkit-mask-image: url('logo.png');
+        mask-image: url('logo.png');
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-position: center;
+        mask-position: center;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        overflow: hidden;
+        opacity: 0;
+      }
+
+      #intro-light-sweep::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -100%;
+        width: 300%;
+        height: 200%;
+        background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.95) 50%, transparent 65%);
+        transform: translateX(-100%);
+      }
+
+      #intro-overlay.sweep #intro-light-sweep {
+        opacity: 1;
+      }
+
+      #intro-overlay.sweep #intro-light-sweep::after {
+        animation: introSweepAnim 1.1s var(--ease) forwards;
+      }
+
+      @keyframes introSweepAnim {
+        0% { transform: translateX(-60%); }
+        100% { transform: translateX(60%); }
+      }
+
+      #intro-line {
+        width: 0;
+        max-width: min(320px, 60vw);
+        height: 1px;
+        background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+        margin-bottom: 1.15rem;
+        transition: width 0.8s var(--ease);
+      }
+
+      #intro-overlay.line-drawn #intro-line {
+        width: min(320px, 60vw);
+      }
+
+      #intro-title {
+        font-family: var(--font-display);
+        font-size: clamp(0.72rem, 1.8vw, 0.9rem);
+        font-weight: 800;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: #f2f4ff;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+        margin-bottom: 0.45rem;
+      }
+
+      #intro-overlay.text-in #intro-title {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      #intro-tagline {
+        font-family: var(--font-serif);
+        font-style: italic;
+        font-size: clamp(0.95rem, 2.2vw, 1.25rem);
+        color: var(--gold);
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.6s var(--ease) 0.15s, transform 0.6s var(--ease) 0.15s;
+      }
+
+      #intro-overlay.text-in #intro-tagline {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      #intro-progress-bar-wrap {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.08);
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      #intro-progress-bar {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--gold), #fff4ce);
+        box-shadow: 0 0 8px var(--gold);
+        transform-origin: left center;
+      }
+
+      #intro-counter {
+        position: absolute;
+        bottom: max(1.25rem, env(safe-area-inset-bottom));
+        left: max(1.5rem, env(safe-area-inset-left));
+        font-family: var(--font-display);
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        color: var(--gold);
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      .intro-skip-pill {
+        position: absolute;
+        bottom: max(1.25rem, env(safe-area-inset-bottom));
+        right: max(1.5rem, env(safe-area-inset-right));
+        min-height: 44px;
+        min-width: 44px;
+        z-index: 20;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(217, 180, 90, 0.4);
+        color: #f2f4ff;
+        font-family: var(--font-display);
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        padding: 0 1.25rem;
+        border-radius: 9999px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* ====================================================
+         MEDIA QUERY 1: 480px (CARDS 2-COLUMN)
+         ==================================================== */
+      @media (min-width: 480px) {
+        .stat-cards-grid,
+        .board-grid,
+        .team-grid,
+        .committees-grid,
+        .apply-status-cards {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1.4rem;
+        }
+      }
+
+      /* ====================================================
+         MEDIA QUERY 2: 700px (TABLET BREAKPOINT)
+         ==================================================== */
+      @media (min-width: 700px) {
+        #site-header {
+          height: 4.75rem;
+          padding-top: 0;
+          padding-inline: 2.75rem;
+        }
+
+        .mobile-menu-btn {
+          display: none;
+        }
+
+        .nav-links {
+          display: flex;
+          align-items: center;
+          gap: 2.25rem;
+          list-style: none;
+        }
+
+        .nav-links a {
+          font-family: var(--font-display);
+          font-size: 0.85rem;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--text-color);
+          text-decoration: none;
+          position: relative;
+          padding: 0.5rem 0;
+          opacity: 0.88;
+        }
+
+        #site-header.scrolled .nav-links a {
+          color: #f2f4ff;
+        }
+
+        .nav-links a::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background: var(--gold);
+          transform: scaleX(0);
+          transform-origin: center;
+          transition: transform var(--fast) var(--ease);
+        }
+
+        #dot-nav {
+          display: flex;
+        }
+
+        .mobile-stop-counter {
+          display: none !important;
+        }
+
+        .monument-layer {
+          height: 52vh;
+          height: 52lvh;
+        }
+
+        .committee-stop {
+          justify-content: center;
+          padding-top: 5rem;
+          padding-bottom: 12rem;
+        }
+
+        #announcement-pill {
+          left: 50%;
+          right: auto;
+          max-width: 620px;
+          transform: translate(-50%, 140%);
+        }
+
+        #announcement-pill.visible {
+          transform: translate(-50%, 0);
+        }
+
+        .stat-cards-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .apply-status-cards {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .board-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .updates-split {
+          grid-template-columns: 1fr 1.15fr;
+          gap: 3.5rem;
+        }
+
+        .footer-inner {
+          grid-template-columns: 1.5fr 1fr 1fr;
+          gap: 3.5rem;
+        }
+
+        .footer-bottom-bar {
+          flex-direction: row;
+          justify-content: space-between;
+          text-align: left;
+        }
+
+        .footer-replay-container {
+          order: 0;
+        }
+      }
+
+      /* ====================================================
+         MEDIA QUERY 3: 1100px (DESKTOP BREAKPOINT)
+         ==================================================== */
+      @media (min-width: 1100px) {
+        .monument-layer {
+          height: 64vh;
+          height: 64lvh;
+        }
+
+        .globe-stage-wrapper {
+          max-width: 560px;
+        }
+
+        .team-grid {
+          grid-template-columns: repeat(4, 1fr);
+        }
+
+        .committees-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+
+        .committee-block,
+        .stat-card,
+        .board-card,
+        .team-dept-card,
+        .update-glass-card,
+        .suggestion-box,
+        .committee-card-full,
+        .apply-card {
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+        }
+
+        .reveal-item {
+          filter: blur(6px);
+          transition: opacity var(--slow) var(--ease), transform var(--slow) var(--ease), filter var(--slow) var(--ease);
+        }
+
+        .reveal-item.revealed {
+          filter: blur(0);
+        }
+      }
+
+      /* ====================================================
+         MEDIA QUERY 4: HOVER & POINTER FINE
+         (Strictly wrapped so touch doesn't stick)
+         ==================================================== */
+      @media (hover: hover) and (pointer: fine) {
+        .brand-link:hover {
+          transform: scale(1.03);
+        }
+
+        .nav-links a:hover {
+          opacity: 1;
+          color: var(--gold);
+        }
+
+        .nav-links a:hover::after {
+          transform: scaleX(1);
+        }
+
+        .btn-interactive:hover,
+        .apply-pill-btn:hover,
+        .hero-outline-btn:hover,
+        .form-submit-btn:hover,
+        .mobile-menu-btn:hover,
+        .back-home-link:hover {
+          transform: scale(1.06);
+          box-shadow: 0 10px 28px var(--gold-glow), 0 3px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .hero-outline-btn:hover {
+          color: var(--sky-top) !important;
+        }
+
+        .hero-outline-btn:hover::before {
+          transform: translateX(0);
+        }
+
+        .dot-nav-btn:hover {
+          transform: scale(1.4);
+          background: var(--gold);
+        }
+
+        .dot-nav-item:hover .dot-tooltip {
+          opacity: 1;
+          transform: translateX(0);
+        }
+
+        .monument-chip:hover {
+          background: rgba(30, 42, 95, 0.95);
+          border-color: var(--gold);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .globe-tooltip:hover {
+          border-color: #ffffff;
+          box-shadow: 0 6px 24px rgba(217, 180, 90, 0.4);
+        }
+
+        .tilt-card {
+          position: relative;
+          transform-style: preserve-3d;
+          transform: perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0) scale(1);
+          transition: transform 0.35s var(--spring), box-shadow 0.35s var(--spring), border-color 0.35s var(--ease);
+          overflow: hidden;
+        }
+
+        .tilt-card:hover {
+          transform: perspective(800px) translateY(-8px) scale(1.02);
+          box-shadow: 0 16px 36px var(--gold-glow), 0 4px 14px rgba(0, 0, 0, 0.14);
+          border-color: color-mix(in srgb, var(--gold) 45%, transparent) !important;
+        }
+
+        .tilt-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle 240px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(217, 180, 90, 0.18), transparent 80%);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.3s var(--ease);
+          z-index: 1;
+          border-radius: inherit;
+        }
+
+        .tilt-card:hover::before {
+          opacity: 1;
+        }
+
+        .board-card:hover .board-avatar-img {
+          transform: scale(1.08);
+        }
+
+        .footer-links-list a:hover {
+          color: #ffffff;
+          transform: translateX(4px);
+        }
+
+        .footer-replay-pill:hover {
+          transform: scale(1.06);
+          background: rgba(217, 180, 90, 0.22);
+          border-color: var(--gold);
+          color: #ffffff;
+          box-shadow: 0 0 24px rgba(217, 180, 90, 0.42), 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .footer-replay-pill:hover .replay-icon {
+          transform: rotate(-180deg);
+        }
+
+        .replay-intro-btn:hover {
+          opacity: 1;
+          transform: scale(1.05);
+          background: rgba(217, 180, 90, 0.12);
+          border-color: var(--gold);
+        }
+
+        .intro-skip-pill:hover {
+          transform: scale(1.08);
+          background: rgba(217, 180, 90, 0.18);
+          border-color: var(--gold);
+          box-shadow: 0 0 16px var(--gold-glow);
+        }
+
+        #announcement-pill .dismiss-pill:hover {
+          color: #ffffff;
+          transform: scale(1.2);
+        }
+      }
+
+      /* ====================================================
+         MEDIA QUERY 5: PREFERS REDUCED MOTION
+         ==================================================== */
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+        .reveal-item {
+          opacity: 1 !important;
+          transform: none !important;
+          filter: none !important;
+        }
+        .word-inner {
+          transform: none !important;
+        }
+        .hero-char {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+        #site-header {
+          animation: none !important;
+          transform: none !important;
+        }
+        #announcement-pill {
+          transform: translate(-50%, 0) !important;
+          opacity: 1 !important;
+        }
+        #intro-curtain-top, #intro-curtain-bottom {
+          display: none !important;
+        }
+        #intro-overlay {
+          background: #080a1e;
+        }
+        #intro-logo-img {
+          filter: none !important;
+          transform: none !important;
+        }
+        #intro-dust-canvas, #intro-light-sweep {
+          display: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Top Scroll Progress Bar -->
+    <div id="scroll-progress" aria-hidden="true"></div>
+
+    <!-- Mobile Stop Counter ("1 / 7") -->
+    <div id="mobile-stop-counter" class="mobile-stop-counter" aria-hidden="true">
+      <span id="mobile-stop-current">1</span> / 7
+    </div>
+
+    <!-- ----------------------------------------------------
+         FIXED STAGE: SKY GRADIENT, SILHOUETTES, GROUND
+         ---------------------------------------------------- -->
+    <div id="fixed-stage" aria-hidden="true">
+      <div id="sky-moon"></div>
+
+      <!-- Stop 0: Great Wall of China -->
+      <div class="monument-layer" id="layer-0">
+        <svg class="monument-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax meet">
+          <path d="M 0 380 Q 200 370 400 380 T 800 380 L 800 400 L 0 400 Z" />
+          <path d="M 0 320 Q 90 280 180 300 Q 270 320 360 270 Q 450 220 540 260 Q 630 300 720 250 L 800 270 L 800 380 L 0 380 Z" />
+          <rect x="160" y="260" width="40" height="40" rx="2" />
+          <polygon points="155,260 180,240 205,260" />
+          <rect x="520" y="220" width="40" height="40" rx="2" />
+          <polygon points="515,220 540,200 565,220" />
+          <rect x="700" y="210" width="40" height="40" rx="2" />
+          <polygon points="695,210 720,190 745,210" />
+        </svg>
+      </div>
+
+      <!-- Stop 1: Petra -->
+      <div class="monument-layer" id="layer-1">
+        <svg class="monument-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax meet">
+          <path d="M 0 400 L 0 80 Q 160 140 260 210 L 260 400 Z" />
+          <path d="M 800 400 L 800 80 Q 640 140 540 210 L 540 400 Z" />
+          <rect x="270" y="140" width="260" height="260" />
+          <polygon points="255,140 400,60 545,140" />
+          <circle cx="400" cy="40" r="14" />
+          <g fill="var(--sky-bottom)">
+            <rect x="365" y="280" width="70" height="120" rx="35" />
+            <rect x="300" y="190" width="22" height="170" />
+            <rect x="340" y="190" width="22" height="170" />
+            <rect x="438" y="190" width="22" height="170" />
+            <rect x="478" y="190" width="22" height="170" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- Stop 2: The Pyramids -->
+      <div class="monument-layer" id="layer-2">
+        <svg class="monument-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax meet">
+          <polygon points="280,400 440,110 600,400" />
+          <polygon points="440,110 520,110 600,400 440,400" opacity="0.3" />
+          <polygon points="60,400 210,180 360,400" />
+          <polygon points="520,400 640,240 760,400" />
+        </svg>
+      </div>
+
+      <!-- Stop 3: Eiffel Tower -->
+      <div class="monument-layer" id="layer-3">
+        <svg class="monument-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax meet">
+          <path d="M 396 20 L 404 20 L 410 160 L 390 160 Z" />
+          <rect x="380" y="160" width="40" height="14" rx="2" />
+          <path d="M 385 174 L 415 174 L 434 290 L 366 290 Z" />
+          <rect x="350" y="290" width="100" height="20" rx="3" />
+          <path d="M 356 310 L 320 400 L 360 400 L 388 310 Z" />
+          <path d="M 444 310 L 480 400 L 440 400 L 412 310 Z" />
+          <path d="M 358 400 Q 400 320 442 400 Z" fill="var(--sky-bottom)" />
+          <line x1="400" y1="2" x2="400" y2="20" stroke="var(--monument-ink)" stroke-width="3" />
+        </svg>
+      </div>
+
+      <!-- Stop 4: Chichén Itzá -->
+      <div class="monument-layer" id="layer-4">
+        <svg class="monument-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax meet">
+          <polygon points="140,400 230,190 570,190 660,400" />
+          <rect x="330" y="130" width="140" height="60" />
+          <rect x="350" y="112" width="100" height="18" />
+          <polygon points="360,400 376,190 424,190 440,400" fill="var(--sky-bottom)" />
+          <line x1="160" y1="365" x2="640" y2="365" stroke="var(--sky-bottom)" stroke-width="3" />
+          <line x1="180" y1="330" x2="620" y2="330" stroke="var(--sky-bottom)" stroke-width="3" />
+          <line x1="200" y1="295" x2="600" y2="295" stroke="var(--sky-bottom)" stroke-width="3" />
+          <line x1="220" y1="260" x2="580" y2="260" stroke="var(--sky-bottom)" stroke-width="3" />
+          <line x1="240" y1="225" x2="560" y2="225" stroke="var(--sky-bottom)" stroke-width="3" />
+        </svg>
+      </div>
+
+      <!-- Stop 5: Colosseum -->
+      <div class="monument-layer" id="layer-5">
+        <svg class="monument-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax meet">
+          <path d="M 120 400 L 120 180 Q 400 130 680 180 L 680 400 Z" />
+          <g fill="var(--sky-bottom)">
+            <rect x="160" y="210" width="30" height="48" rx="15" /><rect x="220" y="210" width="30" height="48" rx="15" />
+            <rect x="280" y="210" width="30" height="48" rx="15" /><rect x="340" y="210" width="30" height="48" rx="15" />
+            <rect x="400" y="210" width="30" height="48" rx="15" /><rect x="460" y="210" width="30" height="48" rx="15" />
+            <rect x="520" y="210" width="30" height="48" rx="15" /><rect x="580" y="210" width="30" height="48" rx="15" />
+            <rect x="160" y="280" width="30" height="52" rx="15" /><rect x="220" y="280" width="30" height="52" rx="15" />
+            <rect x="280" y="280" width="30" height="52" rx="15" /><rect x="340" y="280" width="30" height="52" rx="15" />
+            <rect x="400" y="280" width="30" height="52" rx="15" /><rect x="460" y="280" width="30" height="52" rx="15" />
+            <rect x="520" y="280" width="30" height="52" rx="15" /><rect x="580" y="280" width="30" height="52" rx="15" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- Stop 6: Taj Mahal -->
+      <div class="monument-layer" id="layer-6">
+        <svg class="monument-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax meet">
+          <rect x="80" y="372" width="640" height="28" />
+          <rect x="100" y="160" width="14" height="212" />
+          <rect x="96" y="295" width="22" height="6" /><rect x="97" y="225" width="20" height="6" />
+          <path d="M 98 160 L 107 140 L 116 160 Z" /><line x1="107" y1="140" x2="107" y2="132" stroke="var(--monument-ink)" stroke-width="2" />
+          <rect x="190" y="195" width="12" height="177" /><rect x="187" y="305" width="18" height="5" /><rect x="188" y="248" width="16" height="5" />
+          <path d="M 188 195 L 196 177 L 204 195 Z" />
+          <rect x="686" y="160" width="14" height="212" />
+          <rect x="682" y="295" width="22" height="6" /><rect x="683" y="225" width="20" height="6" />
+          <path d="M 684 160 L 693 140 L 702 160 Z" /><line x1="693" y1="140" x2="693" y2="132" stroke="var(--monument-ink)" stroke-width="2" />
+          <rect x="598" y="195" width="12" height="177" /><rect x="595" y="305" width="18" height="5" /><rect x="596" y="248" width="16" height="5" />
+          <path d="M 596 195 L 604 177 L 612 195 Z" />
+          <rect x="250" y="220" width="300" height="152" />
+          <path d="M 292 220 Q 308 178 324 220 Z" /><line x1="308" y1="178" x2="308" y2="168" stroke="var(--monument-ink)" stroke-width="2" />
+          <path d="M 476 220 Q 492 178 508 220 Z" /><line x1="492" y1="178" x2="492" y2="168" stroke="var(--monument-ink)" stroke-width="2" />
+          <rect x="360" y="160" width="80" height="60" />
+          <path d="M 355 160 C 340 120, 360 70, 400 52 C 440 70, 460 120, 445 160 Z" />
+          <line x1="400" y1="52" x2="400" y2="30" stroke="var(--monument-ink)" stroke-width="2.5" /><circle cx="400" cy="30" r="3" />
+          <path d="M 350 372 L 350 260 Q 400 230 450 260 L 450 372 Z" fill="var(--sky-bottom)" />
+          <g fill="var(--sky-bottom)">
+            <path d="M 270 280 L 270 240 Q 285 232 300 240 L 300 280 Z" /><path d="M 270 350 L 270 305 Q 285 297 300 305 L 300 350 Z" />
+            <path d="M 500 280 L 500 240 Q 515 232 530 240 L 530 280 Z" /><path d="M 500 350 L 500 305 Q 515 297 530 305 L 530 350 Z" />
+          </g>
+        </svg>
+      </div>
+
+      <div id="ground-strip"></div>
+    </div>
+
+    <!-- ----------------------------------------------------
+         LOGO INTRO OVERLAY
+         ---------------------------------------------------- -->
+    <div id="intro-overlay" role="dialog" aria-label="Welcome to Monument MUN">
+      <div id="intro-curtain-top" class="intro-curtain"></div>
+      <div id="intro-curtain-bottom" class="intro-curtain"></div>
+      <div id="intro-radial-glow" aria-hidden="true"></div>
+      <canvas id="intro-dust-canvas" aria-hidden="true"></canvas>
+
+      <div id="intro-content">
+        <div id="intro-logo-wrap">
+          <img
+            id="intro-logo-img"
+            src="logo.png"
+            alt="Monument MUN logo"
+            onerror="if(window.__onIntroLogoError) window.__onIntroLogoError();"
+          />
+          <div id="intro-light-sweep" aria-hidden="true"></div>
+        </div>
+
+        <div id="intro-line" aria-hidden="true"></div>
+        <div id="intro-title">MODEL UNITED NATIONS · 2027</div>
+        <div id="intro-tagline">Where every monument has a seat.</div>
+      </div>
+
+      <div id="intro-progress-bar-wrap" aria-hidden="true">
+        <div id="intro-progress-bar"></div>
+      </div>
+      <div id="intro-counter" aria-hidden="true">0%</div>
+
+      <button id="intro-skip-btn" class="intro-skip-pill" aria-label="Skip introduction">
+        Skip
+      </button>
+    </div>
+
+    <!-- ----------------------------------------------------
+         NAVIGATION HEADER
+         ---------------------------------------------------- -->
+    <header id="site-header">
+      <a href="#/" class="brand-link" aria-label="Monument MUN Home">
+        <img
+          src="logo-mark.png"
+          alt="Monument MUN logo"
+          class="nav-logo-img"
+          onerror="this.style.display='none'; document.getElementById('header-fallback-wordmark').style.display='inline-block';"
+        />
+        <div class="brand-stacked-wordmark">
+          <span class="brand-main">MONUMENT</span>
+          <span class="brand-sub">Model United Nations</span>
+        </div>
+        <span id="header-fallback-wordmark" style="display: none; font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; letter-spacing: 0.12em; color: var(--gold);">MONUMENT MUN</span>
+      </a>
+
+      <nav aria-label="Main Navigation">
+        <ul class="nav-links">
+          <li><a href="#/apply" class="route-link">Apply</a></li>
+          <li><a href="#/committees" class="route-link">Committees</a></li>
+          <li><a href="#about" class="section-link">About</a></li>
+          <li><a href="#board" class="section-link">EB</a></li>
+          <li><a href="#updates" class="section-link">Updates</a></li>
+          <li>
+            <a href="#/apply" class="apply-pill-btn magnetic-btn route-link">
+              Apply Now
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <button class="mobile-menu-btn" id="mobile-toggle" aria-label="Open navigation menu">
+        Menu
+      </button>
+    </header>
+
+    <!-- MOBILE MENU OVERLAY -->
+    <div id="mobile-nav-panel">
+      <button class="mobile-close-btn" id="mobile-close" aria-label="Close navigation menu">Close ✕</button>
+      <a href="#/apply" class="mobile-link route-link">Apply</a>
+      <a href="#/committees" class="mobile-link route-link">Committees</a>
+      <a href="#about" class="mobile-link section-link">About Monument MUN</a>
+      <a href="#board" class="mobile-link section-link">EB Members</a>
+      <a href="#updates" class="mobile-link section-link">Live Updates</a>
+      <a href="#suggestions" class="mobile-link section-link">Suggestions</a>
+      <a href="#/apply" class="apply-pill-btn mobile-link route-link" style="margin-top: 1rem;">Apply Now</a>
+      <div class="mobile-social-line">Socials: TBA</div>
+    </div>
+
+    <!-- ----------------------------------------------------
+         RIGHT-SIDE VERTICAL DOT NAVIGATION (TABLET/DESKTOP ONLY)
+         ---------------------------------------------------- -->
+    <nav id="dot-nav" aria-label="Committee Stops Navigation">
+      <div class="dot-nav-item">
+        <button class="dot-nav-btn active" data-stop="0" aria-label="Stop 1: Security Council, Great Wall of China"></button>
+        <span class="dot-tooltip">01. Great Wall · Security Council</span>
+      </div>
+      <div class="dot-nav-item">
+        <button class="dot-nav-btn" data-stop="1" aria-label="Stop 2: ECOSOC, Petra"></button>
+        <span class="dot-tooltip">02. Petra · ECOSOC</span>
+      </div>
+      <div class="dot-nav-item">
+        <button class="dot-nav-btn" data-stop="2" aria-label="Stop 3: UNESCO, Pyramids of Giza"></button>
+        <span class="dot-tooltip">03. Pyramids · UNESCO</span>
+      </div>
+      <div class="dot-nav-item">
+        <button class="dot-nav-btn" data-stop="3" aria-label="Stop 4: UNEP, Eiffel Tower"></button>
+        <span class="dot-tooltip">04. Eiffel Tower · UNEP</span>
+      </div>
+      <div class="dot-nav-item">
+        <button class="dot-nav-btn" data-stop="4" aria-label="Stop 5: Human Rights Council, Chichén Itzá"></button>
+        <span class="dot-tooltip">05. Chichén Itzá · UNHRC</span>
+      </div>
+      <div class="dot-nav-item">
+        <button class="dot-nav-btn" data-stop="5" aria-label="Stop 6: DISEC, Colosseum"></button>
+        <span class="dot-tooltip">06. Colosseum · DISEC</span>
+      </div>
+      <div class="dot-nav-item">
+        <button class="dot-nav-btn" data-stop="6" aria-label="Stop 7: UN Women, Taj Mahal"></button>
+        <span class="dot-tooltip">07. Taj Mahal · UN Women</span>
+      </div>
+    </nav>
+
+    <!-- ====================================================
+         VIEW 1: HOME PAGE (#/ or default)
+         ==================================================== -->
+    <div id="view-home" class="app-view active-view">
+      <!-- 1. HERO SECTION -->
+      <section id="hero">
+        <div class="hero-inner" id="hero-inner-container">
+          <div class="hero-brand-row">
+            <img
+              src="logo.png"
+              alt="Monument MUN logo"
+              class="hero-logo-mark"
+              onerror="this.style.display='none'"
+            />
+            <span class="eyebrow" style="margin-bottom: 0;">Monument Model United Nations</span>
+          </div>
+
+          <h1 class="hero-wordmark" id="hero-wordmark-container">
+            <span class="hero-line hero-line-1" id="line-monument">MONUMENT</span>
+            <span class="hero-line hero-line-2" id="line-mun">MUN</span>
+          </h1>
+
+          <p class="hero-tagline">WHERE EVERY MONUMENT HAS A SEAT.</p>
+          <p class="hero-subline">elegance in international discourse</p>
+
+          <div class="hero-dates-venue">
+            <span>Dates TBA</span>
+            <span class="dot-sep">·</span>
+            <span>Venue TBA</span>
+          </div>
+
+          <a href="#/apply" class="hero-outline-btn magnetic-btn route-link">
+            Apply to Monument MUN
+          </a>
+        </div>
+
+        <div class="hero-scroll-indicator" aria-hidden="true">
+          <span>Scroll</span>
+          <span>↓</span>
+        </div>
+      </section>
+
+      <!-- 2. DUAL-TRACK CONTINUOUS MARQUEE -->
+      <div class="marquee-wrapper" id="marquee-section" aria-hidden="true">
+        <div class="marquee-track track-1" id="marquee-track-1">
+          <div class="marquee-item">Monument MUN <span class="sep">✦</span> Where every monument has a seat <span class="sep">✦</span> Dates TBA <span class="sep">✦</span> Model United Nations <span class="sep">✦</span> Socials TBA <span class="sep">✦</span></div>
+          <div class="marquee-item">Monument MUN <span class="sep">✦</span> Where every monument has a seat <span class="sep">✦</span> Dates TBA <span class="sep">✦</span> Model United Nations <span class="sep">✦</span> Socials TBA <span class="sep">✦</span></div>
+          <div class="marquee-item">Monument MUN <span class="sep">✦</span> Where every monument has a seat <span class="sep">✦</span> Dates TBA <span class="sep">✦</span> Model United Nations <span class="sep">✦</span> Socials TBA <span class="sep">✦</span></div>
+          <div class="marquee-item">Monument MUN <span class="sep">✦</span> Where every monument has a seat <span class="sep">✦</span> Dates TBA <span class="sep">✦</span> Model United Nations <span class="sep">✦</span> Socials TBA <span class="sep">✦</span></div>
+        </div>
+
+        <div class="marquee-track track-2" id="marquee-track-2">
+          <div class="marquee-item">Monument Model United Nations <span class="sep">✦</span> Diplomacy <span class="sep">✦</span> Global Discourse <span class="sep">✦</span> Venue TBA <span class="sep">✦</span> Elegance in Leadership <span class="sep">✦</span> Where Every Monument Has a Seat <span class="sep">✦</span></div>
+          <div class="marquee-item">Monument Model United Nations <span class="sep">✦</span> Diplomacy <span class="sep">✦</span> Global Discourse <span class="sep">✦</span> Venue TBA <span class="sep">✦</span> Elegance in Leadership <span class="sep">✦</span> Where Every Monument Has a Seat <span class="sep">✦</span></div>
+          <div class="marquee-item">Monument Model United Nations <span class="sep">✦</span> Diplomacy <span class="sep">✦</span> Global Discourse <span class="sep">✦</span> Venue TBA <span class="sep">✦</span> Elegance in Leadership <span class="sep">✦</span> Where Every Monument Has a Seat <span class="sep">✦</span></div>
+          <div class="marquee-item">Monument Model United Nations <span class="sep">✦</span> Diplomacy <span class="sep">✦</span> Global Discourse <span class="sep">✦</span> Venue TBA <span class="sep">✦</span> Elegance in Leadership <span class="sep">✦</span> Where Every Monument Has a Seat <span class="sep">✦</span></div>
+        </div>
+      </div>
+
+      <!-- 3. ABOUT SECTION -->
+      <section id="about">
+        <div class="about-container reveal-item">
+          <div class="section-divider">✦</div>
+          <h2 class="section-heading word-reveal-heading">ABOUT <em>MONUMENT MUN.</em></h2>
+          <p class="about-lead">
+            A youth-led Model United Nations conference that merges diplomatic tradition with contemporary elegance, born from a passion for meaningful international discourse, bringing together ambitious young minds to engage in high-calibre debate, forge coalitions and leave a lasting mark on tomorrow's world.
+          </p>
+          <p class="about-body">
+            Whether delegates are stepping into a committee for the first time or returning as seasoned delegates, it is where diplomacy is not just practised but <em>perfected</em>.
+          </p>
+        </div>
+      </section>
+
+      <!-- 4. THE COMMITTEES JOURNEY (SEVEN FULL-HEIGHT STOPS) -->
+      <div id="committee-stops-container">
+        <!-- STOP 0: Great Wall of China -->
+        <section class="committee-stop" id="stop-0" data-index="0">
+          <div class="stop-content-wrapper reveal-item">
+            <span class="stop-badge">Stop 01 · 07</span>
+            <h2 class="monument-heading word-reveal-heading">GREAT WALL OF CHINA</h2>
+            <p class="monument-location">China</p>
+            <p class="monument-atmosphere">
+              Centuries of fortified ramparts and watchtowers follow mountain ridges, marking sovereign boundaries through history.
+            </p>
+
+            <div class="committee-block tilt-card">
+              <h3 class="committee-name">SECURITY COUNCIL</h3>
+              <div class="committee-agenda">
+                <strong>Agenda:</strong>
+                "Disputed borders and the use of force along them."
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STOP 1: Petra -->
+        <section class="committee-stop" id="stop-1" data-index="1">
+          <div class="stop-content-wrapper reveal-item">
+            <span class="stop-badge">Stop 02 · 07</span>
+            <h2 class="monument-heading word-reveal-heading">PETRA</h2>
+            <p class="monument-location">Jordan</p>
+            <p class="monument-atmosphere">
+              Rose-red sandstone canyons carved into monumental facades, commanding the vital crossroads of water and desert commerce.
+            </p>
+
+            <div class="committee-block tilt-card">
+              <h3 class="committee-name">ECONOMIC AND SOCIAL COUNCIL</h3>
+              <div class="committee-agenda">
+                <strong>Agenda:</strong>
+                "Shared water and trade routes in arid regions."
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STOP 2: The Pyramids -->
+        <section class="committee-stop" id="stop-2" data-index="2">
+          <div class="stop-content-wrapper reveal-item">
+            <span class="stop-badge">Stop 03 · 07</span>
+            <h2 class="monument-heading word-reveal-heading">THE PYRAMIDS</h2>
+            <p class="monument-location">Giza, Egypt</p>
+            <p class="monument-atmosphere">
+              The oldest wonder on the list and the only ancient one still standing.
+            </p>
+
+            <div class="committee-block tilt-card">
+              <h3 class="committee-name">UNESCO</h3>
+              <div class="committee-agenda">
+                <strong>Agenda:</strong>
+                "Returning cultural heritage held in foreign museums."
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STOP 3: Eiffel Tower -->
+        <section class="committee-stop" id="stop-3" data-index="3">
+          <div class="stop-content-wrapper reveal-item">
+            <span class="stop-badge">Stop 04 · 07</span>
+            <h2 class="monument-heading word-reveal-heading">EIFFEL TOWER</h2>
+            <p class="monument-location">Paris, France</p>
+            <p class="monument-atmosphere">
+              A beacon of iron engineering overlooking the urban heart of Europe, where environmental accords define the century ahead.
+            </p>
+
+            <div class="committee-block tilt-card">
+              <h3 class="committee-name">UNEP</h3>
+              <div class="committee-agenda">
+                <strong>Agenda:</strong>
+                "Cutting emissions in the world's great cities."
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STOP 4: Chichén Itzá -->
+        <section class="committee-stop" id="stop-4" data-index="4">
+          <div class="stop-content-wrapper reveal-item">
+            <span class="stop-badge">Stop 05 · 07</span>
+            <h2 class="monument-heading word-reveal-heading">CHICHÉN ITZÁ</h2>
+            <p class="monument-location">Mexico</p>
+            <p class="monument-atmosphere">
+              The stepped pyramid of El Castillo rises amidst the dense jungle canopy, aligned to equinox serpents and sacred ancestral memory.
+            </p>
+
+            <div class="committee-block tilt-card">
+              <h3 class="committee-name">HUMAN RIGHTS COUNCIL</h3>
+              <div class="committee-agenda">
+                <strong>Agenda:</strong>
+                "Indigenous land rights and sacred sites."
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STOP 5: Colosseum -->
+        <section class="committee-stop" id="stop-5" data-index="5">
+          <div class="stop-content-wrapper reveal-item">
+            <span class="stop-badge">Stop 06 · 07</span>
+            <h2 class="monument-heading word-reveal-heading">COLOSSEUM</h2>
+            <p class="monument-location">Rome, Italy</p>
+            <p class="monument-atmosphere">
+              Arched travertine tiers where the ancient arena commanded combat, now confronting the modern ethics of warfare and autonomous machinery.
+            </p>
+
+            <div class="committee-block tilt-card">
+              <h3 class="committee-name">DISEC</h3>
+              <div class="committee-agenda">
+                <strong>Agenda:</strong>
+                "Autonomous weapons and human control."
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STOP 6: Taj Mahal -->
+        <section class="committee-stop" id="stop-6" data-index="6">
+          <div class="stop-content-wrapper reveal-item">
+            <span class="stop-badge">Stop 07 · 07</span>
+            <h2 class="monument-heading word-reveal-heading">TAJ MAHAL</h2>
+            <p class="monument-location">Agra, India</p>
+            <p class="monument-atmosphere">
+              An ivory-white marble monument to devotion, standing serene under a pale night sky as delegates champion universal equality.
+            </p>
+
+            <div class="committee-block tilt-card">
+              <h3 class="committee-name">UN WOMEN</h3>
+              <div class="committee-agenda">
+                <strong>Agenda:</strong>
+                "Access to education for girls."
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ----------------------------------------------------
+           DARK SECTIONS CONTAINER (SECTIONS 5 - 10)
+           ---------------------------------------------------- -->
+      <div class="dark-section-panel">
+        <!-- 5. THE GLOBAL STAGE (CANVAS GLOBE & STATS) -->
+        <section id="diplomacy">
+          <span class="eyebrow">The Global Stage</span>
+          <h2 class="section-heading word-reveal-heading">A WORLD OF <em>DIPLOMACY.</em></h2>
+          <p style="font-size: 1.15rem; max-width: 760px; margin: 0 auto 0.75rem auto; font-style: italic;" class="reveal-item">
+            Delegates gather from every corner of the map to speak for nations, argue for principles and shape tomorrow's language.
+          </p>
+          <p class="eyebrow reveal-item" style="font-size: 0.8rem; letter-spacing: 0.16em;">
+            Venue TBA · 7 Committees · 2027
+          </p>
+
+          <div class="globe-stage-wrapper reveal-item">
+            <canvas id="globeCanvas" role="img" aria-label="Rotating Earth with the seven Monument MUN locations marked" width="460" height="460"></canvas>
+            <div class="globe-tooltip" id="globeTooltip" role="tooltip" aria-hidden="true" tabindex="0">
+              <span id="tooltipMonument">Monument</span>
+              <span class="comm" id="tooltipCommittee">Committee</span>
+              <span class="tap-cta">Tap to jump to stop →</span>
+            </div>
+          </div>
+
+          <p class="globe-drag-hint reveal-item" id="globe-drag-hint">
+            ✦ Drag to rotate · Tap a ping ✦
+          </p>
+
+          <div class="globe-chips-wrapper reveal-item" role="region" aria-label="Earth monument stops">
+            <div class="globe-chips-scroll" id="globeChipsContainer">
+              <button type="button" class="monument-chip active" data-index="0" aria-label="Rotate globe to Great Wall of China">
+                <span class="chip-dot"></span>
+                <span class="chip-name">Great Wall</span>
+                <span class="chip-comm">Security Council</span>
+              </button>
+              <button type="button" class="monument-chip" data-index="1" aria-label="Rotate globe to Petra">
+                <span class="chip-dot"></span>
+                <span class="chip-name">Petra</span>
+                <span class="chip-comm">ECOSOC</span>
+              </button>
+              <button type="button" class="monument-chip" data-index="2" aria-label="Rotate globe to Pyramids of Giza">
+                <span class="chip-dot"></span>
+                <span class="chip-name">Pyramids</span>
+                <span class="chip-comm">UNESCO</span>
+              </button>
+              <button type="button" class="monument-chip" data-index="3" aria-label="Rotate globe to Eiffel Tower">
+                <span class="chip-dot"></span>
+                <span class="chip-name">Eiffel Tower</span>
+                <span class="chip-comm">UNEP</span>
+              </button>
+              <button type="button" class="monument-chip" data-index="4" aria-label="Rotate globe to Chichén Itzá">
+                <span class="chip-dot"></span>
+                <span class="chip-name">Chichén Itzá</span>
+                <span class="chip-comm">Human Rights</span>
+              </button>
+              <button type="button" class="monument-chip" data-index="5" aria-label="Rotate globe to Colosseum">
+                <span class="chip-dot"></span>
+                <span class="chip-name">Colosseum</span>
+                <span class="chip-comm">DISEC</span>
+              </button>
+              <button type="button" class="monument-chip" data-index="6" aria-label="Rotate globe to Taj Mahal">
+                <span class="chip-dot"></span>
+                <span class="chip-name">Taj Mahal</span>
+                <span class="chip-comm">UN Women</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="stat-cards-grid">
+            <div class="stat-card tilt-card reveal-item">
+              <div class="stat-number" data-target="7">0</div>
+              <div class="stat-label">Committees</div>
+              <div class="stat-sub">Across seven civilizational monuments</div>
+            </div>
+            <div class="stat-card tilt-card reveal-item">
+              <div class="stat-number" data-text="2027">2027</div>
+              <div class="stat-label">Conference year</div>
+              <div class="stat-sub">Inaugural global session 2027 dates TBA</div>
+            </div>
+            <div class="stat-card tilt-card reveal-item">
+              <div class="stat-number" data-text="TBA">TBA</div>
+              <div class="stat-label">Venue</div>
+              <div class="stat-sub">Host institution location announced soon</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. EXECUTIVE BOARD (EXACTLY THREE CARDS) -->
+        <section id="board">
+          <span class="eyebrow">The People Behind It</span>
+          <h2 class="section-heading word-reveal-heading">EXECUTIVE <em>BOARD.</em></h2>
+          <span class="eyebrow" style="font-size: 0.8rem; margin-top: -0.5rem; color: rgba(242, 244, 255, 0.75);">Secretariat</span>
+
+          <div class="board-grid">
+            <!-- 1. Secretary-General (Rayan Abutair) -->
+            <div class="board-card tilt-card reveal-item">
+              <div class="board-avatar">
+                <img
+                  src="sg.jpg"
+                  alt="Rayan Abutair, Secretary-General"
+                  class="board-avatar-img"
+                  style="object-position: 50% 25%;"
+                  onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='public/sg.jpg';}else{this.style.display='none';document.getElementById('sg-fallback').style.display='flex';}"
+                />
+                <span id="sg-fallback" class="board-avatar-fallback" style="display: none;">RA</span>
+              </div>
+              <span class="board-role">Secretary-General</span>
+              <h3 class="board-name">Rayan Abutair</h3>
+              <p class="board-note">Conference governance, external partnerships and assembly leadership.</p>
+            </div>
+
+            <!-- 2. Deputy Secretary-General (Lama Abdelsalam) -->
+            <div class="board-card tilt-card reveal-item">
+              <div class="board-avatar">
+                <img
+                  src="lama-abdelsalam.jpeg"
+                  alt="Lama Abdelsalam, Deputy Secretary-General"
+                  class="board-avatar-img"
+                  style="object-position: center 20%;"
+                  onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='public/lama-abdelsalam.jpeg';}else{this.style.display='none';document.getElementById('dsg-fallback').style.display='flex';}"
+                />
+                <span id="dsg-fallback" class="board-avatar-fallback" style="display: none;">LA</span>
+              </div>
+              <span class="board-role">Deputy Secretary-General</span>
+              <h3 class="board-name">Lama Abdelsalam</h3>
+              <p class="board-note">Substantive coordination, crisis management and delegate hospitality.</p>
+            </div>
+
+            <!-- 3. Under-Secretary-General (Mazen Alaa) -->
+            <div class="board-card tilt-card reveal-item">
+              <div class="board-avatar">
+                <img
+                  src="mazen-alaa.jpg"
+                  alt="Mazen Alaa, Under-Secretary-General"
+                  class="board-avatar-img"
+                  style="object-position: 46% 25%;"
+                  onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='public/mazen-alaa.jpg';}else{this.style.display='none';document.getElementById('usg-fallback').style.display='flex';}"
+                />
+                <span id="usg-fallback" class="board-avatar-fallback" style="display: none;">MA</span>
+              </div>
+              <span class="board-role">Under-Secretary-General</span>
+              <h3 class="board-name">Mazen Alaa</h3>
+              <p class="board-note">Operational execution, committee logistical administration and delegate affairs.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. MEET THE TEAM (12 DEPARTMENTS) -->
+        <section id="team">
+          <div style="text-align: center; max-width: 760px; margin: 0 auto;" class="reveal-item">
+            <span class="eyebrow">Every department</span>
+            <h2 class="section-heading word-reveal-heading">MEET THE <em>TEAM.</em></h2>
+            <p style="font-size: 1.15rem; font-style: italic; color: rgba(242, 244, 255, 0.8);">
+              Dedicated directors and coordinators working across every facet of conference preparation.
+            </p>
+          </div>
+
+          <div class="team-grid" id="team-grid-container">
+            <!-- Populated via JavaScript -->
+          </div>
+        </section>
+
+        <!-- 8. LIVE UPDATES & SUGGESTIONS -->
+        <section id="updates">
+          <div class="updates-split">
+            <div class="reveal-item">
+              <span class="eyebrow">Stay Informed</span>
+              <h2 class="section-heading word-reveal-heading">LIVE <em>UPDATES.</em></h2>
+              <div class="update-cards-container">
+                <div class="update-glass-card tilt-card">
+                  <span class="update-date-badge">Opens TBA</span>
+                  <h3 class="timeline-title" style="margin-bottom: 0.4rem;">Delegate & Chair Applications</h3>
+                  <p class="timeline-desc">
+                    Opening date will be announced. Follow our socials for announcements and priority registration alerts.
+                  </p>
+                </div>
+
+                <div class="update-glass-card tilt-card">
+                  <span class="update-date-badge">TBA</span>
+                  <h3 class="timeline-title" style="margin-bottom: 0.4rem;">Conference Dates</h3>
+                  <p class="timeline-desc">
+                    Dates and venue are to be announced. The secretariat is finalizing the host arrangement.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 9. SUGGESTIONS -->
+            <div class="suggestion-box tilt-card reveal-item" id="suggestions">
+              <span class="eyebrow">Have Something to Say?</span>
+              <h3 style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.4rem;">
+                SUGGESTIONS
+              </h3>
+              <p style="font-size: 0.95rem; color: rgba(242, 244, 255, 0.75); margin-bottom: 1.5rem;">
+                Got a requirement or a suggestion? We read every submission.
+              </p>
+
+              <div id="form-status" class="status-banner"></div>
+
+              <div class="form-group">
+                <label class="form-label" for="sugg-name">Name *</label>
+                <input type="text" id="sugg-name" class="form-input" placeholder="Your name" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="sugg-email">Email (optional)</label>
+                <input type="email" id="sugg-email" class="form-input" placeholder="email@address.com" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="sugg-type">Type</label>
+                <select id="sugg-type" class="form-select">
+                  <option value="Suggestion">Suggestion</option>
+                  <option value="Requirement">Requirement</option>
+                  <option value="General">General</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="sugg-msg">Message *</label>
+                <textarea id="sugg-msg" class="form-textarea" rows="4" placeholder="Your message for the organizing committee..."></textarea>
+              </div>
+
+              <button type="button" id="send-sugg-btn" class="form-submit-btn btn-interactive">
+                Send Message
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ====================================================
+         VIEW 2: COMMITTEES PAGE (#/committees)
+         ==================================================== -->
+    <div id="view-committees" class="app-view">
+      <a href="#/" class="back-home-link btn-interactive">← Back to home</a>
+      <span class="eyebrow">Seven committees, seven monuments</span>
+      <h1 class="section-heading">THE <em>COMMITTEES.</em></h1>
+      <p style="font-size: 1.15rem; font-style: italic; max-width: 680px; color: rgba(242, 244, 255, 0.85); margin-bottom: 2rem;">
+        Explore each committee simulation, its civilizational counterpart, and the critical agenda before delegates.
+      </p>
+
+      <div class="committees-grid" id="committees-grid-container">
+        <!-- Seven Committee Cards dynamically generated with scaled SVG icons -->
+      </div>
+    </div>
+
+    <!-- ====================================================
+         VIEW 3: APPLY PAGE (#/apply)
+         ==================================================== -->
+    <div id="view-apply" class="app-view">
+      <a href="#/" class="back-home-link btn-interactive">← Back to home</a>
+      <span class="eyebrow">Applications</span>
+      <h1 class="section-heading">APPLY TO <em>MONUMENT MUN.</em></h1>
+      <p style="font-size: 1.18rem; font-style: italic; max-width: 640px; color: rgba(242, 244, 255, 0.85);">
+        Applications open on a date that is TBA. Select your role of interest below or sign up to receive priority notification when the portal opens.
+      </p>
+
+      <div class="apply-status-cards">
+        <div class="apply-card tilt-card reveal-item">
+          <div class="apply-role-icon">✦</div>
+          <h3 class="apply-role-name">Delegate</h3>
+          <p style="font-size: 0.95rem; color: rgba(242, 244, 255, 0.7); margin-bottom: 1rem;">
+            Represent a nation across seven civilizational committees in single or double delegation.
+          </p>
+          <span class="apply-status-pill">Status: TBA</span>
+        </div>
+
+        <div class="apply-card tilt-card reveal-item">
+          <div class="apply-role-icon">✦</div>
+          <h3 class="apply-role-name">Chair</h3>
+          <p style="font-size: 0.95rem; color: rgba(242, 244, 255, 0.7); margin-bottom: 1rem;">
+            Direct committee debate, uphold procedural integrity, and author comprehensive background dossiers.
+          </p>
+          <span class="apply-status-pill">Status: TBA</span>
+        </div>
+
+        <div class="apply-card tilt-card reveal-item">
+          <div class="apply-role-icon">✦</div>
+          <h3 class="apply-role-name">Team</h3>
+          <p style="font-size: 0.95rem; color: rgba(242, 244, 255, 0.7); margin-bottom: 1rem;">
+            Join the secretariat across twelve specialized organizing departments and support systems.
+          </p>
+          <span class="apply-status-pill">Status: TBA</span>
+        </div>
+      </div>
+
+      <!-- NOTIFY-ME FORM -->
+      <div class="suggestion-box tilt-card" style="max-width: 680px; margin: 0 auto;">
+        <span class="eyebrow">Priority Notification</span>
+        <h3 style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.5rem; color: #ffffff;">
+          GET <em>NOTIFIED.</em>
+        </h3>
+        <p style="font-size: 0.95rem; color: rgba(242, 244, 255, 0.75); margin-bottom: 1.5rem;">
+          Leave your details to receive an instant dispatch the moment registration matrix allocations open.
+        </p>
+
+        <div id="apply-form-status" class="status-banner"></div>
+
+        <div class="form-group">
+          <label class="form-label" for="apply-name">Full Name *</label>
+          <input type="text" id="apply-name" class="form-input" placeholder="Your name" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="apply-email">Email Address *</label>
+          <input type="email" id="apply-email" class="form-input" placeholder="email@address.com" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="apply-role">Role of Interest</label>
+          <select id="apply-role" class="form-select">
+            <option value="Delegate">Delegate</option>
+            <option value="Chair">Chair / Director</option>
+            <option value="Secretariat Team">Secretariat Team</option>
+          </select>
+        </div>
+
+        <button type="button" id="apply-notify-btn" class="form-submit-btn btn-interactive">
+          Notify me
+        </button>
+      </div>
+    </div>
+
+    <!-- ----------------------------------------------------
+         10. FOOTER
+         ---------------------------------------------------- -->
+    <footer id="site-footer">
+      <div class="footer-inner">
+        <div>
+          <img
+            src="logo.png"
+            alt="Monument MUN logo"
+            class="footer-logo-img"
+            onerror="this.style.display='none'; document.getElementById('footer-fallback-wordmark').style.display='block';"
+          />
+          <div id="footer-fallback-wordmark" style="display: none; font-family: var(--font-display); font-weight: 800; font-size: 1.5rem; color: var(--gold); letter-spacing: 0.12em; margin-bottom: 0.75rem;">MONUMENT MUN</div>
+          <div class="footer-sub-model">Model United Nations</div>
+          <p style="font-size: 0.92rem; line-height: 1.6; color: rgba(242, 244, 255, 0.65); max-width: 360px;">
+            A premier Model United Nations assembly convening international youth leaders to debate global challenges across seven civilizational monuments.
+          </p>
+          <div class="footer-instagram-card">
+            Follow us on Instagram: TBA
+          </div>
+          <div style="margin-top: 1.15rem;">
+            <button type="button" id="replay-intro-link" class="replay-intro-btn replay-intro-trigger" title="Replay intro sequence">
+              ✦ Replay intro
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Navigation</h4>
+          <ul class="footer-links-list">
+            <li><a href="#/" class="route-link">Home Stage</a></li>
+            <li><a href="#/committees" class="route-link">The Committees</a></li>
+            <li><a href="#/apply" class="route-link">Apply Portal</a></li>
+            <li><a href="#about" class="section-link">About Monument MUN</a></li>
+            <li><a href="#diplomacy" class="section-link">The Global Stage</a></li>
+            <li><a href="#board" class="section-link">Executive Board</a></li>
+            <li><a href="#team" class="section-link">Meet the Team</a></li>
+            <li><a href="#updates" class="section-link">Live Updates</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 class="footer-col-title">Conference Dispatch</h4>
+          <ul class="footer-links-list">
+            <li><strong>Location:</strong> TBA</li>
+            <li><strong>Year:</strong> 2027</li>
+            <li><strong>Dates:</strong> TBA</li>
+            <li><strong>Socials and email:</strong> TBA</li>
+            <li><strong>Delegate Fee:</strong> TBA</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="giant-footer-wordmark" aria-hidden="true">
+        MONUMENT MUN
+      </div>
+
+      <div class="footer-bottom-bar">
+        <span>&copy; 2027 Monument MUN. All rights reserved.</span>
+        <div class="footer-replay-container">
+          <button type="button" id="replay-intro-bottom-btn" class="footer-replay-pill replay-intro-trigger" aria-label="Replay Monument MUN Intro Animation">
+            <span class="replay-icon" aria-hidden="true" style="margin-right: 4px;">↺</span>
+            <span>Replay Intro</span>
+          </button>
+        </div>
+        <span>MONUMENT MUN · LOCATION TBA · 2027</span>
+      </div>
+    </footer>
+
+    <!-- ----------------------------------------------------
+         11. FIXED BOTTOM ANNOUNCEMENT PILL
+         ---------------------------------------------------- -->
+    <div id="announcement-pill" role="status">
+      <a href="#/committees" class="route-link">
+        <span class="pill-dot"></span>
+        <span class="pill-text">✦ 7 Committees Announced · Monument MUN <span class="view-link">View Committees →</span></span>
+      </a>
+      <button class="dismiss-pill" id="dismiss-pill" aria-label="Dismiss notification">&times;</button>
+    </div>
+
+    <!-- ----------------------------------------------------
+         VANILLA JAVASCRIPT: ROUTING, ENGINE & FITTING
+         ---------------------------------------------------- -->
+    <script>
+      (function () {
+        'use strict';
+
+        const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const isTouch = window.matchMedia('(hover: none)').matches;
+
+        // 1. DYNAMIC HERO WORDMARK FIT (PHASE 2 MANDATE)
+        function fitHeroWordmark() {
+          const container = document.getElementById('hero-wordmark-container');
+          const lineMonument = document.getElementById('line-monument');
+          const lineMun = document.getElementById('line-mun');
+          if (!container || !lineMonument) return;
+
+          const targetWidth = container.clientWidth;
+          if (!targetWidth || targetWidth <= 0) return;
+
+          let low = 16;
+          let high = 240; // 15rem in px
+          let best = low;
+
+          lineMonument.style.display = 'inline-block';
+          lineMonument.style.whiteSpace = 'nowrap';
+
+          for (let i = 0; i < 20; i++) {
+            const mid = (low + high) / 2;
+            lineMonument.style.fontSize = mid + 'px';
+            if (lineMonument.scrollWidth <= targetWidth) {
+              best = mid;
+              low = mid;
+            } else {
+              high = mid;
+            }
+          }
+
+          const finalRem = Math.min(15, best / 16);
+          const remStr = `${finalRem.toFixed(3)}rem`;
+          lineMonument.style.fontSize = remStr;
+          lineMonument.style.lineHeight = '0.85';
+          if (lineMun) {
+            lineMun.style.fontSize = remStr;
+            lineMun.style.lineHeight = '0.85';
+          }
+        }
+
+        function debounce(fn, ms) {
+          let timer;
+          return function (...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), ms);
+          };
+        }
+
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(fitHeroWordmark);
+        } else {
+          window.addEventListener('load', fitHeroWordmark);
+        }
+        window.addEventListener('resize', debounce(fitHeroWordmark, 150));
+        window.addEventListener('orientationchange', debounce(fitHeroWordmark, 150));
+
+        // 2. HASH ROUTING (#/ or #/committees or #/apply)
+        const viewHome = document.getElementById('view-home');
+        const viewCommittees = document.getElementById('view-committees');
+        const viewApply = document.getElementById('view-apply');
+        const dotNav = document.getElementById('dot-nav');
+        const mobileCounter = document.getElementById('mobile-stop-counter');
+
+        function switchView(hash) {
+          const cleanHash = hash.replace(/^#\/?/, '').toLowerCase();
+
+          [viewHome, viewCommittees, viewApply].forEach((view) => {
+            if (view) view.classList.remove('active-view');
+          });
+
+          window.scrollTo(0, 0);
+
+          if (cleanHash === 'committees') {
+            if (viewCommittees) viewCommittees.classList.add('active-view');
+            if (dotNav) dotNav.classList.add('nav-hidden');
+            if (mobileCounter) mobileCounter.classList.remove('visible');
+            lockBackgroundToStop6();
+          } else if (cleanHash === 'apply') {
+            if (viewApply) viewApply.classList.add('active-view');
+            if (dotNav) dotNav.classList.add('nav-hidden');
+            if (mobileCounter) mobileCounter.classList.remove('visible');
+            lockBackgroundToStop6();
+          } else {
+            if (viewHome) viewHome.classList.add('active-view');
+            if (dotNav) dotNav.classList.remove('nav-hidden');
+            releaseBackground();
+            fitHeroWordmark();
+
+            if (hash.startsWith('#') && !hash.startsWith('#/')) {
+              const anchor = document.querySelector(hash);
+              if (anchor) {
+                setTimeout(() => {
+                  anchor.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }
+            }
+          }
+
+          refreshReveals();
+        }
+
+        window.addEventListener('hashchange', () => {
+          switchView(window.location.hash);
+        });
+
+        document.addEventListener('click', (e) => {
+          const target = e.target.closest('a');
+          if (!target) return;
+          const href = target.getAttribute('href');
+          if (href && href.startsWith('#') && !href.startsWith('#/')) {
+            const currentHash = window.location.hash;
+            if (currentHash === '#/committees' || currentHash === '#/apply') {
+              e.preventDefault();
+              window.location.hash = '#/';
+              setTimeout(() => {
+                const el = document.querySelector(href);
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }, 150);
+            }
+          }
+        });
+
+        // 3. HERO CHARACTERS ANIMATION
+        const lineMonument = document.getElementById('line-monument');
+        const lineMun = document.getElementById('line-mun');
+        let heroLettersTriggered = false;
+
+        function animateLetters(elem, baseDelay) {
+          if (!elem) return;
+          const text = elem.textContent.trim();
+          elem.innerHTML = '';
+          for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const span = document.createElement('span');
+            span.className = 'hero-char';
+            span.textContent = char === ' ' ? '\u00A0' : char;
+            if (!prefersReduced) {
+              span.style.animationDelay = `${baseDelay + i * 42}ms`;
+            }
+            elem.appendChild(span);
+          }
+        }
+
+        function triggerHeroLetters() {
+          if (heroLettersTriggered) return;
+          heroLettersTriggered = true;
+          animateLetters(lineMonument, 60);
+          animateLetters(lineMun, 60 + 8 * 42 + 60);
+          setTimeout(fitHeroWordmark, 50);
+        }
+
+        function triggerHeader() {
+          const siteHeader = document.getElementById('site-header');
+          if (siteHeader) {
+            siteHeader.classList.add('header-visible');
+          }
+        }
+
+        // 4. WORD-BY-WORD REVEAL HEADINGS
+        const revealHeadings = document.querySelectorAll('.word-reveal-heading');
+        revealHeadings.forEach((heading) => {
+          const nodes = Array.from(heading.childNodes);
+          heading.innerHTML = '';
+          nodes.forEach((node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+              const words = node.textContent.trim().split(/\s+/);
+              words.forEach((w) => {
+                if (!w) return;
+                const mask = document.createElement('span');
+                mask.className = 'word-mask';
+                const inner = document.createElement('span');
+                inner.className = 'word-inner';
+                inner.textContent = w;
+                mask.appendChild(inner);
+                heading.appendChild(mask);
+                heading.appendChild(document.createTextNode(' '));
+              });
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+              const mask = document.createElement('span');
+              mask.className = 'word-mask';
+              const inner = document.createElement('span');
+              inner.className = 'word-inner';
+              inner.appendChild(node.cloneNode(true));
+              mask.appendChild(inner);
+              heading.appendChild(mask);
+              heading.appendChild(document.createTextNode(' '));
+            }
+          });
+        });
+
+        // 5. SCROLL REVEAL OBSERVER
+        let revealObserver;
+        function setupReveals() {
+          const revealItems = document.querySelectorAll('.reveal-item');
+          if (!prefersReduced && 'IntersectionObserver' in window) {
+            revealObserver = new IntersectionObserver(
+              (entries) => {
+                entries.forEach((entry) => {
+                  if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                    revealObserver.unobserve(entry.target);
+                  }
+                });
+              },
+              { threshold: 0.12 }
+            );
+
+            revealItems.forEach((el, idx) => {
+              el.style.transitionDelay = `${(idx % 3) * 70}ms`;
+              revealObserver.observe(el);
+            });
+          } else {
+            revealItems.forEach((el) => el.classList.add('revealed'));
+          }
+        }
+
+        function refreshReveals() {
+          const items = document.querySelectorAll('.reveal-item:not(.revealed)');
+          items.forEach((el) => {
+            if (revealObserver) {
+              revealObserver.observe(el);
+            } else {
+              el.classList.add('revealed');
+            }
+          });
+        }
+        setupReveals();
+
+        // 6. STAT NUMBERS COUNT UP
+        const statNumbers = document.querySelectorAll('.stat-number');
+        if ('IntersectionObserver' in window) {
+          const statObserver = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                  const targetNum = parseInt(entry.target.getAttribute('data-target'), 10);
+                  if (!isNaN(targetNum)) {
+                    animateNumber(entry.target, targetNum);
+                  }
+                  statObserver.unobserve(entry.target);
+                }
+              });
+            },
+            { threshold: 0.5 }
+          );
+          statNumbers.forEach((el) => statObserver.observe(el));
+        }
+
+        function animateNumber(elem, target) {
+          if (prefersReduced) {
+            elem.textContent = String(target);
+            return;
+          }
+          const duration = 1200;
+          const startTime = performance.now();
+          function tick(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(1, elapsed / duration);
+            const easeVal = 1 - Math.pow(1 - progress, 3);
+            const current = Math.round(easeVal * target);
+            elem.textContent = String(current);
+            if (progress < 1) requestAnimationFrame(tick);
+          }
+          requestAnimationFrame(tick);
+        }
+
+        // 7. 3D CARD TILT & RADIAL HIGHLIGHT (DESKTOP ONLY)
+        function setupTiltCards() {
+          const tiltCards = document.querySelectorAll('.tilt-card');
+          if (!prefersReduced && !isTouch) {
+            tiltCards.forEach((card) => {
+              card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const tiltX = -((y - centerY) / centerY) * 5.5;
+                const tiltY = ((x - centerX) / centerX) * 5.5;
+
+                card.style.transform = `perspective(800px) rotateX(${tiltX.toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg) translateY(-8px) scale(1.02)`;
+              });
+
+              card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+              });
+            });
+          }
+        }
+        setupTiltCards();
+
+        // 8. MAGNETIC BUTTON EFFECT (DESKTOP ONLY)
+        const magneticButtons = document.querySelectorAll('.magnetic-btn');
+        if (!prefersReduced && !isTouch) {
+          magneticButtons.forEach((btn) => {
+            window.addEventListener('mousemove', (e) => {
+              const rect = btn.getBoundingClientRect();
+              const btnCenterX = rect.left + rect.width / 2;
+              const btnCenterY = rect.top + rect.height / 2;
+              const dist = Math.hypot(e.clientX - btnCenterX, e.clientY - btnCenterY);
+
+              if (dist < 80) {
+                const factor = (80 - dist) / 80;
+                const targetX = ((e.clientX - btnCenterX) / 80) * 8 * factor;
+                const targetY = ((e.clientY - btnCenterY) / 80) * 8 * factor;
+                btn.style.transform = `translate(${targetX.toFixed(2)}px, ${targetY.toFixed(2)}px)`;
+              } else {
+                btn.style.transform = '';
+              }
+            }, { passive: true });
+          });
+        }
+
+        // 9. DEPARTMENT DATA (12 DEPARTMENTS)
+        const teamDepartments = [
+          { name: 'Human Resources', members: ['Head of Human Resources', 'Head of Human Resources'] },
+          { name: 'Security', members: ['Head of Security'] },
+          { name: 'Media & Press', members: ['Head of Media & Press', 'Head of Media & Press'] },
+          { name: 'Volunteers', members: ['Head of Volunteers'] },
+          { name: 'DCC', members: ['Head of DCC'] },
+          { name: 'Marketing', members: ['Head of Marketing', 'Head of Marketing'] },
+          { name: 'Design', members: ['Head of Design', 'Head of Design'] },
+          { name: 'Public Relations', members: ['Head of Public Relations', 'Head of Public Relations'] },
+          { name: 'Logistics', members: ['Head of Logistics'] },
+          { name: 'Information Technology', members: ['Head of Information Technology'] },
+          { name: 'Finance', members: ['Head of Finance'] },
+          { name: 'Ceremony', members: ['Ceremony Director'] }
+        ];
+
+        const teamGrid = document.getElementById('team-grid-container');
+        if (teamGrid) {
+          teamDepartments.forEach((dept) => {
+            const card = document.createElement('div');
+            card.className = 'team-dept-card tilt-card reveal-item';
+
+            let membersHtml = '';
+            dept.members.forEach((roleTitle) => {
+              membersHtml += `
+                <div class="dept-member-unit">
+                  <div class="dept-role-title">${roleTitle}</div>
+                  <div class="dept-person-name">TBA</div>
+                </div>
+              `;
+            });
+
+            card.innerHTML = `
+              <div class="dept-eyebrow">${dept.name}</div>
+              <div class="dept-members-wrap">${membersHtml}</div>
+            `;
+            teamGrid.appendChild(card);
+          });
+        }
+
+        // 10. COMMITTEES VIEW DATA & CARDS (7 COMMITTEES)
+        const committeesData = [
+          {
+            name: 'Security Council',
+            monument: 'Great Wall of China',
+            location: 'China',
+            agenda: 'Disputed borders and the use of force along them.',
+            layerIndex: 0
+          },
+          {
+            name: 'Economic and Social Council',
+            monument: 'Petra',
+            location: 'Jordan',
+            agenda: 'Shared water and trade routes in arid regions.',
+            layerIndex: 1
+          },
+          {
+            name: 'UNESCO',
+            monument: 'The Pyramids',
+            location: 'Giza, Egypt',
+            agenda: 'Returning cultural heritage held in foreign museums.',
+            sentence: 'The oldest wonder on the list and the only ancient one still standing.',
+            layerIndex: 2
+          },
+          {
+            name: 'UNEP',
+            monument: 'Eiffel Tower',
+            location: 'Paris, France',
+            agenda: "Cutting emissions in the world's great cities.",
+            layerIndex: 3
+          },
+          {
+            name: 'Human Rights Council',
+            monument: 'Chichén Itzá',
+            location: 'Mexico',
+            agenda: 'Indigenous land rights and sacred sites.',
+            layerIndex: 4
+          },
+          {
+            name: 'DISEC',
+            monument: 'Colosseum',
+            location: 'Rome, Italy',
+            agenda: 'Autonomous weapons and human control.',
+            layerIndex: 5
+          },
+          {
+            name: 'UN Women',
+            monument: 'Taj Mahal',
+            location: 'Agra, India',
+            agenda: 'Access to education for girls.',
+            layerIndex: 6
+          }
+        ];
+
+        const commGrid = document.getElementById('committees-grid-container');
+        if (commGrid) {
+          committeesData.forEach((comm) => {
+            const card = document.createElement('div');
+            card.className = 'committee-card-full tilt-card reveal-item';
+
+            const layerSvg = document.querySelector(`#layer-${comm.layerIndex} svg`);
+            const svgMarkup = layerSvg ? layerSvg.outerHTML : '';
+
+            card.innerHTML = `
+              <div>
+                <div class="comm-icon-wrapper">
+                  ${svgMarkup}
+                </div>
+                <span class="eyebrow">${comm.monument} · ${comm.location}</span>
+                <h3 style="font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.6rem; color: #ffffff;">
+                  ${comm.name}
+                </h3>
+                <p style="font-size: 1.05rem; font-style: italic; color: rgba(242, 244, 255, 0.88); margin-bottom: 1rem; line-height: 1.5;">
+                  <strong>Agenda:</strong> "${comm.agenda}"
+                </p>
+                ${comm.sentence ? `<p style="font-size: 0.88rem; color: var(--gold); font-style: italic; margin-bottom: 1rem;">✦ ${comm.sentence}</p>` : ''}
+              </div>
+
+              <div class="comm-meta-grid">
+                <div>Chairs: <strong>TBA</strong></div>
+                <div>Delegates: <strong>TBA</strong></div>
+                <div><span class="comm-bg-guide-badge">Background guide: TBA</span></div>
+              </div>
+            `;
+            commGrid.appendChild(card);
+          });
+        }
+
+        // 11. BACKGROUND PALETTES & CONTINUOUS SCROLL INTERPOLATION
+        const PALETTES = [
+          { skyTop: '#9fb4c7', skyBottom: '#e4e0d6', ink: '#3b4a58', text: '#1d2a36' },
+          { skyTop: '#c9866a', skyBottom: '#f0c29a', ink: '#5a2a22', text: '#3a1712' },
+          { skyTop: '#f2b45a', skyBottom: '#fbe3a6', ink: '#7a4a14', text: '#3a2208' },
+          { skyTop: '#4a5b8c', skyBottom: '#e8b4b8', ink: '#262b4a', text: '#fdf8f5' },
+          { skyTop: '#1f4f4a', skyBottom: '#7fb5a2', ink: '#0d2a27', text: '#f1faf5' },
+          { skyTop: '#3b2a4f', skyBottom: '#e08a5a', ink: '#1f1426', text: '#fff3e6' },
+          { skyTop: '#141a3d', skyBottom: '#5a6fb0', ink: '#eef0fa', text: '#f2f4ff' }
+        ];
+
+        function hexToRgb(hex) {
+          const clean = hex.replace('#', '');
+          const bigint = parseInt(clean, 16);
+          return { r: (bigint >> 16) & 255, g: (bigint >> 8) & 255, b: bigint & 255 };
+        }
+
+        function lerpRgb(a, b, t) {
+          const r = Math.round(a.r + (b.r - a.r) * t);
+          const g = Math.round(a.g + (b.g - a.g) * t);
+          const bVal = Math.round(a.b + (b.b - a.b) * t);
+          return `rgb(${r}, ${g}, ${bVal})`;
+        }
+
+        const monumentLayers = [
+          document.getElementById('layer-0'),
+          document.getElementById('layer-1'),
+          document.getElementById('layer-2'),
+          document.getElementById('layer-3'),
+          document.getElementById('layer-4'),
+          document.getElementById('layer-5'),
+          document.getElementById('layer-6')
+        ];
+
+        const stopElements = [
+          document.getElementById('stop-0'),
+          document.getElementById('stop-1'),
+          document.getElementById('stop-2'),
+          document.getElementById('stop-3'),
+          document.getElementById('stop-4'),
+          document.getElementById('stop-5'),
+          document.getElementById('stop-6')
+        ];
+
+        const dotButtons = document.querySelectorAll('.dot-nav-btn');
+        const moonElem = document.getElementById('sky-moon');
+        const header = document.getElementById('site-header');
+        const scrollProgressBar = document.getElementById('scroll-progress');
+        const heroInner = document.getElementById('hero-inner-container');
+        const stopCurrentSpan = document.getElementById('mobile-stop-current');
+
+        let isLockedToStop6 = false;
+        let lerpedContinuousPos = 0;
+        let targetContinuousPos = 0;
+
+        function lockBackgroundToStop6() {
+          isLockedToStop6 = true;
+          targetContinuousPos = 6;
+        }
+
+        function releaseBackground() {
+          isLockedToStop6 = false;
+        }
+
+        dotButtons.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const stopIdx = parseInt(btn.getAttribute('data-stop'), 10);
+            const targetStop = stopElements[stopIdx];
+            if (targetStop) {
+              const targetY = targetStop.getBoundingClientRect().top + window.pageYOffset;
+              window.scrollTo({ top: targetY, behavior: 'smooth' });
+            }
+          });
+        });
+
+        function updateScrollEngine() {
+          if (introActive) {
+            targetContinuousPos = 0;
+            if (scrollProgressBar) {
+              scrollProgressBar.style.transform = 'scaleX(0)';
+            }
+          } else {
+            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+            const maxScroll = (document.documentElement.scrollHeight - window.innerHeight) || 1;
+            const scrollFraction = Math.max(0, Math.min(1, scrollY / maxScroll));
+
+            if (scrollProgressBar) {
+              scrollProgressBar.style.transform = `scaleX(${scrollFraction.toFixed(4)})`;
+            }
+
+            if (header) {
+              if (scrollY > 30) {
+                header.classList.add('scrolled');
+              } else {
+                header.classList.remove('scrolled');
+              }
+            }
+
+            if (heroInner && !prefersReduced && (!window.location.hash || window.location.hash === '#/')) {
+              const heroHeight = window.innerHeight;
+              if (scrollY < heroHeight * 1.2) {
+                const heroProgress = Math.min(1, scrollY / heroHeight);
+                const heroScale = 1 - heroProgress * 0.05;
+                const heroOpacity = 1 - heroProgress * 0.7;
+                const heroTranslate = scrollY * 0.25;
+                heroInner.style.transform = `translateY(${heroTranslate.toFixed(1)}px) scale(${heroScale.toFixed(3)})`;
+                heroInner.style.opacity = Math.max(0.25, heroOpacity).toFixed(3);
+              }
+            }
+
+            if (isLockedToStop6) {
+              targetContinuousPos = 6;
+            } else {
+              const viewCenter = window.innerHeight * 0.5;
+              const stopOffsets = stopElements.map((el) => {
+                if (!el) return 0;
+                const rect = el.getBoundingClientRect();
+                return rect.top + rect.height / 2;
+              });
+
+              if (stopElements[0] && stopElements[6]) {
+                const firstStopCenter = stopOffsets[0];
+                const lastStopCenter = stopOffsets[6];
+                const totalDist = lastStopCenter - firstStopCenter;
+
+                if (totalDist !== 0) {
+                  const delta = viewCenter - firstStopCenter;
+                  targetContinuousPos = (delta / totalDist) * 6;
+                  targetContinuousPos = Math.max(0, Math.min(6, targetContinuousPos));
+                }
+              }
+            }
+          }
+
+          lerpedContinuousPos += (targetContinuousPos - lerpedContinuousPos) * 0.12;
+
+          const activeStop = Math.round(lerpedContinuousPos);
+          dotButtons.forEach((btn, idx) => {
+            if (idx === activeStop) {
+              btn.classList.add('active');
+            } else {
+              btn.classList.remove('active');
+            }
+          });
+
+          // Update mobile stop counter
+          if (stopCurrentSpan) {
+            stopCurrentSpan.textContent = String(activeStop + 1);
+          }
+          if (mobileCounter) {
+            const isHome = !window.location.hash || window.location.hash === '#/';
+            const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+            if (isHome && scrollY > 200) {
+              mobileCounter.classList.add('visible');
+            } else {
+              mobileCounter.classList.remove('visible');
+            }
+          }
+
+          const baseIndex = Math.floor(lerpedContinuousPos);
+          const nextIndex = Math.min(6, baseIndex + 1);
+          const frac = lerpedContinuousPos - baseIndex;
+
+          const p1 = PALETTES[baseIndex];
+          const p2 = PALETTES[nextIndex];
+
+          const curSkyTop = lerpRgb(hexToRgb(p1.skyTop), hexToRgb(p2.skyTop), frac);
+          const curSkyBottom = lerpRgb(hexToRgb(p1.skyBottom), hexToRgb(p2.skyBottom), frac);
+          const curInk = lerpRgb(hexToRgb(p1.ink), hexToRgb(p2.ink), frac);
+          const curText = lerpRgb(hexToRgb(p1.text), hexToRgb(p2.text), frac);
+
+          document.documentElement.style.setProperty('--sky-top', curSkyTop);
+          document.documentElement.style.setProperty('--sky-bottom', curSkyBottom);
+          document.documentElement.style.setProperty('--monument-ink', curInk);
+          document.documentElement.style.setProperty('--text-color', curText);
+
+          for (let i = 0; i < 7; i++) {
+            const layer = monumentLayers[i];
+            if (!layer) continue;
+            const dist = Math.abs(lerpedContinuousPos - i);
+            const opacity = Math.max(0, Math.min(1, 1 - dist));
+            const translateY = (lerpedContinuousPos - i) * 32;
+
+            layer.style.opacity = opacity.toFixed(3);
+            layer.style.transform = `translateY(${translateY.toFixed(1)}px) translateZ(0)`;
+          }
+
+          if (moonElem) {
+            const tajDist = Math.abs(lerpedContinuousPos - 6);
+            if (tajDist < 1) {
+              const moonAlpha = Math.max(0, 1 - tajDist * 1.2);
+              moonElem.style.opacity = moonAlpha.toFixed(2);
+              moonElem.style.transform = `translateY(${(tajDist * 20).toFixed(1)}px)`;
+            } else {
+              moonElem.style.opacity = '0';
+            }
+          }
+        }
+
+        // 12. MARQUEE CONTINUOUS SCROLL
+        const marquee1 = document.getElementById('marquee-track-1');
+        const marquee2 = document.getElementById('marquee-track-2');
+        const marqueeSec = document.getElementById('marquee-section');
+
+        let marqueeMultiplier = 1;
+        let targetMarqueeMultiplier = 1;
+        let marqueePos1 = 0;
+        let marqueePos2 = 0;
+        let isMarqueeVisible = true;
+
+        if (marqueeSec) {
+          marqueeSec.addEventListener('mouseenter', () => { targetMarqueeMultiplier = 0; });
+          marqueeSec.addEventListener('mouseleave', () => { targetMarqueeMultiplier = 1; });
+        }
+
+        if ('IntersectionObserver' in window && marqueeSec) {
+          const marqueeObs = new IntersectionObserver((entries) => {
+            isMarqueeVisible = entries[0].isIntersecting;
+          });
+          marqueeObs.observe(marqueeSec);
+        }
+
+        function updateMarquee() {
+          if (isMarqueeVisible && !prefersReduced && (!window.location.hash || window.location.hash === '#/')) {
+            marqueeMultiplier += (targetMarqueeMultiplier - marqueeMultiplier) * 0.08;
+            marqueePos1 -= 0.8 * marqueeMultiplier;
+            marqueePos2 += 0.8 * marqueeMultiplier;
+
+            if (marquee1 && marquee1.scrollWidth > 0) {
+              marquee1.style.transform = `translateX(${marqueePos1 % (marquee1.scrollWidth / 2)}px)`;
+            }
+            if (marquee2 && marquee2.scrollWidth > 0) {
+              marquee2.style.transform = `translateX(${-Math.abs(marqueePos2 % (marquee2.scrollWidth / 2))}px)`;
+            }
+          }
+        }
+
+        // 13. REALISTIC LIT PLANET EARTH CANVAS GLOBE & MONUMENT CHIPS
+        const canvas = document.getElementById('globeCanvas');
+        let drawGlobeFunc = function () {};
+
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          const tooltip = document.getElementById('globeTooltip');
+          const tooltipMonument = document.getElementById('tooltipMonument');
+          const tooltipCommittee = document.getElementById('tooltipCommittee');
+          const dragHint = document.getElementById('globe-drag-hint');
+          const chipButtons = Array.from(document.querySelectorAll('.monument-chip'));
+          const chipsContainer = document.getElementById('globeChipsContainer');
+
+          // 1. Simplified World Land Polygons (Coarse [lat, lon] coordinates)
+          const WORLD_POLYGONS = [
+            // North America (mainland + Alaska + Canada)
+            [
+              [71, -156], [71, -128], [69, -115], [74, -95], [62, -92], [58, -94], [51, -80], [58, -68],
+              [53, -56], [47, -53], [44, -64], [41, -70], [35, -75], [28, -80], [25, -80], [30, -84],
+              [29, -89], [29, -95], [26, -97], [20, -97], [16, -93], [14, -88], [9, -79], [8, -77],
+              [8, -83], [13, -87], [16, -93], [17, -100], [23, -106], [32, -117], [37, -122], [48, -125],
+              [55, -132], [59, -140], [60, -149], [57, -154], [64, -165], [66, -168]
+            ],
+            // Greenland
+            [
+              [83, -30], [82, -20], [76, -18], [70, -21], [65, -38], [60, -43], [64, -52], [72, -56], [78, -69], [82, -60]
+            ],
+            // South America
+            [
+              [11, -72], [10, -62], [6, -53], [-2, -44], [-7, -35], [-12, -37], [-23, -42], [-32, -52],
+              [-39, -62], [-46, -66], [-54, -68], [-55, -67], [-51, -74], [-44, -74], [-33, -72], [-18, -71],
+              [-12, -77], [-4, -81], [2, -79], [7, -78], [9, -76]
+            ],
+            // Europe
+            [
+              [36, -6], [43, -9], [44, -1], [49, -1], [50, 2], [54, 8], [58, 6], [58, 11], [64, 11],
+              [70, 20], [71, 28], [68, 30], [64, 40], [67, 50], [60, 50], [55, 38], [53, 30], [47, 30],
+              [46, 38], [42, 42], [42, 35], [41, 29], [38, 24], [36, 22], [38, 16], [41, 15], [44, 12],
+              [44, 8], [41, 2], [37, -2]
+            ],
+            // British Isles
+            [
+              [50, -5], [52, 1], [56, -2], [59, -3], [58, -5], [55, -5], [51, -10], [54, -10], [55, -6], [51, -5]
+            ],
+            // Africa
+            [
+              [36, -6], [37, 10], [33, 11], [32, 24], [31, 32], [28, 34], [22, 37], [12, 44], [11, 51],
+              [2, 45], [-4, 40], [-11, 40], [-16, 40], [-25, 33], [-34, 26], [-34, 18], [-28, 16],
+              [-18, 12], [-6, 12], [4, 9], [5, 1], [6, 2], [5, -3], [5, -7], [11, -15], [15, -17],
+              [21, -17], [28, -13], [34, -7]
+            ],
+            // Madagascar
+            [
+              [-12, 49], [-16, 50], [-25, 47], [-26, 45], [-17, 44]
+            ],
+            // Middle East & Arabian Peninsula
+            [
+              [31, 34], [33, 36], [37, 36], [37, 44], [30, 48], [26, 51], [24, 56], [22, 60], [17, 54],
+              [13, 45], [13, 43], [21, 39], [28, 34]
+            ],
+            // Asia & Siberia
+            [
+              [42, 45], [50, 52], [55, 60], [60, 60], [67, 65], [73, 73], [76, 100], [76, 114], [73, 130],
+              [70, 160], [66, 170], [60, 162], [52, 142], [45, 135], [38, 128], [35, 120], [31, 122],
+              [22, 114], [21, 108], [22, 92], [25, 67], [25, 62], [31, 50], [37, 48], [40, 48]
+            ],
+            // India
+            [
+              [32, 75], [28, 70], [24, 69], [21, 72], [15, 74], [8, 77], [13, 80], [17, 83], [22, 89], [26, 90], [27, 88], [30, 80]
+            ],
+            // Indochina & SE Asia Mainland
+            [
+              [23, 93], [20, 106], [11, 107], [9, 104], [13, 100], [19, 97], [22, 94]
+            ],
+            // Japan
+            [
+              [45, 142], [44, 145], [41, 141], [36, 141], [34, 136], [31, 131], [33, 130], [36, 133], [38, 139]
+            ],
+            // SE Asia, Indonesia, Philippines & Papua
+            [
+              [6, 100], [1, 104], [-6, 106], [-8, 114], [-8, 123], [-4, 136], [-3, 141], [-9, 143],
+              [-4, 145], [2, 128], [1, 125], [4, 118], [7, 117], [18, 121], [13, 124], [8, 126],
+              [6, 117], [4, 108]
+            ],
+            // Australia
+            [
+              [-11, 142], [-16, 145], [-24, 153], [-32, 153], [-38, 147], [-38, 140], [-35, 136],
+              [-32, 132], [-32, 125], [-35, 118], [-32, 115], [-22, 114], [-18, 122], [-14, 128],
+              [-12, 137], [-14, 141]
+            ],
+            // New Zealand
+            [
+              [-35, 174], [-38, 178], [-41, 176], [-46, 168], [-46, 166], [-41, 172], [-38, 175]
+            ],
+            // Antarctica
+            [
+              [-65, -60], [-68, -100], [-72, -150], [-78, 170], [-75, 130], [-67, 110], [-67, 70], [-70, 30], [-70, -10]
+            ]
+          ];
+
+          // Point in polygon raycaster
+          function ptInPolygon(lat, lon, poly) {
+            let inside = false;
+            for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+              const yi = poly[i][0];
+              const xi = poly[i][1];
+              const yj = poly[j][0];
+              const xj = poly[j][1];
+              if (((yi > lat) !== (yj > lat)) && (lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi)) {
+                inside = !inside;
+              }
+            }
+            return inside;
+          }
+
+          // Precompute bounding boxes
+          const polygonBoxes = WORLD_POLYGONS.map((p) => {
+            let minLat = 999, maxLat = -999, minLon = 999, maxLon = -999;
+            for (let i = 0; i < p.length; i++) {
+              if (p[i][0] < minLat) minLat = p[i][0];
+              if (p[i][0] > maxLat) maxLat = p[i][0];
+              if (p[i][1] < minLon) minLon = p[i][1];
+              if (p[i][1] > maxLon) maxLon = p[i][1];
+            }
+            return { minLat, maxLat, minLon, maxLon, poly: p };
+          });
+
+          // Precompute Land Mask at startup
+          // Coarser grid on phones for smooth 60fps performance
+          const isMobilePhone = window.innerWidth < 700;
+          const gridStep = isMobilePhone ? 2.0 : 1.25;
+          const landPoints = [];
+
+          for (let lat = -84; lat <= 84; lat += gridStep) {
+            const latRad = (lat * Math.PI) / 180;
+            const cosLat = Math.cos(latRad);
+            const sinLat = Math.sin(latRad);
+
+            for (let lon = -180; lon < 180; lon += gridStep) {
+              let inside = false;
+              for (let b = 0; b < polygonBoxes.length; b++) {
+                const box = polygonBoxes[b];
+                if (lat >= box.minLat && lat <= box.maxLat && lon >= box.minLon && lon <= box.maxLon) {
+                  if (ptInPolygon(lat, lon, box.poly)) {
+                    inside = true;
+                    break;
+                  }
+                }
+              }
+
+              if (inside) {
+                // Natural terrain classification
+                let type = 'temperate';
+                if (lat > 68 || lat < -60 || (lat > 59 && lat < 84 && lon > -56 && lon < -18)) {
+                  type = 'ice';
+                } else if (
+                  (lat >= 14 && lat <= 33 && lon >= -17 && lon <= 58) ||
+                  (lat >= 36 && lat <= 44 && lon >= 80 && lon <= 110) ||
+                  (lat >= -32 && lat <= -19 && lon >= 120 && lon <= 142) ||
+                  (lat >= 24 && lat <= 35 && lon >= -116 && lon <= -102) ||
+                  (lat >= -28 && lat <= -18 && lon >= -71 && lon <= -68)
+                ) {
+                  type = 'desert';
+                } else if (Math.abs(lat) < 14) {
+                  type = 'tropical';
+                }
+
+                const lonRad = (lon * Math.PI) / 180;
+                landPoints.push({
+                  latRad,
+                  lonRad,
+                  cosLat,
+                  sinLat,
+                  type
+                });
+              }
+            }
+          }
+
+          // Shading Palettes: 8 quantized illumination levels
+          const PALETTES = {
+            ice: ['#65788c', '#7d91a6', '#95abc1', '#adc4dd', '#c5dcf7', '#d8ebfb', '#ecf6fd', '#ffffff'],
+            desert: ['#564324', '#745a31', '#92733f', '#b08b4e', '#c8a15e', '#dab672', '#e8ca8c', '#f4ddaa'],
+            tropical: ['#12351a', '#184723', '#1e592c', '#246e37', '#2b8443', '#339a4f', '#3cb05b', '#48c86a'],
+            temperate: ['#1b321c', '#254427', '#2f5732', '#3a6c3f', '#46804c', '#53955a', '#60ab68', '#6fc078']
+          };
+
+          // Twinkling Starfield behind the globe
+          const STAR_COUNT = 68;
+          const stars = [];
+          for (let s = 0; s < STAR_COUNT; s++) {
+            stars.push({
+              x: Math.random(),
+              y: Math.random(),
+              size: 0.6 + Math.random() * 1.3,
+              baseA: 0.18 + Math.random() * 0.45,
+              speed: 0.0012 + Math.random() * 0.0025,
+              phase: Math.random() * Math.PI * 2
+            });
+          }
+
+          // 2. The Seven Monument Pings
+          const monuments = [
+            { name: 'Great Wall of China', committee: 'Security Council', lat: 40.43, lon: 116.57, stopIndex: 0 },
+            { name: 'Petra', committee: 'ECOSOC', lat: 30.33, lon: 35.44, stopIndex: 1 },
+            { name: 'Pyramids of Giza', committee: 'UNESCO', lat: 29.98, lon: 31.13, stopIndex: 2 },
+            { name: 'Eiffel Tower', committee: 'UNEP', lat: 48.86, lon: 2.29, stopIndex: 3 },
+            { name: 'Chichén Itzá', committee: 'Human Rights Council', lat: 20.68, lon: -88.57, stopIndex: 4 },
+            { name: 'Colosseum', committee: 'DISEC', lat: 41.89, lon: 12.49, stopIndex: 5 },
+            { name: 'Taj Mahal', committee: 'UN Women', lat: 27.17, lon: 78.04, stopIndex: 6 }
+          ];
+
+          const pins = monuments.map((m) => {
+            const latRad = (m.lat * Math.PI) / 180;
+            const lonRad = (m.lon * Math.PI) / 180;
+            return {
+              name: m.name,
+              committee: m.committee,
+              stopIndex: m.stopIndex,
+              latRad,
+              lonRad,
+              cosLat: Math.cos(latRad),
+              sinLat: Math.sin(latRad),
+              screenX: 0,
+              screenY: 0,
+              x2: 0,
+              y2: 0,
+              z2: 0,
+              visible: false
+            };
+          });
+
+          // 3. Globe Motion State
+          const AXIAL_TILT = 23.4 * (Math.PI / 180); // 23.4 degrees
+          const cosB = Math.cos(AXIAL_TILT);
+          const sinB = Math.sin(AXIAL_TILT);
+
+          // Sunlight vector (top-left lit)
+          const lx = -0.42;
+          const ly = 0.48;
+          const lz = 0.77;
+
+          let yaw = 0.5;
+          let pitch = 0.22; // default viewing pitch
+          let velocityYaw = 0;
+          let isDragging = false;
+          let dragPointerType = 'mouse';
+          let lastX = 0;
+          let lastY = 0;
+          let hasInteracted = false;
+          let isGlobeVisible = true;
+          let resumeAutoRotateAt = 0;
+
+          // Camera flight animation state
+          let activeFlight = null;
+          let highlightedPinIndex = -1;
+          let highlightPulseCount = 0;
+          let highlightStartTime = 0;
+          let hoveredPinIndex = -1;
+          let currentFacingIndex = 0;
+          let touchHideTimer = null;
+
+          if ('IntersectionObserver' in window) {
+            const globeObs = new IntersectionObserver((entries) => {
+              isGlobeVisible = entries[0].isIntersecting;
+            });
+            globeObs.observe(canvas);
+          }
+
+          // Buffer size = CSS size * min(devicePixelRatio, 2)
+          function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            if (!rect.width) return;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            canvas.width = Math.round(rect.width * dpr);
+            canvas.height = Math.round(rect.height * dpr);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+          }
+          resizeCanvas();
+          window.addEventListener('resize', debounce(resizeCanvas, 150));
+
+          function dismissHint() {
+            if (!hasInteracted && dragHint) {
+              hasInteracted = true;
+              dragHint.style.opacity = '0';
+            }
+          }
+
+          function shortestAngleDiff(from, to) {
+            const diff = (to - from) % (Math.PI * 2);
+            return ((diff + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+          }
+
+          function easeCubic(t) {
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+          }
+
+          function triggerHighlight(pinIdx) {
+            highlightedPinIndex = pinIdx;
+            highlightPulseCount = 3;
+            highlightStartTime = performance.now();
+          }
+
+          function rotateToMonument(idx) {
+            dismissHint();
+            const m = monuments[idx];
+            if (!m) return;
+
+            const phi = m.latRad;
+            const lam = m.lonRad;
+            const sinLamp = Math.max(-0.95, Math.min(0.95, Math.tan(phi) * Math.tan(AXIAL_TILT)));
+            const lamp = Math.asin(sinLamp);
+            const targetYaw = lamp - lam;
+            const targetPitch = Math.max(-0.45, Math.min(0.45, phi * 0.45));
+
+            triggerHighlight(idx);
+
+            if (prefersReduced) {
+              yaw = targetYaw;
+              pitch = targetPitch;
+              resumeAutoRotateAt = performance.now() + 4000;
+              updateActiveChip(idx);
+              return;
+            }
+
+            activeFlight = {
+              startYaw: yaw,
+              deltaYaw: shortestAngleDiff(yaw, targetYaw),
+              startPitch: pitch,
+              deltaPitch: targetPitch - pitch,
+              startTime: performance.now(),
+              duration: 1400,
+              monumentIdx: idx
+            };
+            resumeAutoRotateAt = performance.now() + 1400 + 3000;
+          }
+
+          function updateActiveChip(idx) {
+            if (currentFacingIndex === idx) return;
+            currentFacingIndex = idx;
+            chipButtons.forEach((btn, i) => {
+              if (i === idx) {
+                btn.classList.add('active');
+                // Scroll into view inside snap container
+                if (chipsContainer) {
+                  const scrollLeft = btn.offsetLeft - chipsContainer.offsetWidth / 2 + btn.offsetWidth / 2;
+                  chipsContainer.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+                }
+              } else {
+                btn.classList.remove('active');
+              }
+            });
+          }
+
+          // Wire chip clicks
+          chipButtons.forEach((btn) => {
+            btn.addEventListener('click', (e) => {
+              const idx = parseInt(btn.dataset.index, 10);
+              if (!isNaN(idx)) {
+                rotateToMonument(idx);
+              }
+            });
+          });
+
+          // Pointer / Drag & Interaction Handling
+          function startDrag(clientX, clientY, pointerType) {
+            dismissHint();
+            isDragging = true;
+            dragPointerType = pointerType || 'mouse';
+            lastX = clientX;
+            lastY = clientY;
+            velocityYaw = 0;
+            activeFlight = null;
+          }
+
+          function moveDrag(clientX, clientY) {
+            if (!isDragging) return;
+            const deltaX = clientX - lastX;
+            velocityYaw = deltaX * 0.005;
+            yaw += velocityYaw;
+            lastX = clientX;
+
+            // Only allow vertical tilt with mouse or pen (NOT on touch, preserving pan-y scrolling)
+            if (dragPointerType !== 'touch') {
+              const deltaY = clientY - lastY;
+              pitch = Math.max(-0.52, Math.min(0.52, pitch - deltaY * 0.004));
+              lastY = clientY;
+            }
+          }
+
+          function endDrag() {
+            isDragging = false;
+          }
+
+          function navigateToStop(stopIdx) {
+            const el = document.getElementById('stop-' + stopIdx);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth' });
+            }
+          }
+
+          canvas.addEventListener('mousedown', (e) => {
+            startDrag(e.clientX, e.clientY, 'mouse');
+          });
+
+          window.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+              moveDrag(e.clientX, e.clientY);
+            } else {
+              const rect = canvas.getBoundingClientRect();
+              const mx = e.clientX - rect.left;
+              const my = e.clientY - rect.top;
+
+              let found = null;
+              let foundIdx = -1;
+              for (let i = 0; i < pins.length; i++) {
+                const pin = pins[i];
+                if (pin.visible) {
+                  const dist = Math.hypot(pin.screenX - mx, pin.screenY - my);
+                  if (dist < 24) {
+                    found = pin;
+                    foundIdx = i;
+                    break;
+                  }
+                }
+              }
+
+              hoveredPinIndex = foundIdx;
+              if (found) {
+                tooltipMonument.textContent = found.name;
+                tooltipCommittee.textContent = found.committee;
+                tooltip.style.left = `${found.screenX}px`;
+                tooltip.style.top = `${found.screenY}px`;
+                tooltip.classList.add('visible');
+                canvas.style.cursor = 'pointer';
+              } else {
+                tooltip.classList.remove('visible');
+                canvas.style.cursor = isDragging ? 'grabbing' : 'grab';
+              }
+            }
+          });
+
+          window.addEventListener('mouseup', endDrag);
+
+          canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            for (let i = 0; i < pins.length; i++) {
+              const pin = pins[i];
+              if (pin.visible) {
+                const dist = Math.hypot(pin.screenX - mx, pin.screenY - my);
+                if (dist < 26) {
+                  navigateToStop(pin.stopIndex);
+                  break;
+                }
+              }
+            }
+          });
+
+          if (tooltip) {
+            tooltip.addEventListener('click', () => {
+              if (hoveredPinIndex >= 0 && pins[hoveredPinIndex]) {
+                navigateToStop(pins[hoveredPinIndex].stopIndex);
+              }
+            });
+          }
+
+          // Touch events (preserving vertical scrolling via touch-action: pan-y)
+          canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+              const t = e.touches[0];
+              startDrag(t.clientX, t.clientY, 'touch');
+
+              const rect = canvas.getBoundingClientRect();
+              const mx = t.clientX - rect.left;
+              const my = t.clientY - rect.top;
+
+              let found = null;
+              let foundIdx = -1;
+              for (let i = 0; i < pins.length; i++) {
+                const pin = pins[i];
+                if (pin.visible) {
+                  const dist = Math.hypot(pin.screenX - mx, pin.screenY - my);
+                  if (dist < 32) {
+                    found = pin;
+                    foundIdx = i;
+                    break;
+                  }
+                }
+              }
+
+              if (found) {
+                hoveredPinIndex = foundIdx;
+                tooltipMonument.textContent = found.name;
+                tooltipCommittee.textContent = found.committee;
+                tooltip.style.left = `${found.screenX}px`;
+                tooltip.style.top = `${found.screenY}px`;
+                tooltip.classList.add('visible');
+
+                if (touchHideTimer) clearTimeout(touchHideTimer);
+                touchHideTimer = setTimeout(() => {
+                  tooltip.classList.remove('visible');
+                }, 2500);
+              }
+            }
+          }, { passive: true });
+
+          window.addEventListener('touchmove', (e) => {
+            if (isDragging && e.touches.length === 1) {
+              moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+            }
+          }, { passive: true });
+
+          window.addEventListener('touchend', endDrag);
+
+          // 4. Main Earth Render Loop
+          drawGlobeFunc = function (now) {
+            if (!isGlobeVisible || document.visibilityState === 'hidden') return;
+
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const size = canvas.width / dpr;
+            if (size <= 0) return;
+            const cx = size / 2;
+            const cy = size / 2;
+            const R = size * 0.40;
+
+            ctx.clearRect(0, 0, size, size);
+
+            // Handle Camera Flight
+            if (activeFlight) {
+              const elapsed = now - activeFlight.startTime;
+              const t = Math.min(1, elapsed / activeFlight.duration);
+              const easeT = easeCubic(t);
+              yaw = activeFlight.startYaw + activeFlight.deltaYaw * easeT;
+              pitch = activeFlight.startPitch + activeFlight.deltaPitch * easeT;
+              if (t >= 1) {
+                activeFlight = null;
+              }
+            } else if (!isDragging) {
+              if (Math.abs(velocityYaw) > 0.0002) {
+                yaw += velocityYaw;
+                velocityYaw *= 0.95;
+              } else if (!prefersReduced && now > resumeAutoRotateAt) {
+                // 1 full turn per 90 seconds (approx 0.00116 rad/frame at 60fps)
+                yaw += 0.00116;
+                pitch += (0.22 - pitch) * 0.03;
+              }
+            }
+
+            // Layer 1: Twinkling Starfield Behind Earth
+            for (let s = 0; s < STAR_COUNT; s++) {
+              const star = stars[s];
+              const starAlpha = Math.max(0.04, star.baseA + Math.sin(now * star.speed + star.phase) * 0.22);
+              ctx.fillStyle = `rgba(235, 242, 255, ${starAlpha.toFixed(3)})`;
+              ctx.fillRect(star.x * size, star.y * size, star.size, star.size);
+            }
+
+            // Layer 2: Atmosphere Outer Glowing Halo
+            const halo = ctx.createRadialGradient(cx, cy, R * 0.94, cx, cy, R * 1.15);
+            halo.addColorStop(0, 'rgba(90, 175, 255, 0.26)');
+            halo.addColorStop(0.5, 'rgba(60, 130, 240, 0.10)');
+            halo.addColorStop(1, 'transparent');
+            ctx.fillStyle = halo;
+            ctx.beginPath();
+            ctx.arc(cx, cy, R * 1.15, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Layer 3: Ocean Base Sphere (lit gradient from sunward side)
+            const ocean = ctx.createRadialGradient(cx - 0.24 * R, cy - 0.24 * R, 0.1 * R, cx, cy, R * 1.02);
+            ocean.addColorStop(0, '#174378');
+            ocean.addColorStop(0.55, '#0e294d');
+            ocean.addColorStop(0.85, '#071830');
+            ocean.addColorStop(1, '#030c18');
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, 0, Math.PI * 2);
+            ctx.clip();
+
+            ctx.fillStyle = ocean;
+            ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+
+            // Layer 4: Soft Specular Highlight on Oceans
+            const spec = ctx.createRadialGradient(cx - 0.28 * R, cy - 0.28 * R, 0, cx - 0.28 * R, cy - 0.28 * R, R * 0.52);
+            spec.addColorStop(0, 'rgba(210, 238, 255, 0.22)');
+            spec.addColorStop(0.5, 'rgba(150, 205, 255, 0.06)');
+            spec.addColorStop(1, 'transparent');
+            ctx.fillStyle = spec;
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Precalculate trigonometric transforms
+            const cosP = Math.cos(pitch);
+            const sinP = Math.sin(pitch);
+            const dotSize = isMobilePhone ? 2.8 : 2.2;
+            const dotHalf = dotSize / 2;
+
+            // Layer 5: Land Points Render
+            for (let i = 0; i < landPoints.length; i++) {
+              const pt = landPoints[i];
+              const lam = pt.lonRad + yaw;
+
+              // Un-tilted coordinates
+              const x0 = pt.cosLat * Math.sin(lam);
+              const y0 = pt.sinLat;
+              const z0 = pt.cosLat * Math.cos(lam);
+
+              // 23.4 deg axial tilt
+              const x1 = x0 * cosB - y0 * sinB;
+              const y1 = x0 * sinB + y0 * cosB;
+              const z1 = z0;
+
+              // Vertical pitch
+              const x2 = x1;
+              const y2 = y1 * cosP - z1 * sinP;
+              const z2 = y1 * sinP + z1 * cosP;
+
+              if (z2 > -0.04) {
+                const sx = cx + x2 * R;
+                const sy = cy - y2 * R;
+
+                // Lighting by sun dot product
+                const dot = x2 * lx + y2 * ly + z2 * lz;
+                const shadeIdx = Math.max(0, Math.min(7, Math.floor((0.2 + 0.8 * Math.max(0, dot)) * 7)));
+
+                ctx.fillStyle = PALETTES[pt.type][shadeIdx];
+                ctx.fillRect(sx - dotHalf, sy - dotHalf, dotSize, dotSize);
+              }
+            }
+
+            // Layer 6: Slow-Moving Cloud Layer
+            const cloudYaw = yaw * 1.12 + now * 0.00007;
+            const cloudBlobs = [
+              { lat: 18, lon: 35, r: 0.32 },
+              { lat: -22, lon: -45, r: 0.35 },
+              { lat: 48, lon: -125, r: 0.38 },
+              { lat: -52, lon: 95, r: 0.40 },
+              { lat: 6, lon: 155, r: 0.30 },
+              { lat: 62, lon: 15, r: 0.28 }
+            ];
+
+            for (let c = 0; c < cloudBlobs.length; c++) {
+              const cb = cloudBlobs[c];
+              const phi = (cb.lat * Math.PI) / 180;
+              const lam = (cb.lon * Math.PI) / 180 + cloudYaw;
+
+              const cx0 = Math.cos(phi) * Math.sin(lam);
+              const cy0 = Math.sin(phi);
+              const cz0 = Math.cos(phi) * Math.cos(lam);
+
+              const cx1 = cx0 * cosB - cy0 * sinB;
+              const cy1 = cx0 * sinB + cy0 * cosB;
+              const cz1 = cz0;
+
+              const cx2 = cx1;
+              const cy2 = cy1 * cosP - cz1 * sinP;
+              const cz2 = cy1 * sinP + cz1 * cosP;
+
+              if (cz2 > 0) {
+                const csx = cx + cx2 * R;
+                const csy = cy - cy2 * R;
+                const cloudRadius = R * cb.r;
+                const cGrad = ctx.createRadialGradient(csx, csy, 0, csx, csy, cloudRadius);
+                cGrad.addColorStop(0, 'rgba(255, 255, 255, 0.16)');
+                cGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.08)');
+                cGrad.addColorStop(1, 'transparent');
+                ctx.fillStyle = cGrad;
+                ctx.beginPath();
+                ctx.arc(csx, csy, cloudRadius, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            }
+
+            // Layer 7: Atmosphere Inner Limb Glow
+            const innerAtm = ctx.createRadialGradient(cx, cy, R * 0.82, cx, cy, R);
+            innerAtm.addColorStop(0, 'transparent');
+            innerAtm.addColorStop(0.85, 'rgba(90, 185, 255, 0.05)');
+            innerAtm.addColorStop(1, 'rgba(140, 215, 255, 0.24)');
+            ctx.fillStyle = innerAtm;
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore(); // Exit sphere clipping
+
+            // Layer 8: Monument Pings & Surface Ripples
+            let bestPinFacingIdx = -1;
+            let bestZ2 = -1;
+
+            pins.forEach((pin, idx) => {
+              const lam = pin.lonRad + yaw;
+              const x0 = pin.cosLat * Math.sin(lam);
+              const y0 = pin.sinLat;
+              const z0 = pin.cosLat * Math.cos(lam);
+
+              const x1 = x0 * cosB - y0 * sinB;
+              const y1 = x0 * sinB + y0 * cosB;
+              const z1 = z0;
+
+              const x2 = x1;
+              const y2 = y1 * cosP - z1 * sinP;
+              const z2 = y1 * sinP + z1 * cosP;
+
+              pin.x2 = x2;
+              pin.y2 = y2;
+              pin.z2 = z2;
+              pin.screenX = cx + x2 * R;
+              pin.screenY = cy - y2 * R;
+              pin.visible = z2 > 0.02;
+
+              if (z2 > bestZ2) {
+                bestZ2 = z2;
+                bestPinFacingIdx = idx;
+              }
+
+              if (pin.visible) {
+                const fade = Math.max(0, Math.min(1, z2 / 0.24));
+                const isHovered = (hoveredPinIndex === idx);
+                const rippleSpeed = isHovered ? 0.0036 : 0.0022;
+
+                const p1 = prefersReduced ? 0.4 : ((now * rippleSpeed) % 1);
+                const p2 = prefersReduced ? 0.8 : ((now * rippleSpeed + 0.5) % 1);
+
+                // Tangent normal projection: squash circle into ellipse (R_minor = R * z)
+                const rot = Math.atan2(-y2, x2);
+                const normalZ = Math.max(0.12, z2);
+
+                // Two expanding staggered surface ripple rings
+                [p1, p2].forEach((p) => {
+                  const ringR = 4 + p * (isHovered ? 20 : 15);
+                  const rx = ringR;
+                  const ry = ringR * normalZ;
+                  const alpha = (1 - p) * 0.75 * fade;
+
+                  ctx.save();
+                  ctx.translate(pin.screenX, pin.screenY);
+                  ctx.rotate(rot);
+                  ctx.strokeStyle = `rgba(217, 180, 90, ${alpha.toFixed(3)})`;
+                  ctx.lineWidth = 1.4;
+                  ctx.beginPath();
+                  ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+                  ctx.stroke();
+                  ctx.restore();
+                });
+
+                // 3x intense pulse when activated via chips
+                if (highlightedPinIndex === idx && highlightPulseCount > 0) {
+                  const elapsed = now - highlightStartTime;
+                  const pulseT = (elapsed / 450) % 1;
+                  const cycle = Math.floor(elapsed / 450);
+                  if (cycle < 3) {
+                    const pr = 4 + pulseT * 26;
+                    const prx = pr;
+                    const pry = pr * normalZ;
+                    const pa = (1 - pulseT) * fade * 0.95;
+                    ctx.save();
+                    ctx.translate(pin.screenX, pin.screenY);
+                    ctx.rotate(rot);
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${pa.toFixed(3)})`;
+                    ctx.lineWidth = 2.2;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, prx, pry, 0, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
+                  } else {
+                    highlightedPinIndex = -1;
+                  }
+                }
+
+                // Core glow
+                const glow = ctx.createRadialGradient(pin.screenX, pin.screenY, 0, pin.screenX, pin.screenY, 11);
+                glow.addColorStop(0, `rgba(217, 180, 90, ${(0.65 * fade).toFixed(3)})`);
+                glow.addColorStop(1, 'transparent');
+                ctx.fillStyle = glow;
+                ctx.beginPath();
+                ctx.arc(pin.screenX, pin.screenY, 11, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Solid gold dot
+                ctx.fillStyle = '#d9b45a';
+                ctx.beginPath();
+                ctx.arc(pin.screenX, pin.screenY, 4.6, 0, Math.PI * 2);
+                ctx.fill();
+
+                // White core
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(pin.screenX, pin.screenY, 2, 0, Math.PI * 2);
+                ctx.fill();
+              }
+            });
+
+            // Match active chip with monument currently facing the viewer
+            if (bestZ2 > 0.35 && bestPinFacingIdx >= 0 && !activeFlight) {
+              updateActiveChip(bestPinFacingIdx);
+            }
+          };
+        }
+
+        // 14. SINGLE UNIFIED REQUESTANIMATIONFRAME LOOP (PHASE 2 MANDATE)
+        function masterLoop(now) {
+          updateScrollEngine();
+          updateMarquee();
+          drawGlobeFunc(now);
+          requestAnimationFrame(masterLoop);
+        }
+        requestAnimationFrame(masterLoop);
+
+        // 15. SUGGESTIONS FORM VALIDATION
+        const sendBtn = document.getElementById('send-sugg-btn');
+        const nameInput = document.getElementById('sugg-name');
+        const emailInput = document.getElementById('sugg-email');
+        const msgTextarea = document.getElementById('sugg-msg');
+        const statusBanner = document.getElementById('form-status');
+
+        if (sendBtn) {
+          sendBtn.addEventListener('click', () => {
+            const name = nameInput.value.trim();
+            const msg = msgTextarea.value.trim();
+
+            if (!name || !msg) {
+              statusBanner.className = 'status-banner error';
+              statusBanner.textContent = 'Please fill in both your name and message before submitting.';
+              return;
+            }
+
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = 'Sending...';
+
+            setTimeout(() => {
+              statusBanner.className = 'status-banner success';
+              statusBanner.textContent = `✓ Thank you, ${name}! We read every submission and appreciate your message.`;
+              nameInput.value = '';
+              emailInput.value = '';
+              msgTextarea.value = '';
+              sendBtn.disabled = false;
+              sendBtn.innerHTML = 'Send Message';
+            }, 600);
+          });
+        }
+
+        // 16. APPLY NOTIFY-ME FORM VALIDATION
+        const applyBtn = document.getElementById('apply-notify-btn');
+        const applyName = document.getElementById('apply-name');
+        const applyEmail = document.getElementById('apply-email');
+        const applyStatus = document.getElementById('apply-form-status');
+
+        if (applyBtn) {
+          applyBtn.addEventListener('click', () => {
+            const name = applyName.value.trim();
+            const email = applyEmail.value.trim();
+
+            if (!name || !email) {
+              applyStatus.className = 'status-banner error';
+              applyStatus.textContent = 'Please enter both your name and email address.';
+              return;
+            }
+
+            applyBtn.disabled = true;
+            applyBtn.innerHTML = 'Submitting...';
+
+            setTimeout(() => {
+              applyStatus.className = 'status-banner success';
+              applyStatus.textContent = `✓ Thank you, ${name}! You will receive priority notification at ${email} once applications open.`;
+              applyName.value = '';
+              applyEmail.value = '';
+              applyBtn.disabled = false;
+              applyBtn.innerHTML = 'Notify me';
+            }, 600);
+          });
+        }
+
+        // 17. MOBILE MENU TOGGLE
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const mobilePanel = document.getElementById('mobile-nav-panel');
+        const mobileClose = document.getElementById('mobile-close');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+
+        if (mobileToggle && mobilePanel) {
+          mobileToggle.addEventListener('click', () => {
+            mobilePanel.classList.add('open');
+          });
+        }
+
+        if (mobileClose && mobilePanel) {
+          mobileClose.addEventListener('click', () => {
+            mobilePanel.classList.remove('open');
+          });
+        }
+
+        mobileLinks.forEach((link, idx) => {
+          link.style.transitionDelay = `${idx * 60}ms`;
+          link.addEventListener('click', () => {
+            if (mobilePanel) mobilePanel.classList.remove('open');
+          });
+        });
+
+        // 18. BOTTOM ANNOUNCEMENT PILL SLIDE UP AFTER 1.5s
+        const announcementPill = document.getElementById('announcement-pill');
+        const dismissPillBtn = document.getElementById('dismiss-pill');
+
+        if (announcementPill) {
+          setTimeout(() => {
+            announcementPill.classList.add('visible');
+          }, 1500);
+
+          if (dismissPillBtn) {
+            dismissPillBtn.addEventListener('click', () => {
+              announcementPill.classList.remove('visible');
+              announcementPill.classList.add('hidden');
+            });
+          }
+        }
+
+        // 19. LOGO INTRO SEQUENCE
+        const introOverlay = document.getElementById('intro-overlay');
+        const introDustCanvas = document.getElementById('intro-dust-canvas');
+        const introProgressBar = document.getElementById('intro-progress-bar');
+        const introCounter = document.getElementById('intro-counter');
+        const introSkipBtn = document.getElementById('intro-skip-btn');
+
+        let introActive = false;
+        let dustAnimationId = null;
+        let progressAnimId = null;
+        let introTimeouts = [];
+
+        function clearIntroTimers() {
+          introTimeouts.forEach(clearTimeout);
+          introTimeouts = [];
+          if (progressAnimId) {
+            cancelAnimationFrame(progressAnimId);
+            progressAnimId = null;
+          }
+        }
+
+        function triggerIntroReplay(e) {
+          if (e) e.preventDefault();
+          try {
+            sessionStorage.removeItem('monument_intro_played_27');
+          } catch (err) {}
+          window.scrollTo(0, 0);
+          window.location.hash = '#/';
+          window.location.reload();
+        }
+
+        const replayTriggers = document.querySelectorAll('.replay-intro-trigger, #replay-intro-link, #replay-intro-bottom-btn');
+        replayTriggers.forEach((btn) => {
+          btn.addEventListener('click', triggerIntroReplay);
+        });
+
+        function endIntroSequence(immediate) {
+          clearIntroTimers();
+          if (dustAnimationId) {
+            cancelAnimationFrame(dustAnimationId);
+            dustAnimationId = null;
+          }
+
+          if (introOverlay) {
+            introOverlay.classList.add('content-exit');
+            introOverlay.classList.add('split');
+          }
+
+          triggerHeroLetters();
+          triggerHeader();
+
+          introActive = false;
+          document.documentElement.style.overflow = '';
+          document.body.style.overflow = '';
+
+          try {
+            sessionStorage.setItem('monument_intro_played_27', 'true');
+          } catch (err) {}
+
+          const exitDuration = (immediate || prefersReduced) ? (prefersReduced ? 500 : 0) : 900;
+          setTimeout(() => {
+            if (introOverlay && introOverlay.parentNode) {
+              introOverlay.remove();
+            }
+            fitHeroWordmark();
+          }, exitDuration);
+        }
+
+        window.__onIntroLogoError = function () {
+          endIntroSequence(true);
+        };
+
+        function startDustCanvas() {
+          if (!introDustCanvas || prefersReduced) return;
+          const ctx = introDustCanvas.getContext('2d');
+          if (!ctx) return;
+
+          let width = (introDustCanvas.width = window.innerWidth);
+          let height = (introDustCanvas.height = window.innerHeight);
+
+          const onResize = () => {
+            width = introDustCanvas.width = window.innerWidth;
+            height = introDustCanvas.height = window.innerHeight;
+          };
+          window.addEventListener('resize', onResize);
+
+          const particles = [];
+          for (let i = 0; i < 30; i++) {
+            particles.push({
+              x: Math.random() * width,
+              y: Math.random() * height,
+              radius: Math.random() * 1.5 + 0.6,
+              speedY: Math.random() * 0.45 + 0.15,
+              speedX: (Math.random() - 0.5) * 0.2,
+              opacity: Math.random() * 0.4 + 0.1
+            });
+          }
+
+          function loop() {
+            ctx.clearRect(0, 0, width, height);
+            for (let i = 0; i < particles.length; i++) {
+              const p = particles[i];
+              p.y -= p.speedY;
+              p.x += p.speedX;
+
+              if (p.y < -10) {
+                p.y = height + 10;
+                p.x = Math.random() * width;
+              }
+              if (p.x < -10) p.x = width + 10;
+              if (p.x > width + 10) p.x = -10;
+
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+              ctx.fillStyle = `rgba(217, 180, 90, ${p.opacity.toFixed(2)})`;
+              ctx.fill();
+            }
+            dustAnimationId = requestAnimationFrame(loop);
+          }
+          loop();
+        }
+
+        function runIntro() {
+          let hasPlayed = false;
+          try {
+            hasPlayed = sessionStorage.getItem('monument_intro_played_27') === 'true';
+          } catch (e) {
+            hasPlayed = false;
+          }
+
+          if (hasPlayed) {
+            if (introOverlay) introOverlay.remove();
+            triggerHeader();
+            triggerHeroLetters();
+            fitHeroWordmark();
+            return;
+          }
+
+          introActive = true;
+          document.documentElement.style.overflow = 'hidden';
+          document.body.style.overflow = 'hidden';
+
+          if (introSkipBtn) {
+            introSkipBtn.focus();
+            introSkipBtn.addEventListener('click', () => {
+              endIntroSequence(false);
+            });
+          }
+
+          window.addEventListener('keydown', function escHandler(e) {
+            if (e.key === 'Escape' && introActive) {
+              window.removeEventListener('keydown', escHandler);
+              endIntroSequence(false);
+            }
+          });
+
+          const preloadImg = new Image();
+          preloadImg.src = 'logo.png';
+
+          function onLogoReady() {
+            if (prefersReduced) {
+              if (introOverlay) {
+                introOverlay.classList.add('logo-in');
+              }
+              setTimeout(() => {
+                endIntroSequence(false);
+              }, 1200);
+              return;
+            }
+
+            startDustCanvas();
+
+            const introStartTime = performance.now();
+            const totalIntroDuration = 3800;
+
+            function tickProgress(now) {
+              const elapsed = now - introStartTime;
+              const pct = Math.min(100, Math.max(0, (elapsed / totalIntroDuration) * 100));
+              if (introProgressBar) introProgressBar.style.width = `${pct.toFixed(1)}%`;
+              if (introCounter) introCounter.textContent = `${Math.floor(pct)}%`;
+              if (elapsed < totalIntroDuration) {
+                progressAnimId = requestAnimationFrame(tickProgress);
+              }
+            }
+            progressAnimId = requestAnimationFrame(tickProgress);
+
+            introTimeouts.push(
+              setTimeout(() => {
+                if (introOverlay) introOverlay.classList.add('logo-in');
+              }, 300)
+            );
+
+            introTimeouts.push(
+              setTimeout(() => {
+                if (introOverlay) introOverlay.classList.add('sweep');
+              }, 1200)
+            );
+
+            introTimeouts.push(
+              setTimeout(() => {
+                if (introOverlay) introOverlay.classList.add('line-drawn');
+              }, 1600)
+            );
+
+            introTimeouts.push(
+              setTimeout(() => {
+                if (introOverlay) introOverlay.classList.add('text-in');
+              }, 1900)
+            );
+
+            introTimeouts.push(
+              setTimeout(() => {
+                endIntroSequence(false);
+              }, 3800)
+            );
+          }
+
+          if (preloadImg.complete && preloadImg.naturalWidth !== 0) {
+            onLogoReady();
+          } else {
+            preloadImg.onload = onLogoReady;
+            preloadImg.onerror = () => {
+              endIntroSequence(true);
+            };
+          }
+        }
+
+        runIntro();
+
+        switchView(window.location.hash || '#/');
+      })();
+    </script>
+  </body>
+</html>
