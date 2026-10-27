@@ -45,7 +45,7 @@ export async function fetchProfile(userId: string): Promise<Profile | null> {
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, role, full_name, email, created_at')
+      .select('id, role, full_name, email, eb_position, created_at')
       .eq('id', userId)
       .maybeSingle();
 
@@ -92,17 +92,24 @@ async function syncUserState(sessionUser: { id: string; email?: string; user_met
  * Instant sign up with email and password without confirmation step.
  * Automatically logs the user in immediately.
  */
-export async function signUpWithEmail(fullName: string, email: string, password: string): Promise<{ user: CurrentUser | null; error?: string }> {
+export async function signUpWithEmail(
+  fullName: string,
+  email: string,
+  password: string,
+  ebPosition?: string
+): Promise<{ user: CurrentUser | null; error?: string }> {
   try {
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = fullName.trim();
+    const cleanPosition = ebPosition?.trim() || null;
 
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
       options: {
         data: {
-          full_name: cleanName
+          full_name: cleanName,
+          ...(cleanPosition ? { eb_position: cleanPosition } : {})
         }
       }
     });
@@ -111,8 +118,15 @@ export async function signUpWithEmail(fullName: string, email: string, password:
       return { user: null, error: signUpError.message };
     }
 
+    const userId = signUpData.session?.user?.id || signUpData.user?.id;
+
     // If session is already returned, immediately sync
     if (signUpData.session?.user) {
+      if (cleanPosition && userId) {
+        try {
+          await supabase.from('profiles').update({ eb_position: cleanPosition }).eq('id', userId);
+        } catch {}
+      }
       await syncUserState(signUpData.session.user);
       return { user: currentUserState };
     }
@@ -124,8 +138,12 @@ export async function signUpWithEmail(fullName: string, email: string, password:
     });
 
     if (signInError) {
-      // In case auto-signin failed
       if (signUpData.user) {
+        if (cleanPosition && userId) {
+          try {
+            await supabase.from('profiles').update({ eb_position: cleanPosition }).eq('id', userId);
+          } catch {}
+        }
         await syncUserState(signUpData.user);
         return { user: currentUserState };
       }
@@ -133,6 +151,11 @@ export async function signUpWithEmail(fullName: string, email: string, password:
     }
 
     if (signInData.user) {
+      if (cleanPosition && signInData.user.id) {
+        try {
+          await supabase.from('profiles').update({ eb_position: cleanPosition }).eq('id', signInData.user.id);
+        } catch {}
+      }
       await syncUserState(signInData.user);
       return { user: currentUserState };
     }

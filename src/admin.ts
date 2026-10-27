@@ -51,7 +51,7 @@ export async function fetchStaffProfiles(): Promise<{ data: Profile[]; error?: s
   try {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, role, full_name, email, created_at')
+      .select('id, role, full_name, email, eb_position, created_at')
       .neq('role', 'user')
       .order('role', { ascending: true });
 
@@ -64,6 +64,50 @@ export async function fetchStaffProfiles(): Promise<{ data: Profile[]; error?: s
     const message = err instanceof Error ? err.message : 'Failed to fetch staff members.';
     return { data: [], error: message };
   }
+}
+
+export interface EbStats {
+  total: number;
+  approved: number;
+  pending: number;
+}
+
+export async function fetchEbProfiles(): Promise<{ data: Profile[]; error?: string }> {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, role, full_name, email, eb_position, created_at')
+      .not('eb_position', 'is', null)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return { data: [], error: error.message };
+    }
+
+    return { data: (data as Profile[]) || [] };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to fetch EB members.';
+    return { data: [], error: message };
+  }
+}
+
+export function computeEbStats(ebMembers: Profile[]): EbStats {
+  let approved = 0;
+  let pending = 0;
+
+  for (const m of ebMembers) {
+    if (m.role === 'eb' || m.role === 'admin') {
+      approved++;
+    } else if (m.role === 'user') {
+      pending++;
+    }
+  }
+
+  return {
+    total: ebMembers.length,
+    approved,
+    pending
+  };
 }
 
 export async function setUserRoleRpc(

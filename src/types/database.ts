@@ -7,6 +7,7 @@ export interface Profile {
   role: UserRole;
   full_name: string | null;
   email: string | null;
+  eb_position?: string | null;
   created_at?: string;
 }
 
@@ -36,6 +37,7 @@ export interface AuthState {
     email?: string;
     user_metadata?: {
       full_name?: string;
+      eb_position?: string;
       [key: string]: unknown;
     };
   } | null;

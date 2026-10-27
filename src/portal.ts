@@ -15,9 +15,12 @@ import {
   fetchAllRegistrations,
   updateRegistrationStatus,
   fetchStaffProfiles,
+  fetchEbProfiles,
   setUserRoleRpc,
   computeAdminStats,
-  AdminStats
+  computeEbStats,
+  AdminStats,
+  EbStats
 } from './admin';
 import type { Registration, Profile, UserRole, RegistrationStatus } from './types/database';
 
@@ -59,8 +62,13 @@ function formatDate(dateStr?: string): string {
 // Global cached state for the admin board
 let adminRegistrations: Registration[] = [];
 let adminStaff: Profile[] = [];
+let adminEbProfiles: Profile[] = [];
+let adminActiveTab: 'delegates' | 'eb' = 'delegates';
 let adminFilter: 'all' | 'pending' | 'approved' | 'rejected' = 'all';
 let adminSearchQuery = '';
+let adminEbFilter: 'all' | 'pending' | 'eb' | 'admin' | 'security' = 'all';
+let adminEbSearchQuery = '';
+
 let currentRegistration: Registration | null = null;
 let isLoadingRegistration = false;
 
@@ -82,6 +90,8 @@ export function initPortal() {
     const user = getCachedUser();
     if (isAdminRoute()) {
       renderAdminRoute(user, false);
+    } else {
+      document.body.classList.remove('admin-mode-active');
     }
   });
 
@@ -89,25 +99,28 @@ export function initPortal() {
     const user = getCachedUser();
     if (isAdminRoute()) {
       renderAdminRoute(user, false);
+    } else {
+      document.body.classList.remove('admin-mode-active');
     }
   });
 }
 
 /**
  * Update Header with dynamic user status or Sign In trigger
+ * Formats name and role as one compact pill with white-space: nowrap
  */
 function updateHeaderAuthUI(user: CurrentUser | null, loading: boolean) {
   const container = document.getElementById('header-auth-container');
   if (!container) return;
 
   if (loading) {
-    container.innerHTML = `<span style="font-size: 0.75rem; color: rgba(242, 244, 255, 0.5);">Connecting...</span>`;
+    container.innerHTML = `<span style="font-size: 0.75rem; color: rgba(242, 244, 255, 0.5); white-space: nowrap; overflow-wrap: normal;">Connecting...</span>`;
     return;
   }
 
   if (!user) {
     container.innerHTML = `
-      <a href="#/apply" class="apply-pill-btn btn-interactive" style="padding: 0.45rem 1rem; font-size: 0.75rem;">
+      <a href="#/apply" class="apply-pill-btn btn-interactive header-auth-btn" style="padding: 0.45rem 1.1rem; font-size: 0.75rem; white-space: nowrap; overflow-wrap: normal;">
         Sign In / Apply
       </a>
     `;
@@ -115,17 +128,17 @@ function updateHeaderAuthUI(user: CurrentUser | null, loading: boolean) {
   }
 
   const roleBadge = user.role !== 'user'
-    ? `<span style="background: rgba(217, 180, 90, 0.2); border: 1px solid var(--gold); color: var(--gold); padding: 0.15rem 0.5rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">${escapeHtml(user.role)}</span>`
+    ? `<span class="header-user-role" style="background: rgba(217, 180, 90, 0.25); border: 1px solid var(--gold); color: var(--gold); padding: 0.12rem 0.45rem; border-radius: 9999px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; white-space: nowrap; overflow-wrap: normal; flex-shrink: 0;">${escapeHtml(user.role)}</span>`
     : '';
 
   container.innerHTML = `
-    <div style="display: flex; align-items: center; gap: 0.75rem;">
-      <a href="#/apply" style="display: flex; align-items: center; gap: 0.4rem; text-decoration: none; color: #f2f4ff; font-family: var(--font-display); font-size: 0.82rem; font-weight: 700;">
-        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981;"></span>
-        <span>${escapeHtml(user.fullName)}</span>
+    <div style="display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap; flex-wrap: nowrap; flex-shrink: 0;">
+      <a href="#/apply" class="header-user-pill" title="${escapeHtml(user.fullName)}" style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(217, 180, 90, 0.35); padding: 0.32rem 0.75rem; border-radius: 9999px; text-decoration: none; color: #f2f4ff; font-family: var(--font-display); font-size: 0.78rem; font-weight: 700; white-space: nowrap; overflow-wrap: normal;">
+        <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981; flex-shrink: 0;"></span>
+        <span class="header-user-name" style="white-space: nowrap; overflow-wrap: normal; max-width: 140px; overflow: hidden; text-overflow: ellipsis; display: inline-block;">${escapeHtml(user.fullName)}</span>
         ${roleBadge}
       </a>
-      <button type="button" id="header-logout-btn" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(242, 244, 255, 0.8); font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; padding: 0.35rem 0.7rem; border-radius: 9999px; cursor: pointer;">
+      <button type="button" id="header-logout-btn" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(242, 244, 255, 0.85); font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; padding: 0.35rem 0.65rem; border-radius: 9999px; cursor: pointer; white-space: nowrap; flex-shrink: 0; overflow-wrap: normal;">
         Log Out
       </button>
     </div>
@@ -135,6 +148,7 @@ function updateHeaderAuthUI(user: CurrentUser | null, loading: boolean) {
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
       await signOut();
+      document.body.classList.remove('admin-mode-active');
     });
   }
 }
@@ -405,7 +419,7 @@ function renderRegistrationFormView(mount: HTMLElement, user: CurrentUser) {
             SUBMIT <em>CREDENTIALS.</em>
           </h2>
         </div>
-        <div style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(217, 180, 90, 0.25); border-radius: 9999px; padding: 0.35rem 0.85rem; font-family: var(--font-display); font-size: 0.78rem; color: #f2f4ff;">
+        <div style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(217, 180, 90, 0.25); border-radius: 9999px; padding: 0.35rem 0.85rem; font-family: var(--font-display); font-size: 0.78rem; color: #f2f4ff; white-space: nowrap;">
           Logged in as <strong>${escapeHtml(user.email)}</strong>
         </div>
       </div>
@@ -538,7 +552,7 @@ function renderRegistrationStatusView(mount: HTMLElement, user: CurrentUser, reg
   if (reg.status === 'pending') {
     statusBorderColor = 'rgba(217, 180, 90, 0.6)';
     badgeHtml = `
-      <span style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(217, 180, 90, 0.15); border: 1px solid var(--gold); color: var(--gold); padding: 0.4rem 1.15rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em;">
+      <span style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(217, 180, 90, 0.15); border: 1px solid var(--gold); color: var(--gold); padding: 0.4rem 1.15rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; white-space: nowrap;">
         <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--gold); animation: pulse 1.8s infinite;"></span>
         Waiting for Admin Approval
       </span>
@@ -550,7 +564,7 @@ function renderRegistrationStatusView(mount: HTMLElement, user: CurrentUser, reg
   } else if (reg.status === 'approved') {
     statusBorderColor = 'rgba(16, 185, 129, 0.6)';
     badgeHtml = `
-      <span style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #34d399; padding: 0.4rem 1.15rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em;">
+      <span style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #34d399; padding: 0.4rem 1.15rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; white-space: nowrap;">
         ✓ You're Confirmed
       </span>
     `;
@@ -561,7 +575,7 @@ function renderRegistrationStatusView(mount: HTMLElement, user: CurrentUser, reg
   } else if (reg.status === 'rejected') {
     statusBorderColor = 'rgba(239, 68, 68, 0.6)';
     badgeHtml = `
-      <span style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #f87171; padding: 0.4rem 1.15rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em;">
+      <span style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #f87171; padding: 0.4rem 1.15rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; white-space: nowrap;">
         Application Not Accepted
       </span>
     `;
@@ -589,7 +603,7 @@ function renderRegistrationStatusView(mount: HTMLElement, user: CurrentUser, reg
       <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(217, 180, 90, 0.2); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.75rem; margin-bottom: 1rem;">
           <span style="font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold);">Application Record</span>
-          <span style="font-size: 0.75rem; color: rgba(242, 244, 255, 0.6);">Submitted: ${formatDate(reg.created_at)}</span>
+          <span style="font-size: 0.75rem; color: rgba(242, 244, 255, 0.6); white-space: nowrap;">Submitted: ${formatDate(reg.created_at)}</span>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
@@ -621,10 +635,10 @@ function renderRegistrationStatusView(mount: HTMLElement, user: CurrentUser, reg
       </div>
 
       <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-        <button type="button" id="refresh-status-btn" class="btn-interactive" style="background: rgba(217, 180, 90, 0.15); border: 1px solid var(--gold); color: #ffffff; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; cursor: pointer;">
+        <button type="button" id="refresh-status-btn" class="btn-interactive" style="background: rgba(217, 180, 90, 0.15); border: 1px solid var(--gold); color: #ffffff; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
           ↺ Refresh Status
         </button>
-        <button type="button" id="portal-signout-btn" class="btn-interactive" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(242, 244, 255, 0.8); padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; cursor: pointer;">
+        <button type="button" id="portal-signout-btn" class="btn-interactive" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(242, 244, 255, 0.8); padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
           Log Out
         </button>
       </div>
@@ -645,16 +659,12 @@ function renderRegistrationStatusView(mount: HTMLElement, user: CurrentUser, reg
 
 /**
  * Handle Admin Route (/admin or #/admin or #admin)
- * Rules:
- * - NO link to it anywhere on the site or in the navigation.
- * - If someone opens /admin while logged out: show the login form.
- * - If they are logged in but role is NOT 'admin': show a plain "Page not found" screen without revealing an admin page exists.
- * - If role IS 'admin': show the admin board:
- *   - table of all registrations with search, status filter, Approve/Reject buttons, counts.
- *   - "Manage access": enter email and choose role (calls supabase.rpc('set_user_role')), list all staff (role != 'user').
+ * Hides fixed stage layers and applies custom charcoal-navy background
  */
 export async function renderAdminRoute(user: CurrentUser | null, loading: boolean) {
-  // Hide standard views and show dedicated admin container
+  // Activate admin mode body styling which hides fixed stage, ground strip, and announcement pill
+  document.body.classList.add('admin-mode-active');
+
   const viewHome = document.getElementById('view-home');
   const viewCommittees = document.getElementById('view-committees');
   const viewApply = document.getElementById('view-apply');
@@ -696,7 +706,7 @@ export async function renderAdminRoute(user: CurrentUser | null, loading: boolea
     return;
   }
 
-  // 3. User is verified ADMIN -> Load registrations and staff, then render Admin Board
+  // 3. User is verified ADMIN -> Load registrations, staff, and EB profiles, then render Admin Board
   viewAdmin.innerHTML = `
     <div style="min-height: 70vh; display: flex; align-items: center; justify-content: center; color: var(--gold); font-family: var(--font-display);">
       <div style="text-align: center;">
@@ -711,12 +721,13 @@ export async function renderAdminRoute(user: CurrentUser | null, loading: boolea
 }
 
 /**
- * Fetch registrations and staff profiles for the admin board
+ * Fetch registrations, staff profiles, and EB profiles for the admin board
  */
 async function refreshAdminData() {
-  const [regRes, staffRes] = await Promise.all([
+  const [regRes, staffRes, ebRes] = await Promise.all([
     fetchAllRegistrations(),
-    fetchStaffProfiles()
+    fetchStaffProfiles(),
+    fetchEbProfiles()
   ]);
 
   if (regRes.data) {
@@ -724,6 +735,9 @@ async function refreshAdminData() {
   }
   if (staffRes.data) {
     adminStaff = staffRes.data;
+  }
+  if (ebRes.data) {
+    adminEbProfiles = ebRes.data;
   }
 }
 
@@ -738,7 +752,7 @@ function renderPlain404(container: HTMLElement) {
       <p style="font-size: 1rem; color: #94a3b8; max-width: 440px; margin-bottom: 2rem; line-height: 1.5;">
         The requested URL was not found on this server. Please check the address or return to the homepage.
       </p>
-      <a href="#/" class="btn-interactive" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; text-decoration: none; padding: 0.65rem 1.5rem; border-radius: 9999px; font-size: 0.9rem; font-weight: 500;">
+      <a href="#/" class="btn-interactive" style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; text-decoration: none; padding: 0.65rem 1.5rem; border-radius: 9999px; font-size: 0.9rem; font-weight: 500; white-space: nowrap;">
         Return to Home
       </a>
     </div>
@@ -820,19 +834,70 @@ function renderAdminLoginForm(container: HTMLElement) {
       return;
     }
 
-    // Refresh route check
     const user = getCachedUser();
     renderAdminRoute(user, false);
   });
 }
 
 /**
- * Render the full Admin Board
+ * Render the full Admin Board with Tabs:
+ * 1. Delegate Applications
+ * 2. Executive Board Members
  */
 function renderAdminDashboard(container: HTMLElement, user: CurrentUser) {
-  const stats: AdminStats = computeAdminStats(adminRegistrations);
+  const regStats: AdminStats = computeAdminStats(adminRegistrations);
+  const ebStats: EbStats = computeEbStats(adminEbProfiles);
 
-  // Filter registrations
+  container.innerHTML = `
+    <div style="max-width: 1200px; margin: 0 auto; padding: 2rem 0 5rem;">
+      <!-- Top Bar -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(217, 180, 90, 0.25); padding-bottom: 1.5rem;">
+        <div>
+          <span class="eyebrow">Monument MUN 2027 · Internal Administration</span>
+          <h1 style="font-family: var(--font-display); font-size: clamp(1.8rem, 4.5vw, 2.75rem); font-weight: 800; text-transform: uppercase; color: #ffffff; line-height: 1.1;">
+            SECRETARIAT <em>ADMIN BOARD.</em>
+          </h1>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: nowrap; white-space: nowrap;">
+          <div style="text-align: right;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; white-space: nowrap;">${escapeHtml(user.fullName)}</div>
+            <div style="font-size: 0.72rem; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap;">Administrator</div>
+          </div>
+          <button type="button" id="admin-signout-btn" class="btn-interactive" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 0.45rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            Log Out
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Navigation Tabs: Delegate Applications vs EB Members -->
+      <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.75rem; overflow-x: auto;">
+        <button type="button" id="admin-tab-delegates" class="btn-interactive" style="background: ${adminActiveTab === 'delegates' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'delegates' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'delegates' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
+          <span>Delegate Applications</span>
+          <span style="background: ${adminActiveTab === 'delegates' ? '#080a1e' : 'rgba(217, 180, 90, 0.25)'}; color: ${adminActiveTab === 'delegates' ? 'var(--gold)' : '#ffffff'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${regStats.total}</span>
+        </button>
+
+        <button type="button" id="admin-tab-eb" class="btn-interactive" style="background: ${adminActiveTab === 'eb' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'eb' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'eb' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
+          <span>Executive Board Members</span>
+          <span style="background: ${adminActiveTab === 'eb' ? '#080a1e' : 'rgba(217, 180, 90, 0.25)'}; color: ${adminActiveTab === 'eb' ? 'var(--gold)' : '#ffffff'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${ebStats.total}</span>
+        </button>
+      </div>
+
+      <!-- TAB CONTENT CONTAINER -->
+      <div id="admin-tab-content">
+        ${adminActiveTab === 'delegates' ? renderDelegatesSectionMarkup(regStats) : renderEbSectionMarkup(ebStats, user)}
+      </div>
+    </div>
+  `;
+
+  // Attach event listeners
+  attachAdminDashboardHandlers(container, user);
+}
+
+/**
+ * Render the Delegate Applications Section Markup
+ */
+function renderDelegatesSectionMarkup(stats: AdminStats): string {
   const filteredRegs = adminRegistrations.filter((reg) => {
     if (adminFilter !== 'all' && reg.status !== adminFilter) return false;
     if (!adminSearchQuery) return true;
@@ -846,161 +911,217 @@ function renderAdminDashboard(container: HTMLElement, user: CurrentUser) {
     );
   });
 
-  container.innerHTML = `
-    <div style="max-width: 1200px; margin: 0 auto; padding: 2rem 0 5rem;">
-      <!-- Top Bar -->
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2.5rem; border-bottom: 1px solid rgba(217, 180, 90, 0.25); padding-bottom: 1.5rem;">
+  return `
+    <!-- Stats Bar -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+      <div class="tilt-card" style="background: rgba(8, 10, 30, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.25rem;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(242, 244, 255, 0.6); margin-bottom: 0.35rem; white-space: nowrap;">Total Applications</div>
+        <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #ffffff;">${stats.total}</div>
+      </div>
+
+      <div class="tilt-card" style="background: rgba(8, 10, 30, 0.85); border: 1px solid rgba(217, 180, 90, 0.4); border-radius: 16px; padding: 1.25rem;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--gold); margin-bottom: 0.35rem; white-space: nowrap;">Pending Review</div>
+        <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--gold);">${stats.pending}</div>
+      </div>
+
+      <div class="tilt-card" style="background: rgba(8, 10, 30, 0.85); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 16px; padding: 1.25rem;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: #34d399; margin-bottom: 0.35rem; white-space: nowrap;">Approved Delegates</div>
+        <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #34d399;">${stats.approved}</div>
+      </div>
+
+      <div class="tilt-card" style="background: rgba(8, 10, 30, 0.85); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 16px; padding: 1.25rem;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: #f87171; margin-bottom: 0.35rem; white-space: nowrap;">Rejected</div>
+        <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #f87171;">${stats.rejected}</div>
+      </div>
+    </div>
+
+    <!-- Main Registrations Card -->
+    <div class="tilt-card" style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 20px; padding: clamp(1.25rem, 3vw, 2rem); margin-bottom: 2.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
         <div>
-          <span class="eyebrow">Monument MUN 2027 · Internal Administration</span>
-          <h1 style="font-family: var(--font-display); font-size: clamp(1.8rem, 4.5vw, 2.75rem); font-weight: 800; text-transform: uppercase; color: #ffffff; line-height: 1.1;">
-            SECRETARIAT <em>ADMIN BOARD.</em>
-          </h1>
+          <span class="eyebrow">Delegate Roster</span>
+          <h2 style="font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; text-transform: uppercase; color: #ffffff;">
+            REGISTRATION <em>APPLICATIONS.</em>
+          </h2>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 1rem;">
-          <div style="text-align: right;">
-            <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff;">${escapeHtml(user.fullName)}</div>
-            <div style="font-size: 0.72rem; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em;">Administrator</div>
-          </div>
-          <button type="button" id="admin-signout-btn" class="btn-interactive" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 0.45rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; cursor: pointer;">
-            Log Out
+        <button type="button" id="admin-refresh-regs-btn" class="btn-interactive" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(217, 180, 90, 0.3); color: #ffffff; padding: 0.45rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+          ↺ Refresh List
+        </button>
+      </div>
+
+      <!-- Search & Filter Controls -->
+      <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
+        <div style="flex: 1; min-width: 240px; position: relative;">
+          <input type="text" id="admin-search-input" class="form-input" placeholder="Search by name, email, school, or committee..." value="${escapeHtml(adminSearchQuery)}" style="padding-left: 2.25rem;" />
+          <span style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: rgba(242, 244, 255, 0.4); font-size: 0.9rem;">🔍</span>
+        </div>
+
+        <div style="display: flex; background: rgba(255, 255, 255, 0.05); border-radius: 9999px; padding: 4px; border: 1px solid rgba(255, 255, 255, 0.1); flex-wrap: wrap; gap: 2px;">
+          <button type="button" class="admin-filter-btn ${adminFilter === 'all' ? 'active' : ''}" data-filter="all" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminFilter === 'all' ? 'var(--gold)' : 'transparent'}; color: ${adminFilter === 'all' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            All (${stats.total})
+          </button>
+          <button type="button" class="admin-filter-btn ${adminFilter === 'pending' ? 'active' : ''}" data-filter="pending" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminFilter === 'pending' ? 'var(--gold)' : 'transparent'}; color: ${adminFilter === 'pending' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            Pending (${stats.pending})
+          </button>
+          <button type="button" class="admin-filter-btn ${adminFilter === 'approved' ? 'active' : ''}" data-filter="approved" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminFilter === 'approved' ? 'var(--gold)' : 'transparent'}; color: ${adminFilter === 'approved' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            Approved (${stats.approved})
+          </button>
+          <button type="button" class="admin-filter-btn ${adminFilter === 'rejected' ? 'active' : ''}" data-filter="rejected" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminFilter === 'rejected' ? 'var(--gold)' : 'transparent'}; color: ${adminFilter === 'rejected' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            Rejected (${stats.rejected})
           </button>
         </div>
       </div>
 
-      <!-- Stats Bar -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2.5rem;">
-        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.25rem;">
-          <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(242, 244, 255, 0.6); margin-bottom: 0.35rem;">Total Applications</div>
-          <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #ffffff;">${stats.total}</div>
-        </div>
+      <div id="admin-action-feedback" class="status-banner" style="display: none; margin-bottom: 1.25rem;"></div>
 
-        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.85); border: 1px solid rgba(217, 180, 90, 0.4); border-radius: 16px; padding: 1.25rem;">
-          <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--gold); margin-bottom: 0.35rem;">Pending Review</div>
-          <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--gold);">${stats.pending}</div>
-        </div>
+      <div id="admin-registrations-container">
+        ${renderRegistrationsTableMarkup(filteredRegs)}
+      </div>
+    </div>
 
-        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.85); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 16px; padding: 1.25rem;">
-          <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: #34d399; margin-bottom: 0.35rem;">Approved Delegates</div>
-          <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #34d399;">${stats.approved}</div>
-        </div>
-
-        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.85); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 16px; padding: 1.25rem;">
-          <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: #f87171; margin-bottom: 0.35rem;">Rejected</div>
-          <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #f87171;">${stats.rejected}</div>
-        </div>
+    <!-- Manage Access & General Staff Section -->
+    <div class="tilt-card" style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 20px; padding: clamp(1.25rem, 3vw, 2rem);">
+      <div style="margin-bottom: 1.5rem;">
+        <span class="eyebrow">Access Control</span>
+        <h2 style="font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; text-transform: uppercase; color: #ffffff; margin-bottom: 0.4rem;">
+          MANAGE <em>ACCESS.</em>
+        </h2>
+        <p style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.75);">
+          Assign administrative and executive roles by email. Note: the target user must sign up first before assigning their role.
+        </p>
       </div>
 
-      <!-- Main Admin Content Grid -->
-      <div style="display: grid; grid-template-columns: 1fr; gap: 2.5rem;">
-        
-        <!-- SECTION 1: REGISTRATIONS MANAGEMENT -->
-        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 20px; padding: clamp(1.25rem, 3vw, 2rem);">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
-            <div>
-              <span class="eyebrow">Delegate Roster</span>
-              <h2 style="font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; text-transform: uppercase; color: #ffffff;">
-                REGISTRATION <em>APPLICATIONS.</em>
-              </h2>
-            </div>
+      <div id="manage-access-feedback" class="status-banner" style="display: none; margin-bottom: 1.25rem;"></div>
 
-            <button type="button" id="admin-refresh-regs-btn" class="btn-interactive" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(217, 180, 90, 0.3); color: #ffffff; padding: 0.45rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; cursor: pointer;">
-              ↺ Refresh List
-            </button>
-          </div>
-
-          <!-- Search & Filter Controls -->
-          <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
-            <!-- Search -->
-            <div style="flex: 1; min-width: 240px; position: relative;">
-              <input type="text" id="admin-search-input" class="form-input" placeholder="Search by name, email, school, or committee..." value="${escapeHtml(adminSearchQuery)}" style="padding-left: 2.25rem;" />
-              <span style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: rgba(242, 244, 255, 0.4); font-size: 0.9rem;">🔍</span>
-            </div>
-
-            <!-- Filter Buttons -->
-            <div style="display: flex; background: rgba(255, 255, 255, 0.05); border-radius: 9999px; padding: 4px; border: 1px solid rgba(255, 255, 255, 0.1); flex-wrap: wrap;">
-              <button type="button" class="admin-filter-btn ${adminFilter === 'all' ? 'active' : ''}" data-filter="all" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminFilter === 'all' ? 'var(--gold)' : 'transparent'}; color: ${adminFilter === 'all' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
-                All (${stats.total})
-              </button>
-              <button type="button" class="admin-filter-btn ${adminFilter === 'pending' ? 'active' : ''}" data-filter="pending" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminFilter === 'pending' ? 'var(--gold)' : 'transparent'}; color: ${adminFilter === 'pending' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
-                Pending (${stats.pending})
-              </button>
-              <button type="button" class="admin-filter-btn ${adminFilter === 'approved' ? 'active' : ''}" data-filter="approved" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminFilter === 'approved' ? 'var(--gold)' : 'transparent'}; color: ${adminFilter === 'approved' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
-                Approved (${stats.approved})
-              </button>
-              <button type="button" class="admin-filter-btn ${adminFilter === 'rejected' ? 'active' : ''}" data-filter="rejected" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminFilter === 'rejected' ? 'var(--gold)' : 'transparent'}; color: ${adminFilter === 'rejected' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
-                Rejected (${stats.rejected})
-              </button>
-            </div>
-          </div>
-
-          <div id="admin-action-feedback" class="status-banner" style="display: none; margin-bottom: 1.25rem;"></div>
-
-          <!-- Registrations Table / Card Container -->
-          <div id="admin-registrations-container">
-            ${renderRegistrationsTableMarkup(filteredRegs)}
-          </div>
+      <form id="manage-access-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) auto; gap: 1rem; align-items: flex-end; margin-bottom: 2rem; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(217, 180, 90, 0.2); border-radius: 14px; padding: 1.25rem;" novalidate>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="access-email">User Email Address *</label>
+          <input type="email" id="access-email" class="form-input" placeholder="colleague@domain.com" required />
         </div>
 
-        <!-- SECTION 2: MANAGE ACCESS (STAFF ROLES) -->
-        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 20px; padding: clamp(1.25rem, 3vw, 2rem);">
-          <div style="margin-bottom: 1.5rem;">
-            <span class="eyebrow">Access Control</span>
-            <h2 style="font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; text-transform: uppercase; color: #ffffff; margin-bottom: 0.4rem;">
-              MANAGE <em>ACCESS.</em>
-            </h2>
-            <p style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.75);">
-              Assign administrative and executive roles. Note: the target user must sign up first before assigning their role.
-            </p>
-          </div>
-
-          <div id="manage-access-feedback" class="status-banner" style="display: none; margin-bottom: 1.25rem;"></div>
-
-          <!-- Role Assignment Form -->
-          <form id="manage-access-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) auto; gap: 1rem; align-items: flex-end; margin-bottom: 2rem; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(217, 180, 90, 0.2); border-radius: 14px; padding: 1.25rem;" novalidate>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label class="form-label" for="access-email">User Email Address *</label>
-              <input type="email" id="access-email" class="form-input" placeholder="colleague@domain.com" required />
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-              <label class="form-label" for="access-role">Assign Role *</label>
-              <select id="access-role" class="form-select" required>
-                <option value="admin">admin (Full Secretariat Admin)</option>
-                <option value="eb">eb (Executive Board Member)</option>
-                <option value="security">security (Conference Security)</option>
-                <option value="user">user (Standard Delegate / General)</option>
-              </select>
-            </div>
-
-            <button type="submit" id="access-submit-btn" class="form-submit-btn btn-interactive" style="white-space: nowrap; padding: 0.85rem 1.4rem;">
-              Update Role
-            </button>
-          </form>
-
-          <!-- Current Staff Members List -->
-          <div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <h3 style="font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; text-transform: uppercase; color: #ffffff;">
-                CURRENT <em>STAFF MEMBERS (${adminStaff.length})</em>
-              </h3>
-              <button type="button" id="admin-refresh-staff-btn" class="btn-interactive" style="background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(242, 244, 255, 0.8); padding: 0.3rem 0.8rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; cursor: pointer;">
-                ↺ Refresh Staff
-              </button>
-            </div>
-
-            <div id="admin-staff-container">
-              ${renderStaffTableMarkup(adminStaff)}
-            </div>
-          </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="access-role">Assign Role *</label>
+          <select id="access-role" class="form-select" required>
+            <option value="admin">admin (Full Secretariat Admin)</option>
+            <option value="eb">eb (Executive Board Member)</option>
+            <option value="security">security (Conference Security)</option>
+            <option value="user">user (Standard Delegate / General)</option>
+          </select>
         </div>
 
+        <button type="submit" id="access-submit-btn" class="form-submit-btn btn-interactive" style="white-space: nowrap; padding: 0.85rem 1.4rem;">
+          Update Role
+        </button>
+      </form>
+
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; text-transform: uppercase; color: #ffffff;">
+            ALL <em>ASSIGNED STAFF (${adminStaff.length})</em>
+          </h3>
+          <button type="button" id="admin-refresh-staff-btn" class="btn-interactive" style="background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(242, 244, 255, 0.8); padding: 0.3rem 0.8rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            ↺ Refresh Staff
+          </button>
+        </div>
+
+        <div id="admin-staff-container">
+          ${renderStaffTableMarkup(adminStaff)}
+        </div>
       </div>
     </div>
   `;
+}
 
-  // Attach event handlers
-  attachAdminDashboardHandlers(container, user);
+/**
+ * Render the Executive Board Members Section Markup
+ */
+function renderEbSectionMarkup(stats: EbStats, currentUser: CurrentUser): string {
+  const filteredEb = adminEbProfiles.filter((p) => {
+    if (adminEbFilter === 'pending' && p.role !== 'user') return false;
+    if (adminEbFilter === 'eb' && p.role !== 'eb') return false;
+    if (adminEbFilter === 'admin' && p.role !== 'admin') return false;
+    if (adminEbFilter === 'security' && p.role !== 'security') return false;
+
+    if (!adminEbSearchQuery) return true;
+    const q = adminEbSearchQuery.toLowerCase();
+    return (
+      (p.full_name || '').toLowerCase().includes(q) ||
+      (p.email || '').toLowerCase().includes(q) ||
+      (p.eb_position || '').toLowerCase().includes(q)
+    );
+  });
+
+  return `
+    <!-- EB Stats Bar -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+      <div class="tilt-card" style="background: rgba(8, 10, 30, 0.85); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.25rem;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(242, 244, 255, 0.6); margin-bottom: 0.35rem; white-space: nowrap;">Total EB Sign-ups</div>
+        <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #ffffff;">${stats.total}</div>
+      </div>
+
+      <div class="tilt-card" style="background: rgba(8, 10, 30, 0.85); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 16px; padding: 1.25rem;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: #34d399; margin-bottom: 0.35rem; white-space: nowrap;">Approved EB or Admin</div>
+        <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #34d399;">${stats.approved}</div>
+      </div>
+
+      <div class="tilt-card" style="background: rgba(8, 10, 30, 0.85); border: 1px solid rgba(217, 180, 90, 0.4); border-radius: 16px; padding: 1.25rem;">
+        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--gold); margin-bottom: 0.35rem; white-space: nowrap;">Pending Approval (User)</div>
+        <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: var(--gold);">${stats.pending}</div>
+      </div>
+    </div>
+
+    <!-- EB Management Card -->
+    <div class="tilt-card" style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 20px; padding: clamp(1.25rem, 3vw, 2rem);">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div>
+          <span class="eyebrow">Secretariat & Department Heads</span>
+          <h2 style="font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; text-transform: uppercase; color: #ffffff;">
+            EXECUTIVE BOARD <em>MEMBERS.</em>
+          </h2>
+          <p style="font-size: 0.9rem; color: rgba(242, 244, 255, 0.75); margin-top: 0.25rem;">
+            Review position declarations, grant executive status, assign scanning privileges, or manage administrator access.
+          </p>
+        </div>
+
+        <button type="button" id="admin-refresh-eb-btn" class="btn-interactive" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(217, 180, 90, 0.3); color: #ffffff; padding: 0.45rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+          ↺ Refresh EB List
+        </button>
+      </div>
+
+      <!-- Search & Filters -->
+      <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
+        <div style="flex: 1; min-width: 240px; position: relative;">
+          <input type="text" id="admin-eb-search-input" class="form-input" placeholder="Search by name, email, or EB position..." value="${escapeHtml(adminEbSearchQuery)}" style="padding-left: 2.25rem;" />
+          <span style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: rgba(242, 244, 255, 0.4); font-size: 0.9rem;">🔍</span>
+        </div>
+
+        <div style="display: flex; background: rgba(255, 255, 255, 0.05); border-radius: 9999px; padding: 4px; border: 1px solid rgba(255, 255, 255, 0.1); flex-wrap: wrap; gap: 2px;">
+          <button type="button" class="admin-eb-filter-btn ${adminEbFilter === 'all' ? 'active' : ''}" data-filter="all" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminEbFilter === 'all' ? 'var(--gold)' : 'transparent'}; color: ${adminEbFilter === 'all' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            All (${stats.total})
+          </button>
+          <button type="button" class="admin-eb-filter-btn ${adminEbFilter === 'pending' ? 'active' : ''}" data-filter="pending" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminEbFilter === 'pending' ? 'var(--gold)' : 'transparent'}; color: ${adminEbFilter === 'pending' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            Pending (${stats.pending})
+          </button>
+          <button type="button" class="admin-eb-filter-btn ${adminEbFilter === 'eb' ? 'active' : ''}" data-filter="eb" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminEbFilter === 'eb' ? 'var(--gold)' : 'transparent'}; color: ${adminEbFilter === 'eb' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            EB
+          </button>
+          <button type="button" class="admin-eb-filter-btn ${adminEbFilter === 'admin' ? 'active' : ''}" data-filter="admin" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminEbFilter === 'admin' ? 'var(--gold)' : 'transparent'}; color: ${adminEbFilter === 'admin' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            Admin
+          </button>
+          <button type="button" class="admin-eb-filter-btn ${adminEbFilter === 'security' ? 'active' : ''}" data-filter="security" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminEbFilter === 'security' ? 'var(--gold)' : 'transparent'}; color: ${adminEbFilter === 'security' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            Security
+          </button>
+        </div>
+      </div>
+
+      <div id="admin-eb-action-feedback" class="status-banner" style="display: none; margin-bottom: 1.25rem;"></div>
+
+      <div id="admin-eb-container">
+        ${renderEbTableMarkup(filteredEb, currentUser)}
+      </div>
+    </div>
+  `;
 }
 
 /**
@@ -1020,11 +1141,11 @@ function renderRegistrationsTableMarkup(registrations: Registration[]): string {
     .map((reg) => {
       let statusBadge = '';
       if (reg.status === 'pending') {
-        statusBadge = `<span style="background: rgba(217, 180, 90, 0.18); border: 1px solid var(--gold); color: var(--gold); padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;">Pending</span>`;
+        statusBadge = `<span style="background: rgba(217, 180, 90, 0.18); border: 1px solid var(--gold); color: var(--gold); padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; white-space: nowrap;">Pending</span>`;
       } else if (reg.status === 'approved') {
-        statusBadge = `<span style="background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #34d399; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;">Approved</span>`;
+        statusBadge = `<span style="background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #34d399; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; white-space: nowrap;">Approved</span>`;
       } else {
-        statusBadge = `<span style="background: rgba(239, 68, 68, 0.18); border: 1px solid #ef4444; color: #f87171; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;">Rejected</span>`;
+        statusBadge = `<span style="background: rgba(239, 68, 68, 0.18); border: 1px solid #ef4444; color: #f87171; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; white-space: nowrap;">Rejected</span>`;
       }
 
       return `
@@ -1049,14 +1170,14 @@ function renderRegistrationsTableMarkup(registrations: Registration[]): string {
 
           <div style="display: flex; flex-direction: column; gap: 0.35rem;">
             <div>${statusBadge}</div>
-            <span style="font-size: 0.7rem; color: rgba(242, 244, 255, 0.45);">${formatDate(reg.created_at)}</span>
+            <span style="font-size: 0.7rem; color: rgba(242, 244, 255, 0.45); white-space: nowrap;">${formatDate(reg.created_at)}</span>
           </div>
 
-          <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-end;">
-            <button type="button" class="btn-interactive admin-approve-btn" data-id="${reg.id}" style="background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #34d399; padding: 0.4rem 0.85rem; border-radius: 8px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
+          <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+            <button type="button" class="btn-interactive admin-approve-btn" data-id="${reg.id}" style="background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #34d399; padding: 0.4rem 0.85rem; border-radius: 8px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
               Approve
             </button>
-            <button type="button" class="btn-interactive admin-reject-btn" data-id="${reg.id}" style="background: rgba(239, 68, 68, 0.18); border: 1px solid #ef4444; color: #f87171; padding: 0.4rem 0.85rem; border-radius: 8px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
+            <button type="button" class="btn-interactive admin-reject-btn" data-id="${reg.id}" style="background: rgba(239, 68, 68, 0.18); border: 1px solid #ef4444; color: #f87171; padding: 0.4rem 0.85rem; border-radius: 8px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
               Reject
             </button>
           </div>
@@ -1069,7 +1190,108 @@ function renderRegistrationsTableMarkup(registrations: Registration[]): string {
 }
 
 /**
- * Generate markup for staff members table
+ * Generate markup for Executive Board members list/cards
+ */
+function renderEbTableMarkup(ebMembers: Profile[], currentUser: CurrentUser): string {
+  if (ebMembers.length === 0) {
+    return `
+      <div style="text-align: center; padding: 3rem 1rem; background: rgba(255, 255, 255, 0.02); border-radius: 14px; border: 1px dashed rgba(255, 255, 255, 0.15); color: rgba(242, 244, 255, 0.6);">
+        <p style="font-size: 1rem; margin-bottom: 0.35rem;">No EB sign-ups yet.</p>
+        <span style="font-size: 0.82rem; color: rgba(242, 244, 255, 0.4);">Executive board sign-ups with assigned positions will appear here.</span>
+      </div>
+    `;
+  }
+
+  const rows = ebMembers
+    .map((member) => {
+      const email = member.email || '';
+      const name = member.full_name || 'EB Member';
+      const position = member.eb_position || 'General EB';
+      const role = member.role || 'user';
+      const isSelf = member.id === currentUser.id || email.toLowerCase() === currentUser.email.toLowerCase();
+
+      let roleBadge = '';
+      if (role === 'admin') {
+        roleBadge = `<span style="background: rgba(217, 180, 90, 0.25); border: 1px solid var(--gold); color: var(--gold); padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; white-space: nowrap;">Admin</span>`;
+      } else if (role === 'eb') {
+        roleBadge = `<span style="background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #34d399; padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; white-space: nowrap;">EB</span>`;
+      } else if (role === 'security') {
+        roleBadge = `<span style="background: rgba(59, 130, 246, 0.18); border: 1px solid #3b82f6; color: #60a5fa; padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; white-space: nowrap;">Security</span>`;
+      } else {
+        roleBadge = `<span style="background: rgba(245, 158, 11, 0.18); border: 1px solid #f59e0b; color: #fbbf24; padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; white-space: nowrap;">Pending (User)</span>`;
+      }
+
+      // Action buttons
+      let actionsMarkup = '';
+      if (isSelf) {
+        actionsMarkup = `
+          <div style="font-size: 0.75rem; color: var(--gold); background: rgba(217, 180, 90, 0.12); border: 1px dashed rgba(217, 180, 90, 0.4); padding: 0.35rem 0.8rem; border-radius: 9999px; white-space: nowrap;">
+            Current Account (Protected)
+          </div>
+        `;
+      } else {
+        actionsMarkup = `
+          <div style="display: flex; gap: 0.45rem; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+            ${
+              role !== 'eb'
+                ? `<button type="button" class="btn-interactive admin-eb-action-btn" data-email="${escapeHtml(email)}" data-role="eb" data-name="${escapeHtml(name)}" style="background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #34d399; padding: 0.35rem 0.75rem; border-radius: 8px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">Approve as EB</button>`
+                : ''
+            }
+            ${
+              role !== 'admin'
+                ? `<button type="button" class="btn-interactive admin-eb-action-btn" data-email="${escapeHtml(email)}" data-role="admin" data-name="${escapeHtml(name)}" style="background: rgba(217, 180, 90, 0.18); border: 1px solid var(--gold); color: var(--gold); padding: 0.35rem 0.75rem; border-radius: 8px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">Make admin</button>`
+                : ''
+            }
+            ${
+              role !== 'security'
+                ? `<button type="button" class="btn-interactive admin-eb-action-btn" data-email="${escapeHtml(email)}" data-role="security" data-name="${escapeHtml(name)}" style="background: rgba(59, 130, 246, 0.18); border: 1px solid #3b82f6; color: #60a5fa; padding: 0.35rem 0.75rem; border-radius: 8px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">Give scanner access</button>`
+                : ''
+            }
+            ${
+              role !== 'user'
+                ? `<button type="button" class="btn-interactive admin-eb-action-btn" data-email="${escapeHtml(email)}" data-role="user" data-name="${escapeHtml(name)}" style="background: rgba(239, 68, 68, 0.18); border: 1px solid #ef4444; color: #f87171; padding: 0.35rem 0.75rem; border-radius: 8px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">Remove access</button>`
+                : ''
+            }
+          </div>
+        `;
+      }
+
+      return `
+        <div class="admin-reg-card" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.15rem; margin-bottom: 0.85rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) auto; gap: 1rem; align-items: center;">
+          <div>
+            <div style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; color: #ffffff; margin-bottom: 0.2rem;">
+              ${escapeHtml(name)}
+            </div>
+            <div style="font-size: 0.82rem; color: rgba(242, 244, 255, 0.7);">
+              ✉ ${escapeHtml(email)}
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(242, 244, 255, 0.5); margin-bottom: 0.2rem;">EB Position</div>
+            <div style="font-size: 0.92rem; font-weight: 700; color: var(--gold);">
+              ${escapeHtml(position)}
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 0.35rem;">
+            <div>${roleBadge}</div>
+            <span style="font-size: 0.7rem; color: rgba(242, 244, 255, 0.45); white-space: nowrap;">Joined: ${formatDate(member.created_at)}</span>
+          </div>
+
+          <div>
+            ${actionsMarkup}
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
+  return `<div class="admin-eb-list">${rows}</div>`;
+}
+
+/**
+ * Generate markup for general staff members table
  */
 function renderStaffTableMarkup(staff: Profile[]): string {
   if (staff.length === 0) {
@@ -1093,7 +1315,7 @@ function renderStaffTableMarkup(staff: Profile[]): string {
           </div>
 
           <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <span style="background: rgba(217, 180, 90, 0.15); border: 1px solid var(--gold); color: var(--gold); padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;">
+            <span style="background: rgba(217, 180, 90, 0.15); border: 1px solid var(--gold); color: var(--gold); padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; white-space: nowrap;">
               ${escapeHtml(s.role)}
             </span>
 
@@ -1118,13 +1340,33 @@ function renderStaffTableMarkup(staff: Profile[]): string {
 function attachAdminDashboardHandlers(container: HTMLElement, user: CurrentUser) {
   // Sign out button
   document.getElementById('admin-signout-btn')?.addEventListener('click', async () => {
+    document.body.classList.remove('admin-mode-active');
     await signOut();
     window.location.hash = '#/';
+  });
+
+  // Tab switching: Delegates vs EB Members
+  document.getElementById('admin-tab-delegates')?.addEventListener('click', () => {
+    adminActiveTab = 'delegates';
+    renderAdminDashboard(container, user);
+  });
+
+  document.getElementById('admin-tab-eb')?.addEventListener('click', () => {
+    adminActiveTab = 'eb';
+    renderAdminDashboard(container, user);
   });
 
   // Refresh registrations
   document.getElementById('admin-refresh-regs-btn')?.addEventListener('click', async () => {
     const btn = document.getElementById('admin-refresh-regs-btn') as HTMLButtonElement;
+    if (btn) btn.textContent = 'Updating...';
+    await refreshAdminData();
+    renderAdminDashboard(container, user);
+  });
+
+  // Refresh EB
+  document.getElementById('admin-refresh-eb-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('admin-refresh-eb-btn') as HTMLButtonElement;
     if (btn) btn.textContent = 'Updating...';
     await refreshAdminData();
     renderAdminDashboard(container, user);
@@ -1138,11 +1380,10 @@ function attachAdminDashboardHandlers(container: HTMLElement, user: CurrentUser)
     renderAdminDashboard(container, user);
   });
 
-  // Search input
+  // Search input for delegates
   const searchInput = document.getElementById('admin-search-input') as HTMLInputElement;
   searchInput?.addEventListener('input', () => {
     adminSearchQuery = searchInput.value.trim();
-    const stats = computeAdminStats(adminRegistrations);
     const filtered = adminRegistrations.filter((reg) => {
       if (adminFilter !== 'all' && reg.status !== adminFilter) return false;
       if (!adminSearchQuery) return true;
@@ -1162,7 +1403,7 @@ function attachAdminDashboardHandlers(container: HTMLElement, user: CurrentUser)
     }
   });
 
-  // Filter tabs
+  // Filter tabs for delegates
   const filterBtns = container.querySelectorAll('.admin-filter-btn');
   filterBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -1174,8 +1415,48 @@ function attachAdminDashboardHandlers(container: HTMLElement, user: CurrentUser)
     });
   });
 
-  // Attach registration action buttons (Approve / Reject)
+  // Search input for EB members
+  const ebSearchInput = document.getElementById('admin-eb-search-input') as HTMLInputElement;
+  ebSearchInput?.addEventListener('input', () => {
+    adminEbSearchQuery = ebSearchInput.value.trim();
+    const filtered = adminEbProfiles.filter((p) => {
+      if (adminEbFilter === 'pending' && p.role !== 'user') return false;
+      if (adminEbFilter === 'eb' && p.role !== 'eb') return false;
+      if (adminEbFilter === 'admin' && p.role !== 'admin') return false;
+      if (adminEbFilter === 'security' && p.role !== 'security') return false;
+
+      if (!adminEbSearchQuery) return true;
+      const q = adminEbSearchQuery.toLowerCase();
+      return (
+        (p.full_name || '').toLowerCase().includes(q) ||
+        (p.email || '').toLowerCase().includes(q) ||
+        (p.eb_position || '').toLowerCase().includes(q)
+      );
+    });
+    const ebContainer = document.getElementById('admin-eb-container');
+    if (ebContainer) {
+      ebContainer.innerHTML = renderEbTableMarkup(filtered, user);
+      attachEbActionButtons(container, user);
+    }
+  });
+
+  // Filter tabs for EB members
+  const ebFilterBtns = container.querySelectorAll('.admin-eb-filter-btn');
+  ebFilterBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const f = btn.getAttribute('data-filter') as 'all' | 'pending' | 'eb' | 'admin' | 'security';
+      if (f) {
+        adminEbFilter = f;
+        renderAdminDashboard(container, user);
+      }
+    });
+  });
+
+  // Attach delegate registration action buttons (Approve / Reject)
   attachRegistrationActionButtons(container, user);
+
+  // Attach EB member action buttons
+  attachEbActionButtons(container, user);
 
   // Manage access form
   const accessForm = document.getElementById('manage-access-form') as HTMLFormElement;
@@ -1232,6 +1513,18 @@ function attachAdminDashboardHandlers(container: HTMLElement, user: CurrentUser)
       const email = target.getAttribute('data-email');
       const newRole = target.value as UserRole;
       if (!email || !newRole) return;
+
+      if (newRole === 'admin' && !window.confirm(`Are you sure you want to promote ${email} to Administrator? Admins have full Secretariat control.`)) {
+        await refreshAdminData();
+        renderAdminDashboard(container, user);
+        return;
+      }
+
+      if (newRole === 'user' && !window.confirm(`Are you sure you want to remove staff privileges for ${email}? Their role will be reset to standard user.`)) {
+        await refreshAdminData();
+        renderAdminDashboard(container, user);
+        return;
+      }
 
       target.disabled = true;
       const res = await setUserRoleRpc(email, newRole);
@@ -1305,6 +1598,55 @@ function attachRegistrationActionButtons(container: HTMLElement, user: CurrentUs
         }
         button.disabled = false;
         button.textContent = 'Reject';
+      }
+    });
+  });
+}
+
+function attachEbActionButtons(container: HTMLElement, user: CurrentUser) {
+  const feedback = document.getElementById('admin-eb-action-feedback');
+
+  const actionBtns = container.querySelectorAll('.admin-eb-action-btn');
+  actionBtns.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const email = btn.getAttribute('data-email');
+      const targetRole = btn.getAttribute('data-role') as UserRole;
+      const memberName = btn.getAttribute('data-name') || email || 'Member';
+
+      if (!email || !targetRole) return;
+
+      // Confirmation for sensitive role changes
+      if (targetRole === 'admin') {
+        const ok = window.confirm(`Are you sure you want to promote ${memberName} (${email}) to Administrator? Administrators have full Secretariat control.`);
+        if (!ok) return;
+      } else if (targetRole === 'user') {
+        const ok = window.confirm(`Are you sure you want to remove staff privileges for ${memberName} (${email})? Their role will be reset to standard user.`);
+        if (!ok) return;
+      }
+
+      const button = btn as HTMLButtonElement;
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Updating...';
+
+      const res = await setUserRoleRpc(email, targetRole);
+
+      if (res.isError) {
+        if (feedback) {
+          feedback.className = 'status-banner status-error';
+          feedback.textContent = res.message;
+          feedback.style.display = 'block';
+        }
+        button.disabled = false;
+        button.textContent = originalText;
+      } else {
+        if (feedback) {
+          feedback.className = 'status-banner status-success';
+          feedback.textContent = `✓ ${res.message}`;
+          feedback.style.display = 'block';
+        }
+        await refreshAdminData();
+        renderAdminDashboard(container, user);
       }
     });
   });
