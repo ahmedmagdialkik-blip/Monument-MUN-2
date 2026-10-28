@@ -16,17 +16,17 @@
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <!-- Google Fonts: Bricolage Grotesque (500, 800) & Newsreader (body & italic accent) -->
+    <!-- Google Fonts: Archivo (extended display) & Source Serif 4 (editorial body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400;1,6..72,600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..900;1,62..125,400..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&display=swap"
       rel="stylesheet"
     />
 
     <style>
       /* ----------------------------------------------------
-         GLOBAL SAFETY RULES (PHASE 2 MANDATE)
+         GLOBAL SAFETY RULES
          ---------------------------------------------------- */
       html {
         -webkit-text-size-adjust: 100%;
@@ -61,15 +61,15 @@
          TOKENS & THEME
          ---------------------------------------------------- */
       :root {
-        --font-display: 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        --font-serif: 'Newsreader', Georgia, Cambria, 'Times New Roman', Times, serif;
+        --font-display: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --font-serif: 'Source Serif 4', Georgia, Cambria, 'Times New Roman', Times, serif;
 
         /* Easing & Timing tokens */
-        --ease: cubic-bezier(0.28, 0.11, 0.32, 1);
+        --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
         --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-        --fast: 0.25s;
-        --med: 0.5s;
-        --slow: 0.9s;
+        --fast: 0.2s;
+        --med: 0.4s;
+        --slow: 0.7s;
 
         /* Dynamic Interpolated Palette (Stop 0 defaults) */
         --sky-top: #9fb4c7;
@@ -77,12 +77,14 @@
         --monument-ink: #3b4a58;
         --text-color: #1d2a36;
 
-        /* Design tokens */
+        /* Design tokens: Gold STRICTLY CTA & Current/Active state only */
         --gold: #d9b45a;
-        --gold-glow: rgba(217, 180, 90, 0.35);
-        --gold-subtle: rgba(217, 180, 90, 0.12);
-        --navy-surface: rgba(8, 10, 30, 0.92);
-        --card-radius: 24px;
+        --limestone: #eae7df;
+        --limestone-muted: #b8b4a8;
+        --limestone-faint: rgba(234, 231, 223, 0.35);
+        --border-subtle: rgba(234, 231, 223, 0.14);
+        --navy-surface: #0b0e1d;
+        --radius-ui: 8px;
       }
 
       /* ----------------------------------------------------
@@ -124,46 +126,61 @@
         contain: layout paint;
       }
 
-      /* Typography Scale (Phone Base 360px) */
+      /* Accessibility: high-contrast visible focus */
+      :focus-visible {
+        outline: 2px solid var(--gold) !important;
+        outline-offset: 3px !important;
+      }
+
+      /* Body line lengths under 75 characters */
+      p, .about-lead, .about-body, .timeline-desc, .board-note, .hero-subline, .committee-agenda {
+        max-width: 68ch;
+      }
+
+      /* Typography Scale (Editorial & Clean) */
       .eyebrow {
         font-family: var(--font-display);
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: var(--gold);
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: none;
+        color: var(--limestone-muted);
         display: block;
-        margin-bottom: 0.65rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .eyebrow:empty {
+        display: none !important;
       }
 
       .section-heading {
         font-family: var(--font-display);
         font-weight: 800;
-        font-size: clamp(2.1rem, 9.5vw, 3.2rem);
-        line-height: 1.05;
-        letter-spacing: -0.03em;
-        text-transform: uppercase;
+        font-size: clamp(2.2rem, 7vw, 3.6rem);
+        line-height: 1.08;
+        letter-spacing: -0.025em;
+        text-transform: none;
         margin-bottom: 1.25rem;
         color: inherit;
       }
 
       .section-heading em,
       .section-heading i {
-        font-family: var(--font-serif);
-        font-style: italic;
-        font-weight: 400;
+        font-family: inherit;
+        font-style: normal;
+        font-weight: inherit;
         text-transform: none;
-        color: var(--gold);
-        letter-spacing: 0;
+        color: inherit;
+        letter-spacing: inherit;
       }
 
       .monument-heading {
         font-family: var(--font-display);
-        font-size: clamp(2.4rem, 12vw, 4rem);
+        font-size: clamp(2.2rem, 8vw, 3.8rem);
         font-weight: 800;
-        line-height: 0.95;
-        letter-spacing: -0.03em;
-        text-transform: uppercase;
+        line-height: 1.05;
+        letter-spacing: -0.025em;
+        text-transform: none;
         color: var(--text-color);
         margin-bottom: 0.4rem;
       }
@@ -172,18 +189,15 @@
       .apply-role-name,
       .board-name,
       .timeline-title {
-        font-size: 20px;
+        font-size: 1.25rem;
         font-family: var(--font-display);
         font-weight: 800;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
+        letter-spacing: -0.01em;
+        text-transform: none;
       }
 
       .section-divider {
-        color: var(--gold);
-        font-size: 1rem;
-        margin-bottom: 1rem;
-        display: inline-block;
+        display: none !important;
       }
 
       /* ----------------------------------------------------
@@ -270,13 +284,12 @@
         top: 0;
         left: 0;
         width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, var(--gold), #fbe3a6);
+        height: 2px;
+        background: var(--limestone);
         z-index: 100;
         transform-origin: 0 50%;
         transform: scaleX(0);
         will-change: transform;
-        box-shadow: 0 0 8px var(--gold-glow);
         pointer-events: none;
       }
 
@@ -285,19 +298,16 @@
         top: calc(56px + env(safe-area-inset-top) + 8px);
         right: max(16px, env(safe-area-inset-right));
         z-index: 45;
-        background: rgba(8, 10, 30, 0.9);
-        border: 1px solid var(--gold);
-        color: var(--gold);
+        background: var(--navy-surface);
+        border: 1px solid var(--border-subtle);
+        color: var(--limestone);
         font-family: var(--font-display);
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: 0.14em;
+        font-size: 12px;
+        font-weight: 600;
         padding: 4px 10px;
-        border-radius: 9999px;
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        border-radius: var(--radius-ui);
         pointer-events: none;
-        transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+        transition: opacity 0.3s var(--ease);
         opacity: 0;
       }
 
@@ -321,7 +331,7 @@
         align-items: center;
         justify-content: space-between;
         transform: translateY(-100%);
-        transition: transform 0.75s var(--ease), background-color 0.4s var(--ease), border-color 0.4s var(--ease), box-shadow 0.4s var(--ease);
+        transition: transform 0.6s var(--ease), background-color 0.25s var(--ease), border-color 0.25s var(--ease);
         border-bottom: 1px solid transparent;
       }
 
@@ -330,11 +340,8 @@
       }
 
       #site-header.scrolled {
-        background-color: rgba(8, 10, 30, 0.88);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(217, 180, 90, 0.25);
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+        background-color: rgba(11, 14, 29, 0.96);
+        border-bottom: 1px solid var(--border-subtle);
       }
 
       .brand-link {
@@ -346,41 +353,39 @@
       }
 
       .nav-logo-img {
-        height: 38px;
+        height: 36px;
         width: auto;
-        border-radius: 6px;
+        border-radius: 4px;
         object-fit: contain;
       }
 
       .brand-stacked-wordmark {
         display: flex;
         flex-direction: column;
-        line-height: 1;
+        line-height: 1.1;
       }
 
       .brand-main {
         font-family: var(--font-display);
         font-weight: 800;
-        font-size: 1.05rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
+        font-size: 1.1rem;
+        letter-spacing: -0.01em;
+        text-transform: none;
         color: var(--text-color);
         white-space: nowrap;
         overflow-wrap: normal;
       }
 
       #site-header.scrolled .brand-main {
-        color: #ffffff;
+        color: var(--limestone);
       }
 
       .brand-sub {
-        font-family: var(--font-display);
-        font-weight: 600;
-        font-size: 0.58rem;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: var(--gold);
-        margin-top: 2px;
+        font-family: var(--font-serif);
+        font-weight: 400;
+        font-style: italic;
+        font-size: 0.76rem;
+        color: var(--limestone-muted);
         white-space: nowrap;
         overflow-wrap: normal;
       }
@@ -409,25 +414,23 @@
         align-items: center;
         justify-content: center;
         min-width: 44px;
-        min-height: 44px;
+        min-height: 40px;
         padding: 0 14px;
-        background: color-mix(in srgb, var(--text-color) 10%, transparent);
-        border: 1px solid color-mix(in srgb, var(--text-color) 25%, transparent);
-        border-radius: 9999px;
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-ui);
         color: var(--text-color);
         font-family: var(--font-display);
         font-size: 13px;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
+        font-weight: 700;
+        text-transform: none;
         cursor: pointer;
         user-select: none;
       }
 
       #site-header.scrolled .mobile-menu-btn {
-        color: #f2f4ff;
-        border-color: rgba(217, 180, 90, 0.4);
-        background: rgba(217, 180, 90, 0.12);
+        color: var(--limestone);
+        border-color: var(--border-subtle);
       }
 
       /* ----------------------------------------------------
@@ -501,17 +504,15 @@
       }
 
       .mobile-social-line {
-        font-family: var(--font-display);
-        font-size: 0.78rem;
-        font-weight: 700;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--gold);
+        font-family: var(--font-serif);
+        font-size: 0.9rem;
+        font-style: italic;
+        color: var(--limestone-muted);
         margin-top: 1rem;
       }
 
       /* ----------------------------------------------------
-         BUTTONS & PILLS (16px base on phone)
+         BUTTONS & CONTROLS (8px radius, gold strictly for CTA)
          ---------------------------------------------------- */
       .btn-interactive,
       .apply-pill-btn,
@@ -522,11 +523,12 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 16px;
+        font-size: 15px;
         cursor: pointer;
         user-select: none;
         text-decoration: none;
-        transition: transform var(--fast) var(--ease), background var(--fast) var(--ease), border-color var(--fast) var(--ease), color var(--fast) var(--ease);
+        border-radius: var(--radius-ui);
+        transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease), color var(--fast) var(--ease), opacity var(--fast) var(--ease);
       }
 
       .btn-interactive:active,
@@ -538,72 +540,69 @@
       .footer-replay-pill:active,
       .replay-intro-btn:active,
       .intro-skip-pill:active {
-        transform: scale(0.96) !important;
-        transition: transform 0.12s var(--ease) !important;
+        transform: translateY(1px) !important;
+        opacity: 0.9 !important;
       }
 
       .btn-interactive:focus-visible,
       .apply-pill-btn:focus-visible,
       .hero-outline-btn:focus-visible,
       .form-submit-btn:focus-visible {
-        outline: 3px solid var(--gold);
+        outline: 2px solid var(--gold);
         outline-offset: 3px;
       }
 
       .apply-pill-btn {
         background: var(--gold);
-        color: #080a1e !important;
+        color: #0b0e1d !important;
         font-family: var(--font-display);
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        padding: 0.75rem 1.6rem;
-        border-radius: 9999px;
-        border: 1px solid var(--gold);
-        box-shadow: 0 4px 18px var(--gold-glow);
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        text-transform: none;
+        padding: 0.7rem 1.45rem;
+        border-radius: var(--radius-ui);
+        border: none;
+      }
+
+      .apply-pill-btn:hover {
+        opacity: 0.92;
       }
 
       .hero-outline-btn {
         background: transparent;
         color: var(--text-color);
-        border: 2px solid var(--text-color);
-        padding: 0.85rem 1.8rem;
-        border-radius: 9999px;
+        border: 1.5px solid currentColor;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius-ui);
         font-family: var(--font-display);
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        position: relative;
-        overflow: hidden;
-        z-index: 1;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        text-transform: none;
       }
 
-      .hero-outline-btn::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: var(--text-color);
-        transform: translateX(-101%);
-        transition: transform var(--med) var(--ease);
-        z-index: -1;
+      .hero-outline-btn:hover {
+        background: rgba(0, 0, 0, 0.05);
       }
 
       .form-submit-btn {
         width: 100%;
-        min-height: 52px;
+        min-height: 48px;
         background: var(--gold);
-        color: #080a1e;
+        color: #0b0e1d;
         border: none;
-        border-radius: 12px;
+        border-radius: var(--radius-ui);
         font-family: var(--font-display);
-        font-weight: 800;
-        letter-spacing: 0.15em;
-        text-transform: uppercase;
-        box-shadow: 0 4px 18px var(--gold-glow);
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        text-transform: none;
+      }
+
+      .form-submit-btn:hover {
+        opacity: 0.92;
       }
 
       /* ----------------------------------------------------
-         FORM CONTROLS (min-height 52px, font-size 16px)
+         FORM CONTROLS (8px radius, limestone palette)
          ---------------------------------------------------- */
       .form-group {
         margin-bottom: 1.25rem;
@@ -612,47 +611,48 @@
       .form-label {
         font-family: var(--font-display);
         font-size: 13px;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: #f2f4ff;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: none;
+        color: var(--limestone);
         display: block;
-        margin-bottom: 0.45rem;
+        margin-bottom: 0.4rem;
       }
 
       .form-input,
       .form-select,
       .form-textarea {
         width: 100%;
-        min-height: 52px;
-        height: 52px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1.5px solid rgba(255, 255, 255, 0.15);
-        border-radius: 12px;
-        padding: 0 16px;
+        min-height: 48px;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-ui);
+        padding: 0 14px;
         font-family: var(--font-serif);
-        font-size: 16px; /* Strictly 16px prevents iOS zoom */
-        color: #ffffff;
+        font-size: 16px; /* 16px prevents iOS zoom */
+        color: var(--limestone);
         outline: none;
-        transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+        transition: border-color var(--fast) var(--ease);
       }
 
       .form-textarea {
         height: auto;
-        min-height: 110px;
-        padding: 14px 16px;
+        min-height: 105px;
+        padding: 12px 14px;
       }
 
       .form-input:focus,
       .form-select:focus,
       .form-textarea:focus {
         border-color: var(--gold);
-        box-shadow: 0 0 14px var(--gold-glow);
+        outline: 2px solid var(--gold);
+        outline-offset: 1px;
       }
 
       .form-select option {
-        background: #080a1e;
-        color: #ffffff;
+        background: var(--navy-surface);
+        color: var(--limestone);
       }
 
       .status-banner {
@@ -687,34 +687,23 @@
       }
 
       /* ----------------------------------------------------
-         PHONE REVEAL ANIMATIONS (NO BLUR ON PHONE)
+         REVEAL ANIMATIONS (Quiet fade-in for headings only)
          ---------------------------------------------------- */
       .reveal-item {
         opacity: 0;
-        transform: translateY(22px);
-        will-change: transform, opacity;
-        transition: opacity var(--med) var(--ease), transform var(--med) var(--ease);
+        transition: opacity 0.5s var(--ease);
       }
 
       .reveal-item.revealed {
         opacity: 1;
-        transform: translateY(0);
       }
 
       .word-mask {
-        display: inline-block;
-        overflow: hidden;
-        vertical-align: top;
+        display: inline;
       }
 
       .word-inner {
-        display: inline-block;
-        transform: translateY(110%);
-        transition: transform var(--slow) var(--ease);
-      }
-
-      .revealed .word-inner {
-        transform: translateY(0);
+        display: inline;
       }
 
       /* ----------------------------------------------------
@@ -740,25 +729,24 @@
         flex-direction: column;
         align-items: flex-start;
         text-align: left;
-        will-change: transform, opacity;
       }
 
       .hero-brand-row {
         display: flex;
         align-items: center;
         gap: 0.85rem;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.75rem;
       }
 
       .hero-logo-mark {
-        height: 52px;
+        height: 48px;
         width: auto;
-        border-radius: 10px;
+        border-radius: 6px;
         object-fit: contain;
       }
 
       .hero-wordmark {
-        margin: 0.5rem 0 1.25rem 0;
+        margin: 0.25rem 0 1.25rem 0;
         width: 100%;
         max-width: 100%;
         overflow: hidden;
@@ -768,57 +756,56 @@
         display: block;
         font-family: var(--font-display);
         font-weight: 800;
-        letter-spacing: -0.03em;
+        letter-spacing: -0.035em;
         text-transform: uppercase;
         color: var(--text-color);
         white-space: nowrap;
-        line-height: 0.85;
+        line-height: 0.88;
       }
 
       .hero-char {
         display: inline-block;
         opacity: 0;
-        transform: translateY(30px);
-        animation: heroCharRise 0.65s var(--ease) forwards;
+        animation: heroCharRise 0.5s var(--ease) forwards;
       }
 
       @keyframes heroCharRise {
         to {
           opacity: 1;
-          transform: translateY(0);
         }
       }
 
       .hero-tagline {
         font-family: var(--font-display);
-        font-size: clamp(1rem, 4.2vw, 1.45rem);
+        font-size: clamp(1.2rem, 3.8vw, 1.85rem);
         font-weight: 800;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
+        letter-spacing: -0.02em;
+        text-transform: none;
         color: var(--text-color);
-        margin-bottom: 0.35rem;
+        margin-bottom: 0.5rem;
       }
 
       .hero-subline {
         font-family: var(--font-serif);
-        font-size: clamp(1.1rem, 4.5vw, 1.55rem);
-        font-style: italic;
+        font-size: clamp(1.05rem, 3vw, 1.35rem);
+        font-style: normal;
         color: var(--text-color);
-        opacity: 0.92;
-        margin-bottom: 1.4rem;
+        opacity: 0.88;
+        line-height: 1.5;
+        margin-bottom: 1.25rem;
+        max-width: 60ch;
       }
 
       .hero-dates-venue {
         font-family: var(--font-display);
-        font-size: 0.85rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--gold);
-        margin-bottom: 2rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.55rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-transform: none;
+        letter-spacing: 0.01em;
+        color: var(--text-color);
+        opacity: 0.85;
+        margin-bottom: 1.85rem;
+        display: block;
       }
 
       .hero-scroll-indicator {
@@ -829,13 +816,12 @@
         align-items: center;
         gap: 0.45rem;
         font-family: var(--font-display);
-        font-size: 0.72rem;
-        font-weight: 800;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
+        font-size: 0.8rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: none;
         color: var(--text-color);
         opacity: 0.7;
-        animation: scrollBounce 2s infinite ease-in-out;
       }
 
       @keyframes scrollBounce {
@@ -949,78 +935,85 @@
         align-items: center;
         gap: 0.5rem;
         font-family: var(--font-display);
-        font-size: 0.75rem;
-        font-weight: 800;
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-        color: var(--gold);
-        margin-bottom: 0.5rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: none;
+        color: var(--text-color);
+        opacity: 0.75;
+        margin-bottom: 0.35rem;
       }
 
       .monument-location {
-        font-family: var(--font-display);
-        font-size: 0.82rem;
-        font-weight: 800;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--gold);
-        margin-bottom: 0.85rem;
+        font-family: var(--font-serif);
+        font-size: 0.95rem;
+        font-style: italic;
+        color: var(--text-color);
+        opacity: 0.85;
+        text-transform: none;
+        letter-spacing: normal;
+        margin-bottom: 0.75rem;
       }
 
       .monument-atmosphere {
         font-family: var(--font-serif);
-        font-size: clamp(1.1rem, 4.2vw, 1.4rem);
-        font-style: italic;
-        line-height: 1.45;
+        font-size: clamp(1.05rem, 2.5vw, 1.3rem);
+        font-style: normal;
+        line-height: 1.6;
         color: var(--text-color);
-        opacity: 0.92;
-        margin-bottom: 1.6rem;
+        opacity: 0.9;
+        margin-bottom: 1.5rem;
+        max-width: 58ch;
       }
 
       .committee-block {
-        background: rgba(8, 10, 30, 0.9);
-        border: 1px solid rgba(217, 180, 90, 0.3);
-        border-left: 4px solid var(--gold);
-        padding: 1.4rem 1.4rem;
-        border-radius: 0 var(--card-radius) var(--card-radius) 0;
+        background: transparent;
+        border: none;
+        border-left: 2px solid color-mix(in srgb, var(--monument-ink) 25%, transparent);
+        padding: 0.4rem 0 0.4rem 1.25rem;
+        border-radius: 0;
         width: 100%;
-        color: #f2f4ff;
+        color: var(--text-color);
       }
 
       .committee-block .committee-name {
-        color: #f2f4ff;
-        margin-bottom: 0.6rem;
+        color: var(--text-color);
+        font-size: clamp(1.35rem, 3.5vw, 1.8rem);
+        font-weight: 800;
+        text-transform: none;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.35rem;
       }
 
       .committee-agenda {
         font-size: 1.05rem;
-        line-height: 1.5;
-        font-style: italic;
-        color: rgba(242, 244, 255, 0.9);
-        margin-bottom: 0.8rem;
+        line-height: 1.6;
+        font-style: normal;
+        color: var(--text-color);
+        opacity: 0.88;
+        max-width: 60ch;
       }
 
       .committee-agenda strong {
-        font-family: var(--font-display);
+        font-family: inherit;
         font-style: normal;
-        font-size: 0.75rem;
-        font-weight: 800;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--gold);
-        display: block;
-        margin-bottom: 0.25rem;
+        font-size: inherit;
+        font-weight: 700;
+        letter-spacing: normal;
+        text-transform: none;
+        color: var(--text-color);
+        display: inline;
+        margin-right: 0.35rem;
       }
 
       /* ----------------------------------------------------
-         DARK PANELS & PERFORMANCE DISCIPLINE
-         (Solid dark surface on mobile, backdrop-filter disabled)
+         DARK PANELS (Limestone text on deep navy)
          ---------------------------------------------------- */
       .dark-section-panel {
         position: relative;
-        background: rgba(8, 10, 30, 0.92);
-        color: #f2f4ff;
-        padding-top: 4.5rem;
+        background: #090c1a;
+        color: var(--limestone);
+        padding-top: 5rem;
       }
 
       .dark-section-panel .section-heading,
@@ -1028,14 +1021,14 @@
       .dark-section-panel .board-name,
       .dark-section-panel .dept-member-name,
       .dark-section-panel .timeline-title {
-        color: #f2f4ff !important;
+        color: var(--limestone) !important;
       }
 
       .dark-section-panel .stat-sub,
       .dark-section-panel .board-note,
       .dark-section-panel .timeline-desc,
       .dark-section-panel .globe-hint {
-        color: rgba(242, 244, 255, 0.75) !important;
+        color: var(--limestone-muted) !important;
       }
 
       /* ----------------------------------------------------
@@ -1078,17 +1071,16 @@
       .globe-tooltip {
         position: absolute;
         pointer-events: auto;
-        background: rgba(8, 10, 30, 0.95);
-        border: 1px solid var(--gold);
-        padding: 0.5rem 0.9rem;
-        border-radius: 8px;
+        background: var(--navy-surface);
+        border: 1px solid var(--border-subtle);
+        padding: 0.5rem 0.85rem;
+        border-radius: var(--radius-ui);
         font-family: var(--font-display);
-        font-size: 0.78rem;
+        font-size: 0.82rem;
         font-weight: 700;
-        letter-spacing: 0.06em;
-        color: #ffffff;
-        text-transform: uppercase;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.55), 0 0 12px rgba(217, 180, 90, 0.25);
+        color: var(--limestone);
+        text-transform: none;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
         transform: translate(-50%, -135%) scale(0.96);
         opacity: 0;
         transition: opacity var(--fast) var(--ease), transform var(--fast) var(--ease);
@@ -1096,8 +1088,6 @@
         z-index: 20;
         cursor: pointer;
         text-align: center;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
       }
 
       .globe-tooltip.visible {
@@ -1107,33 +1097,29 @@
 
       .globe-tooltip .comm {
         display: block;
-        color: var(--gold);
-        font-size: 0.76em;
+        color: var(--limestone-muted);
+        font-size: 0.8em;
         font-family: var(--font-serif);
         font-style: italic;
         text-transform: none;
-        letter-spacing: normal;
         margin-top: 2px;
       }
 
       .globe-tooltip .tap-cta {
         display: block;
-        color: rgba(242, 244, 255, 0.65);
-        font-size: 0.62em;
+        color: var(--limestone-faint);
+        font-size: 0.7em;
         font-family: var(--font-display);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
+        text-transform: none;
         margin-top: 3px;
       }
 
       .globe-drag-hint {
-        font-family: var(--font-display);
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--gold);
-        margin-top: 0.25rem;
+        font-family: var(--font-serif);
+        font-size: 0.9rem;
+        font-style: italic;
+        color: var(--limestone-muted);
+        margin-top: 0.5rem;
         margin-bottom: 1.25rem;
         transition: opacity var(--med) var(--ease);
       }
@@ -1166,18 +1152,18 @@
         display: inline-flex;
         align-items: center;
         gap: 0.45rem;
-        min-height: 44px;
-        padding: 0.45rem 0.95rem;
-        background: rgba(18, 24, 58, 0.8);
-        border: 1px solid rgba(217, 180, 90, 0.25);
-        border-radius: 9999px;
-        color: #f2f4ff;
+        min-height: 38px;
+        padding: 0.45rem 0.85rem;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-ui);
+        color: var(--limestone);
         font-family: var(--font-display);
-        font-size: 0.8rem;
+        font-size: 0.82rem;
         font-weight: 600;
         cursor: pointer;
         white-space: nowrap;
-        transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease), transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+        transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease);
       }
 
       .monument-chip:focus-visible {
@@ -1186,119 +1172,141 @@
       }
 
       .monument-chip.active {
-        background: rgba(217, 180, 90, 0.22);
+        background: rgba(217, 180, 90, 0.14);
         border-color: var(--gold);
-        color: #ffffff;
-        box-shadow: 0 0 14px rgba(217, 180, 90, 0.35);
+        color: var(--limestone);
       }
 
       .chip-dot {
-        width: 7px;
-        height: 7px;
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
-        background: var(--gold);
-        box-shadow: 0 0 6px var(--gold);
+        background: var(--limestone-muted);
         flex-shrink: 0;
       }
 
       .monument-chip.active .chip-dot {
-        background: #ffffff;
-        box-shadow: 0 0 8px #ffffff;
+        background: var(--gold);
       }
 
       .chip-comm {
-        font-size: 0.72rem;
-        opacity: 0.75;
+        font-size: 0.76rem;
+        color: var(--limestone-muted);
         font-family: var(--font-serif);
         font-style: italic;
         font-weight: 400;
       }
 
       /* ----------------------------------------------------
-         CARDS (1 COLUMN AT 360px)
+         STAT CARDS (Clean editorial stats, no boxes)
          ---------------------------------------------------- */
-      .stat-cards-grid,
-      .board-grid,
-      .team-grid,
-      .committees-grid,
-      .apply-status-cards {
+      .stat-cards-grid {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 1.25rem;
-      }
-
-      .stat-card,
-      .board-card,
-      .team-dept-card,
-      .update-glass-card,
-      .suggestion-box,
-      .committee-card-full,
-      .apply-card {
-        padding: 1.85rem 1.4rem;
-        background: rgba(8, 10, 30, 0.9);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: var(--card-radius);
+        gap: 1.5rem;
+        margin-top: 2rem;
+        border-top: 1px solid var(--border-subtle);
+        padding-top: 2rem;
       }
 
       .stat-card {
+        padding: 0.5rem 0;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
         text-align: center;
       }
 
       .stat-number {
         font-family: var(--font-display);
-        font-size: 3rem;
+        font-size: clamp(2.5rem, 6vw, 3.5rem);
         font-weight: 800;
-        color: var(--gold);
+        color: var(--limestone);
         line-height: 1;
-        margin-bottom: 0.4rem;
+        margin-bottom: 0.35rem;
+        letter-spacing: -0.03em;
       }
 
       .stat-label {
         font-family: var(--font-display);
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-transform: none;
+        color: var(--limestone);
+        margin-bottom: 0.25rem;
+      }
+
+      .stat-sub {
+        font-family: var(--font-serif);
         font-size: 0.85rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        margin-bottom: 0.3rem;
+        font-style: italic;
+        color: var(--limestone-muted);
       }
 
       /* ----------------------------------------------------
-         EXECUTIVE BOARD (96px PORTRAITS, EXACTLY 3 CARDS)
+         EXECUTIVE BOARD (Rectangular photos, plain text, no card box)
          ---------------------------------------------------- */
       #board {
         padding-top: 5rem;
         padding-bottom: 4.5rem;
-        max-width: 1200px;
+        max-width: 1280px;
         margin: 0 auto;
-        text-align: center;
+        text-align: left;
       }
 
       .board-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
         margin-top: 2.5rem;
       }
 
+      /* Tablet Breakpoint: 2 columns (2x2 grid) */
+      @media (min-width: 640px) {
+        .board-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 2rem;
+        }
+      }
+
+      /* Wide Desktop Breakpoint: 4 columns */
+      @media (min-width: 1100px) {
+        .board-grid {
+          grid-template-columns: repeat(4, 1fr);
+          gap: 2rem;
+        }
+      }
+
       .board-card {
+        padding: 0;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        text-align: center;
+        align-items: flex-start;
+        text-align: left;
       }
 
       .board-avatar {
-        width: 96px;
-        height: 96px;
-        border-radius: 50%;
-        background: rgba(217, 180, 90, 0.12);
-        border: 2px solid var(--gold);
+        width: 100%;
+        aspect-ratio: 4 / 5;
+        max-width: 100%;
+        height: auto;
+        border-radius: 0;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid var(--border-subtle);
+        box-shadow: none;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 1.25rem;
-        color: var(--gold);
+        margin-bottom: 1rem;
+        color: var(--limestone-muted);
         font-family: var(--font-display);
-        font-weight: 800;
+        font-weight: 700;
         font-size: 1.5rem;
-        box-shadow: 0 4px 18px var(--gold-glow);
         overflow: hidden;
         position: relative;
       }
@@ -1307,7 +1315,7 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        object-position: center;
+        border-radius: 0;
         display: block;
       }
 
@@ -1317,48 +1325,56 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        border-radius: 0;
+        color: var(--limestone-muted);
       }
 
       .board-role {
-        font-family: var(--font-display);
-        font-size: 0.78rem;
-        font-weight: 800;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--gold);
-        margin-bottom: 0.35rem;
+        font-family: var(--font-serif);
+        font-size: 0.9rem;
+        font-style: italic;
+        color: var(--limestone-muted);
+        text-transform: none;
+        letter-spacing: normal;
+        margin-bottom: 0.2rem;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
       }
 
       .board-name {
-        margin-bottom: 0.5rem;
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        font-weight: 800;
+        text-transform: none;
+        letter-spacing: -0.015em;
+        color: var(--limestone);
+        margin-bottom: 0.35rem;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+      }
+
+      .board-note {
+        font-size: 0.88rem;
+        line-height: 1.5;
+        color: var(--limestone-muted);
+        max-width: 36ch;
       }
 
       /* ----------------------------------------------------
-         EXECUTIVE BOARD ACCESS & SUPABASE PORTAL
+         EXECUTIVE BOARD PORTAL (Clean container, 8px radius)
          ---------------------------------------------------- */
       .eb-portal-container {
         margin-top: 3.5rem;
-        padding: 2.2rem 1.4rem;
-        background: rgba(8, 10, 30, 0.95);
-        border: 1px solid rgba(217, 180, 90, 0.32);
-        border-radius: var(--card-radius);
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 28px rgba(217, 180, 90, 0.12);
+        padding: 2.2rem 1.6rem;
+        background: var(--navy-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-ui);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         max-width: 860px;
         margin-left: auto;
         margin-right: auto;
         text-align: left;
         position: relative;
-        overflow: hidden;
-      }
-
-      .eb-portal-container::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, var(--gold), transparent);
       }
 
       .eb-portal-badge {
@@ -1366,45 +1382,47 @@
         align-items: center;
         gap: 0.5rem;
         font-family: var(--font-display);
-        font-size: 0.72rem;
-        font-weight: 800;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--gold);
-        background: rgba(217, 180, 90, 0.1);
-        border: 1px solid rgba(217, 180, 90, 0.28);
-        padding: 0.35rem 0.85rem;
-        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: none;
+        color: var(--limestone-muted);
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        padding: 0.35rem 0.8rem;
+        border-radius: var(--radius-ui);
         margin-bottom: 1rem;
       }
 
       .eb-portal-title {
         font-family: var(--font-display);
-        font-size: clamp(1.5rem, 5vw, 2.2rem);
+        font-size: clamp(1.5rem, 4vw, 2.2rem);
         font-weight: 800;
         line-height: 1.15;
-        color: #ffffff;
+        letter-spacing: -0.02em;
+        text-transform: none;
+        color: var(--limestone);
         margin-bottom: 0.5rem;
       }
 
       .eb-portal-title em {
-        font-style: italic;
-        font-family: var(--font-serif);
-        color: var(--gold);
-        font-weight: 600;
+        font-style: normal;
+        font-family: inherit;
+        color: inherit;
+        font-weight: inherit;
       }
 
       .eb-portal-sub {
         font-size: 0.98rem;
-        color: rgba(242, 244, 255, 0.82);
-        line-height: 1.55;
-        margin-bottom: 1.8rem;
+        color: var(--limestone-muted);
+        line-height: 1.6;
+        margin-bottom: 1.75rem;
+        max-width: 68ch;
       }
 
       .eb-tabs {
         display: flex;
         gap: 0.4rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        border-bottom: 1px solid var(--border-subtle);
         margin-bottom: 1.75rem;
         overflow-x: auto;
         scrollbar-width: none;
@@ -1415,23 +1433,22 @@
       }
 
       .eb-tab {
-        padding: 0.75rem 1.1rem;
+        padding: 0.65rem 1rem;
         background: transparent;
         border: none;
         border-bottom: 2px solid transparent;
-        color: rgba(242, 244, 255, 0.6);
+        color: var(--limestone-muted);
         font-family: var(--font-display);
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 0.88rem;
+        font-weight: 600;
+        text-transform: none;
         cursor: pointer;
         white-space: nowrap;
         transition: color var(--fast) var(--ease), border-color var(--fast) var(--ease);
       }
 
       .eb-tab:hover {
-        color: #ffffff;
+        color: var(--limestone);
       }
 
       .eb-tab.active {
@@ -1440,23 +1457,23 @@
       }
 
       .eb-form-info-callout {
-        background: rgba(217, 180, 90, 0.08);
-        border: 1px solid rgba(217, 180, 90, 0.25);
-        border-left: 3px solid var(--gold);
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-subtle);
+        border-left: 3px solid var(--limestone-muted);
         padding: 0.85rem 1.1rem;
-        border-radius: 8px;
+        border-radius: var(--radius-ui);
         margin-bottom: 1.5rem;
         display: flex;
         gap: 0.75rem;
         align-items: flex-start;
         font-size: 0.88rem;
-        color: rgba(242, 244, 255, 0.92);
+        color: var(--limestone);
         line-height: 1.5;
       }
 
       .eb-form-info-callout .info-icon {
         font-size: 1.1rem;
-        color: var(--gold);
+        color: var(--limestone-muted);
         flex-shrink: 0;
       }
 
@@ -1474,8 +1491,8 @@
 
       .form-help-text {
         display: block;
-        font-size: 0.76rem;
-        color: rgba(242, 244, 255, 0.6);
+        font-size: 0.78rem;
+        color: var(--limestone-muted);
         font-family: var(--font-serif);
         font-style: italic;
         margin-top: 0.35rem;
@@ -1490,7 +1507,7 @@
         gap: 0.75rem;
         align-items: flex-start;
         font-size: 0.88rem;
-        color: rgba(242, 244, 255, 0.88);
+        color: var(--limestone);
         cursor: pointer;
         line-height: 1.45;
       }
@@ -1498,27 +1515,30 @@
       .eb-checkbox-label input[type='checkbox'] {
         accent-color: var(--gold);
         margin-top: 3px;
-        width: 18px;
-        height: 18px;
+        width: 17px;
+        height: 17px;
         cursor: pointer;
         flex-shrink: 0;
       }
 
       .eb-submit-btn {
         width: 100%;
-        min-height: 52px;
-        background: linear-gradient(135deg, #d9b45a, #c49e44);
-        color: #080a1e;
-        font-weight: 800;
+        min-height: 48px;
+        background: var(--gold);
+        color: #0b0e1d;
+        font-weight: 700;
         font-family: var(--font-display);
-        font-size: 0.92rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
+        font-size: 0.95rem;
+        letter-spacing: -0.01em;
+        text-transform: none;
         border: none;
-        border-radius: 12px;
+        border-radius: var(--radius-ui);
         cursor: pointer;
-        transition: transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease), filter var(--fast) var(--ease);
-        box-shadow: 0 4px 18px var(--gold-glow);
+        transition: opacity var(--fast) var(--ease);
+      }
+
+      .eb-submit-btn:hover {
+        opacity: 0.92;
       }
 
       .eb-submit-btn:disabled {
@@ -1536,10 +1556,10 @@
       .eb-link-btn {
         background: none;
         border: none;
-        color: var(--gold);
+        color: var(--limestone);
         font-family: var(--font-display);
-        font-size: 0.82rem;
-        font-weight: 700;
+        font-size: 0.85rem;
+        font-weight: 600;
         cursor: pointer;
         text-decoration: underline;
         padding: 0;
@@ -1553,8 +1573,8 @@
       /* Authenticated Dashboard State */
       .eb-authenticated-card {
         background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(217, 180, 90, 0.25);
-        border-radius: 16px;
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-ui);
         padding: 1.85rem 1.4rem;
       }
 
@@ -1766,59 +1786,116 @@
       }
 
       /* ----------------------------------------------------
-         MEET THE TEAM (12 DEPARTMENTS)
+         MEET THE TEAM
          ---------------------------------------------------- */
       #team {
         padding-top: 5rem;
         padding-bottom: 4.5rem;
-        max-width: 1200px;
+        max-width: 1240px;
         margin: 0 auto;
       }
 
       .team-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
         margin-top: 2.5rem;
+      }
+
+      /* Tablet Breakpoint: 2 columns */
+      @media (min-width: 640px) {
+        .team-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1.4rem;
+        }
+      }
+
+      /* Desktop Breakpoint: 4 columns */
+      @media (min-width: 1024px) {
+        .team-grid {
+          grid-template-columns: repeat(4, 1fr);
+          gap: 1.4rem;
+        }
+      }
+
+      .team-dept-card {
+        padding: 0 0 1.5rem 0;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
       }
 
       .dept-eyebrow {
         font-family: var(--font-display);
-        font-size: 0.8rem;
+        font-size: 1.15rem;
         font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--gold);
+        letter-spacing: -0.015em;
+        text-transform: none;
+        color: var(--limestone);
         margin-bottom: 0.85rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid var(--border-subtle);
         padding-bottom: 0.45rem;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+      }
+
+      .dept-members-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        flex: 1;
       }
 
       .dept-member-unit {
-        margin-bottom: 0.65rem;
+        display: flex;
+        align-items: baseline;
+        gap: 0.75rem;
+        padding: 0.65rem 0;
+        border-bottom: 1px solid rgba(234, 231, 223, 0.08);
       }
 
-      .dept-member-unit:last-child {
-        margin-bottom: 0;
+      .dept-avatar-badge {
+        display: none;
+      }
+
+      .dept-member-text {
+        min-width: 0;
+        flex: 1;
       }
 
       .dept-role-title {
         font-size: 0.82rem;
-        color: rgba(242, 244, 255, 0.7);
+        color: var(--limestone-muted);
+        font-family: var(--font-serif);
         font-style: italic;
+        line-height: 1.35;
+        margin-bottom: 0.15rem;
+        text-transform: none;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
       }
 
       .dept-person-name {
         font-family: var(--font-display);
         font-weight: 700;
-        font-size: 1rem;
-        color: #ffffff;
+        font-size: 1.05rem;
+        color: var(--limestone);
+        line-height: 1.3;
+        text-transform: none;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
       }
 
       /* ----------------------------------------------------
          LIVE UPDATES & SUGGESTIONS
-         (Last section before footer: padding-bottom 110px)
          ---------------------------------------------------- */
       #updates {
         padding-top: 5rem;
-        padding-bottom: 110px; /* Phase 2 requirement */
+        padding-bottom: 110px;
         max-width: 1100px;
         margin: 0 auto;
       }
@@ -1832,22 +1909,39 @@
       .update-cards-container {
         display: flex;
         flex-direction: column;
-        gap: 1.25rem;
+        gap: 1.5rem;
         margin-top: 1.25rem;
+      }
+
+      .update-glass-card {
+        padding: 0.5rem 0 0.5rem 1.25rem;
+        background: transparent;
+        border: none;
+        border-left: 2px solid var(--border-subtle);
+        border-radius: 0;
+        box-shadow: none;
       }
 
       .update-date-badge {
         display: inline-block;
-        background: var(--gold);
-        color: #080a1e;
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        color: var(--limestone-muted);
         font-family: var(--font-display);
-        font-size: 0.7rem;
-        font-weight: 800;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        padding: 0.3rem 0.75rem;
-        border-radius: 9999px;
-        margin-bottom: 0.75rem;
+        font-size: 0.76rem;
+        font-weight: 600;
+        text-transform: none;
+        padding: 0.2rem 0.6rem;
+        border-radius: var(--radius-ui);
+        margin-bottom: 0.45rem;
+      }
+
+      .suggestion-box {
+        padding: 2rem 1.6rem;
+        background: var(--navy-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-ui);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
       }
 
       /* ----------------------------------------------------
@@ -1856,8 +1950,7 @@
       .app-view {
         display: none;
         opacity: 0;
-        transform: translateY(15px);
-        transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
+        transition: opacity 0.35s var(--ease);
         position: relative;
         z-index: 10;
         width: 100%;
@@ -1868,7 +1961,6 @@
       .app-view.active-view {
         display: block;
         opacity: 1;
-        transform: translateY(0);
       }
 
       #view-committees,
@@ -1883,9 +1975,9 @@
       body.admin-mode-active {
         background-color: #0b0e1a !important;
         background-image:
-          radial-gradient(circle at 50% 0%, rgba(217, 180, 90, 0.16) 0%, transparent 60%),
-          linear-gradient(to right, rgba(217, 180, 90, 0.04) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(217, 180, 90, 0.04) 1px, transparent 1px) !important;
+          radial-gradient(circle at 50% 0%, rgba(217, 180, 90, 0.1) 0%, transparent 60%),
+          linear-gradient(to right, rgba(234, 231, 223, 0.04) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(234, 231, 223, 0.04) 1px, transparent 1px) !important;
         background-size: 100% 100%, 36px 36px, 36px 36px !important;
       }
 
@@ -1897,82 +1989,96 @@
 
       .back-home-link {
         font-family: var(--font-display);
-        font-size: 0.8rem;
-        font-weight: 800;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--gold);
+        font-size: 0.88rem;
+        font-weight: 700;
+        text-transform: none;
+        color: var(--limestone);
         margin-bottom: 1.75rem;
         display: inline-flex;
         gap: 0.45rem;
       }
 
+      /* Committees Full View: Full-width rows with large committee name, agenda in sentence, no card box */
+      .committee-card-full {
+        padding: 2.2rem 0;
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid var(--border-subtle);
+        border-radius: 0;
+        box-shadow: none;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
       .comm-icon-wrapper {
         width: 100%;
-        height: 96px;
-        margin-bottom: 1.25rem;
+        height: 72px;
+        margin-bottom: 0.75rem;
         display: flex;
         align-items: center;
-        justify-content: center;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        padding-bottom: 0.85rem;
+        justify-content: flex-start;
       }
 
       .comm-icon-svg {
         height: 100%;
         width: auto;
-        fill: var(--gold);
+        fill: var(--limestone-muted);
         opacity: 0.9;
       }
 
       .comm-meta-grid {
-        margin-top: 1.25rem;
-        padding-top: 0.85rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
         display: flex;
         flex-wrap: wrap;
-        gap: 1rem;
+        gap: 1.5rem;
         font-family: var(--font-display);
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: rgba(242, 244, 255, 0.75);
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: none;
+        color: var(--limestone-muted);
       }
 
       .comm-bg-guide-badge {
         display: inline-block;
-        background: rgba(217, 180, 90, 0.15);
-        color: var(--gold);
-        border: 1px solid var(--gold);
-        padding: 0.25rem 0.65rem;
-        border-radius: 9999px;
-        font-size: 0.7rem;
+        background: transparent;
+        color: var(--limestone-muted);
+        border: 1px solid var(--border-subtle);
+        padding: 0.2rem 0.65rem;
+        border-radius: var(--radius-ui);
+        font-size: 0.78rem;
+      }
+
+      .apply-card {
+        padding: 1.85rem 1.5rem;
+        background: var(--navy-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-ui);
       }
 
       .apply-role-icon {
-        font-size: 1.8rem;
-        color: var(--gold);
-        margin-bottom: 0.85rem;
+        font-size: 1.4rem;
+        color: var(--limestone-muted);
+        margin-bottom: 0.65rem;
       }
 
       .apply-status-pill {
         display: inline-block;
-        background: rgba(217, 180, 90, 0.15);
-        border: 1px solid var(--gold);
-        color: var(--gold);
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        color: var(--limestone-muted);
         font-family: var(--font-display);
-        font-size: 0.72rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        padding: 0.35rem 0.85rem;
-        border-radius: 9999px;
+        font-size: 0.76rem;
+        font-weight: 600;
+        text-transform: none;
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--radius-ui);
         margin-top: 0.5rem;
       }
 
       /* ----------------------------------------------------
-         RIGHT-SIDE VERTICAL DOT NAVIGATION (HIDDEN ON PHONE)
+         RIGHT-SIDE VERTICAL DOT NAVIGATION
          ---------------------------------------------------- */
       #dot-nav {
         display: none;
@@ -1984,13 +2090,12 @@
         flex-direction: column;
         gap: 1rem;
         list-style: none;
-        transition: opacity var(--med) var(--ease), transform var(--med) var(--ease);
+        transition: opacity var(--med) var(--ease);
       }
 
       #dot-nav.nav-hidden {
         opacity: 0;
         pointer-events: none;
-        transform: translateY(-50%) translateX(30px);
       }
 
       .dot-nav-item {
@@ -2000,46 +2105,43 @@
       }
 
       .dot-nav-btn {
-        width: 12px;
-        height: 12px;
+        width: 10px;
+        height: 10px;
         border-radius: 50%;
-        background: color-mix(in srgb, var(--text-color) 25%, transparent);
-        border: 2px solid transparent;
+        background: color-mix(in srgb, var(--text-color) 30%, transparent);
+        border: none;
         cursor: pointer;
         padding: 0;
-        transition: transform 0.35s var(--spring), background-color var(--fast) var(--ease), box-shadow 0.35s var(--spring);
+        transition: transform 0.25s var(--ease), background-color var(--fast) var(--ease);
       }
 
       .dot-nav-btn.active {
         background: var(--gold);
-        transform: scale(1.5);
-        box-shadow: 0 0 12px var(--gold-glow);
+        transform: scale(1.3);
       }
 
       .dot-tooltip {
         position: absolute;
         right: calc(100% + 14px);
-        background: rgba(8, 10, 30, 0.95);
-        color: #f2f4ff;
+        background: var(--navy-surface);
+        color: var(--limestone);
         padding: 0.4rem 0.85rem;
-        border-radius: 8px;
-        border: 1px solid var(--gold);
+        border-radius: var(--radius-ui);
+        border: 1px solid var(--border-subtle);
         font-family: var(--font-display);
-        font-size: 0.72rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: none;
         white-space: nowrap;
         opacity: 0;
         pointer-events: none;
-        transform: translateX(8px);
+        transform: translateX(4px);
         transition: opacity var(--fast) var(--ease), transform var(--fast) var(--ease);
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       }
 
       /* ----------------------------------------------------
          BOTTOM ANNOUNCEMENT PILL
-         (Fixed bottom, safe-area-inset-bottom, max 1 line)
          ---------------------------------------------------- */
       #announcement-pill {
         position: fixed;
@@ -2050,18 +2152,16 @@
         margin: 0 auto;
         transform: translateY(140%);
         z-index: 50;
-        background: rgba(8, 10, 30, 0.94);
-        border: 1px solid var(--gold);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        background: var(--navy-surface);
+        border: 1px solid var(--border-subtle);
         padding: 0.65rem 1rem;
-        border-radius: 9999px;
+        border-radius: var(--radius-ui);
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 0.65rem;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 14px var(--gold-glow);
-        transition: transform 0.6s var(--spring), opacity 0.4s var(--ease);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+        transition: transform 0.4s var(--ease), opacity 0.3s var(--ease);
         opacity: 0;
       }
 
@@ -2077,17 +2177,37 @@
 
       #announcement-pill a {
         font-family: var(--font-display);
-        font-size: 0.76rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #ffffff;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: none;
+        color: var(--limestone);
         text-decoration: none;
         display: flex;
         align-items: center;
         gap: 0.5rem;
         min-width: 0;
         overflow: hidden;
+      }
+
+      #announcement-pill .pill-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      #announcement-pill a span.view-link {
+        color: var(--limestone-muted);
+        text-decoration: underline;
+        margin-left: 0.25rem;
+        flex-shrink: 0;
+      }
+
+      #announcement-pill .pill-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--gold);
+        flex-shrink: 0;
       }
 
       #announcement-pill .pill-text {
@@ -2161,54 +2281,49 @@
 
       .replay-intro-btn {
         background: transparent;
-        border: 1px solid rgba(217, 180, 90, 0.4);
-        color: var(--gold);
+        border: 1px solid var(--border-subtle);
+        color: var(--limestone-muted);
         font-family: var(--font-display);
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-transform: none;
         cursor: pointer;
         padding: 0.45rem 1rem;
-        border-radius: 9999px;
-        min-height: 44px;
+        border-radius: var(--radius-ui);
+        min-height: 40px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
       }
 
       .footer-sub-model {
-        font-family: var(--font-display);
-        font-size: 0.78rem;
-        font-weight: 700;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--gold);
-        margin-bottom: 1rem;
+        font-family: var(--font-serif);
+        font-size: 0.95rem;
+        font-style: italic;
+        color: var(--limestone-muted);
+        margin-bottom: 0.75rem;
       }
 
       .footer-instagram-card {
-        padding: 1.15rem;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 14px;
+        padding: 0.85rem 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-ui);
         margin-top: 1.15rem;
-        font-family: var(--font-display);
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--gold);
+        font-family: var(--font-serif);
+        font-size: 0.88rem;
+        font-style: italic;
+        color: var(--limestone-muted);
       }
 
       .footer-col-title {
         font-family: var(--font-display);
-        font-size: 0.8rem;
-        font-weight: 800;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        color: var(--gold);
-        margin-bottom: 1.15rem;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        text-transform: none;
+        color: var(--limestone);
+        margin-bottom: 1rem;
       }
 
       .footer-links-list {
@@ -2220,7 +2335,7 @@
 
       .footer-links-list a {
         font-size: 0.92rem;
-        color: rgba(242, 244, 255, 0.7);
+        color: var(--limestone-muted);
         text-decoration: none;
         display: inline-block;
       }
@@ -2232,7 +2347,7 @@
         text-transform: uppercase;
         line-height: 0.85;
         letter-spacing: -0.04em;
-        color: rgba(255, 255, 255, 0.12);
+        color: rgba(234, 231, 223, 0.05);
         margin-top: 3.5rem;
         text-align: center;
         user-select: none;
@@ -2243,16 +2358,15 @@
         max-width: 1200px;
         margin: 2.25rem auto 0 auto;
         padding-top: 1.75rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        border-top: 1px solid var(--border-subtle);
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 1.25rem;
         text-align: center;
         font-family: var(--font-display);
-        font-size: 0.75rem;
-        letter-spacing: 0.08em;
-        color: rgba(255, 255, 255, 0.4);
+        font-size: 0.82rem;
+        color: var(--limestone-muted);
       }
 
       .footer-replay-container {
@@ -2263,20 +2377,18 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 0.6rem;
-        min-height: 44px;
-        background: rgba(217, 180, 90, 0.1);
-        color: var(--gold);
-        border: 1px solid rgba(217, 180, 90, 0.4);
+        gap: 0.5rem;
+        min-height: 40px;
+        background: transparent;
+        color: var(--limestone);
+        border: 1px solid var(--border-subtle);
         font-family: var(--font-display);
-        font-size: 0.76rem;
-        font-weight: 800;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        padding: 0.6rem 1.4rem;
-        border-radius: 9999px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-transform: none;
+        padding: 0.5rem 1.15rem;
+        border-radius: var(--radius-ui);
         cursor: pointer;
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
       }
 
       /* ----------------------------------------------------
@@ -2544,8 +2656,6 @@
          ==================================================== */
       @media (min-width: 480px) {
         .stat-cards-grid,
-        .board-grid,
-        .team-grid,
         .committees-grid,
         .apply-status-cards {
           grid-template-columns: repeat(2, 1fr);
@@ -2598,10 +2708,6 @@
         }
 
         .apply-status-cards {
-          grid-template-columns: repeat(3, 1fr);
-        }
-
-        .board-grid {
           grid-template-columns: repeat(3, 1fr);
         }
 
@@ -2697,42 +2803,30 @@
           grid-template-columns: repeat(3, 1fr);
         }
 
-        .committee-block,
-        .stat-card,
-        .board-card,
-        .team-dept-card,
-        .update-glass-card,
-        .suggestion-box,
-        .committee-card-full,
-        .apply-card {
-          backdrop-filter: blur(14px);
-          -webkit-backdrop-filter: blur(14px);
-        }
-
         .reveal-item {
-          filter: blur(6px);
-          transition: opacity var(--slow) var(--ease), transform var(--slow) var(--ease), filter var(--slow) var(--ease);
+          opacity: 0;
+          transition: opacity var(--med) var(--ease);
         }
 
         .reveal-item.revealed {
-          filter: blur(0);
+          opacity: 1;
         }
       }
 
       /* ====================================================
          MEDIA QUERY 4: HOVER & POINTER FINE
-         (Strictly wrapped so touch doesn't stick)
          ==================================================== */
       @media (hover: hover) and (pointer: fine) {
         .brand-link:hover {
-          transform: scale(1.03);
+          opacity: 0.85;
         }
 
-        .nav-links a:hover {
-          opacity: 1;
+        .nav-links a:hover,
+        .nav-links a.active-nav {
           color: var(--gold);
         }
 
+        .nav-links a.active-nav::after,
         .nav-links a:hover::after {
           transform: scaleX(1);
         }
@@ -2743,21 +2837,11 @@
         .form-submit-btn:hover,
         .mobile-menu-btn:hover,
         .back-home-link:hover {
-          transform: scale(1.06);
-          box-shadow: 0 10px 28px var(--gold-glow), 0 3px 10px rgba(0, 0, 0, 0.15);
-        }
-
-        .hero-outline-btn:hover {
-          color: var(--sky-top) !important;
-        }
-
-        .hero-outline-btn:hover::before {
-          transform: translateX(0);
+          opacity: 0.9;
         }
 
         .dot-nav-btn:hover {
-          transform: scale(1.4);
-          background: var(--gold);
+          background: var(--limestone);
         }
 
         .dot-nav-item:hover .dot-tooltip {
@@ -2766,62 +2850,21 @@
         }
 
         .monument-chip:hover {
-          background: rgba(30, 42, 95, 0.95);
-          border-color: var(--gold);
-          transform: translateY(-2px);
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-        }
-
-        .globe-tooltip:hover {
-          border-color: #ffffff;
-          box-shadow: 0 6px 24px rgba(217, 180, 90, 0.4);
+          border-color: var(--limestone-muted);
         }
 
         .tilt-card {
-          position: relative;
-          transform-style: preserve-3d;
-          transform: perspective(800px) rotateX(0deg) rotateY(0deg) translateY(0) scale(1);
-          transition: transform 0.35s var(--spring), box-shadow 0.35s var(--spring), border-color 0.35s var(--ease);
-          overflow: hidden;
-        }
-
-        .tilt-card:hover {
-          transform: perspective(800px) translateY(-8px) scale(1.02);
-          box-shadow: 0 16px 36px var(--gold-glow), 0 4px 14px rgba(0, 0, 0, 0.14);
-          border-color: color-mix(in srgb, var(--gold) 45%, transparent) !important;
-        }
-
-        .tilt-card::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(circle 240px at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(217, 180, 90, 0.18), transparent 80%);
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.3s var(--ease);
-          z-index: 1;
-          border-radius: inherit;
-        }
-
-        .tilt-card:hover::before {
-          opacity: 1;
-        }
-
-        .board-card:hover .board-avatar-img {
-          transform: scale(1.08);
+          /* 3D tilt removed per design specification */
+          transform: none !important;
         }
 
         .footer-links-list a:hover {
-          color: #ffffff;
-          transform: translateX(4px);
+          color: var(--limestone);
         }
 
         .footer-replay-pill:hover {
-          transform: scale(1.06);
-          background: rgba(217, 180, 90, 0.22);
-          border-color: var(--gold);
-          color: #ffffff;
-          box-shadow: 0 0 24px rgba(217, 180, 90, 0.42), 0 8px 24px rgba(0, 0, 0, 0.5);
+          border-color: var(--limestone);
+          color: var(--limestone);
         }
 
         .footer-replay-pill:hover .replay-icon {
@@ -3171,16 +3214,14 @@
             <span class="hero-line hero-line-2" id="line-mun">MUN</span>
           </h1>
 
-          <p class="hero-tagline">WHERE EVERY MONUMENT HAS A SEAT.</p>
-          <p class="hero-subline">elegance in international discourse</p>
+          <p class="hero-tagline">Where every monument has a seat.</p>
+          <p class="hero-subline">Elegance in international discourse</p>
 
           <div class="hero-dates-venue">
-            <span>Dates TBA</span>
-            <span class="dot-sep">·</span>
-            <span>Venue TBA</span>
+            <span>Dates and venue will be announced soon.</span>
           </div>
 
-          <a href="#/apply" class="hero-outline-btn magnetic-btn route-link">
+          <a href="#/apply" class="apply-pill-btn hero-outline-btn route-link">
             Apply to Monument MUN
           </a>
         </div>
@@ -3194,30 +3235,29 @@
       <!-- 2. DUAL-TRACK CONTINUOUS MARQUEE -->
       <div class="marquee-wrapper" id="marquee-section" aria-hidden="true">
         <div class="marquee-track track-1" id="marquee-track-1">
-          <div class="marquee-item">Monument MUN <span class="sep">✦</span> Where every monument has a seat <span class="sep">✦</span> Dates TBA <span class="sep">✦</span> Model United Nations <span class="sep">✦</span> Socials TBA <span class="sep">✦</span></div>
-          <div class="marquee-item">Monument MUN <span class="sep">✦</span> Where every monument has a seat <span class="sep">✦</span> Dates TBA <span class="sep">✦</span> Model United Nations <span class="sep">✦</span> Socials TBA <span class="sep">✦</span></div>
-          <div class="marquee-item">Monument MUN <span class="sep">✦</span> Where every monument has a seat <span class="sep">✦</span> Dates TBA <span class="sep">✦</span> Model United Nations <span class="sep">✦</span> Socials TBA <span class="sep">✦</span></div>
-          <div class="marquee-item">Monument MUN <span class="sep">✦</span> Where every monument has a seat <span class="sep">✦</span> Dates TBA <span class="sep">✦</span> Model United Nations <span class="sep">✦</span> Socials TBA <span class="sep">✦</span></div>
+          <div class="marquee-item">Monument MUN <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Model United Nations <span class="sep">·</span> Socials to be announced <span class="sep">·</span></div>
+          <div class="marquee-item">Monument MUN <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Model United Nations <span class="sep">·</span> Socials to be announced <span class="sep">·</span></div>
+          <div class="marquee-item">Monument MUN <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Model United Nations <span class="sep">·</span> Socials to be announced <span class="sep">·</span></div>
+          <div class="marquee-item">Monument MUN <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Model United Nations <span class="sep">·</span> Socials to be announced <span class="sep">·</span></div>
         </div>
 
         <div class="marquee-track track-2" id="marquee-track-2">
-          <div class="marquee-item">Monument Model United Nations <span class="sep">✦</span> Diplomacy <span class="sep">✦</span> Global Discourse <span class="sep">✦</span> Venue TBA <span class="sep">✦</span> Elegance in Leadership <span class="sep">✦</span> Where Every Monument Has a Seat <span class="sep">✦</span></div>
-          <div class="marquee-item">Monument Model United Nations <span class="sep">✦</span> Diplomacy <span class="sep">✦</span> Global Discourse <span class="sep">✦</span> Venue TBA <span class="sep">✦</span> Elegance in Leadership <span class="sep">✦</span> Where Every Monument Has a Seat <span class="sep">✦</span></div>
-          <div class="marquee-item">Monument Model United Nations <span class="sep">✦</span> Diplomacy <span class="sep">✦</span> Global Discourse <span class="sep">✦</span> Venue TBA <span class="sep">✦</span> Elegance in Leadership <span class="sep">✦</span> Where Every Monument Has a Seat <span class="sep">✦</span></div>
-          <div class="marquee-item">Monument Model United Nations <span class="sep">✦</span> Diplomacy <span class="sep">✦</span> Global Discourse <span class="sep">✦</span> Venue TBA <span class="sep">✦</span> Elegance in Leadership <span class="sep">✦</span> Where Every Monument Has a Seat <span class="sep">✦</span></div>
+          <div class="marquee-item">Monument Model United Nations <span class="sep">·</span> International diplomacy <span class="sep">·</span> Global discourse <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span></div>
+          <div class="marquee-item">Monument Model United Nations <span class="sep">·</span> International diplomacy <span class="sep">·</span> Global discourse <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span></div>
+          <div class="marquee-item">Monument Model United Nations <span class="sep">·</span> International diplomacy <span class="sep">·</span> Global discourse <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span></div>
+          <div class="marquee-item">Monument Model United Nations <span class="sep">·</span> International diplomacy <span class="sep">·</span> Global discourse <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span></div>
         </div>
       </div>
 
       <!-- 3. ABOUT SECTION -->
       <section id="about">
         <div class="about-container reveal-item">
-          <div class="section-divider">✦</div>
-          <h2 class="section-heading word-reveal-heading">ABOUT <em>MONUMENT MUN.</em></h2>
+          <h2 class="section-heading word-reveal-heading">About Monument MUN</h2>
           <p class="about-lead">
             A youth-led Model United Nations conference that merges diplomatic tradition with contemporary elegance, born from a passion for meaningful international discourse, bringing together ambitious young minds to engage in high-calibre debate, forge coalitions and leave a lasting mark on tomorrow's world.
           </p>
           <p class="about-body">
-            Whether delegates are stepping into a committee for the first time or returning as seasoned delegates, it is where diplomacy is not just practised but <em>perfected</em>.
+            Whether delegates are stepping into a committee for the first time or returning as seasoned delegates, it is where diplomacy is not just practised but perfected.
           </p>
         </div>
       </section>
@@ -3227,18 +3267,17 @@
         <!-- STOP 0: Great Wall of China -->
         <section class="committee-stop" id="stop-0" data-index="0">
           <div class="stop-content-wrapper reveal-item">
-            <span class="stop-badge">Stop 01 · 07</span>
-            <h2 class="monument-heading word-reveal-heading">GREAT WALL OF CHINA</h2>
+            <span class="stop-badge">Stop 1 of 7</span>
+            <h2 class="monument-heading word-reveal-heading">Great Wall of China</h2>
             <p class="monument-location">China</p>
             <p class="monument-atmosphere">
               Centuries of fortified ramparts and watchtowers follow mountain ridges, marking sovereign boundaries through history.
             </p>
 
-            <div class="committee-block tilt-card">
-              <h3 class="committee-name">SECURITY COUNCIL</h3>
+            <div class="committee-block">
+              <h3 class="committee-name">Security Council</h3>
               <div class="committee-agenda">
-                <strong>Agenda:</strong>
-                "Disputed borders and the use of force along them."
+                <strong>Agenda:</strong> Disputed borders and the use of force along them.
               </div>
             </div>
           </div>
@@ -3247,18 +3286,17 @@
         <!-- STOP 1: Petra -->
         <section class="committee-stop" id="stop-1" data-index="1">
           <div class="stop-content-wrapper reveal-item">
-            <span class="stop-badge">Stop 02 · 07</span>
-            <h2 class="monument-heading word-reveal-heading">PETRA</h2>
+            <span class="stop-badge">Stop 2 of 7</span>
+            <h2 class="monument-heading word-reveal-heading">Petra</h2>
             <p class="monument-location">Jordan</p>
             <p class="monument-atmosphere">
               Rose-red sandstone canyons carved into monumental facades, commanding the vital crossroads of water and desert commerce.
             </p>
 
-            <div class="committee-block tilt-card">
-              <h3 class="committee-name">ECONOMIC AND SOCIAL COUNCIL</h3>
+            <div class="committee-block">
+              <h3 class="committee-name">Economic and Social Council</h3>
               <div class="committee-agenda">
-                <strong>Agenda:</strong>
-                "Shared water and trade routes in arid regions."
+                <strong>Agenda:</strong> Shared water and trade routes in arid regions.
               </div>
             </div>
           </div>
@@ -3267,18 +3305,17 @@
         <!-- STOP 2: The Pyramids -->
         <section class="committee-stop" id="stop-2" data-index="2">
           <div class="stop-content-wrapper reveal-item">
-            <span class="stop-badge">Stop 03 · 07</span>
-            <h2 class="monument-heading word-reveal-heading">THE PYRAMIDS</h2>
+            <span class="stop-badge">Stop 3 of 7</span>
+            <h2 class="monument-heading word-reveal-heading">The Pyramids of Giza</h2>
             <p class="monument-location">Giza, Egypt</p>
             <p class="monument-atmosphere">
               The oldest wonder on the list and the only ancient one still standing.
             </p>
 
-            <div class="committee-block tilt-card">
+            <div class="committee-block">
               <h3 class="committee-name">UNESCO</h3>
               <div class="committee-agenda">
-                <strong>Agenda:</strong>
-                "Returning cultural heritage held in foreign museums."
+                <strong>Agenda:</strong> Returning cultural heritage held in foreign museums.
               </div>
             </div>
           </div>
@@ -3287,18 +3324,17 @@
         <!-- STOP 3: Eiffel Tower -->
         <section class="committee-stop" id="stop-3" data-index="3">
           <div class="stop-content-wrapper reveal-item">
-            <span class="stop-badge">Stop 04 · 07</span>
-            <h2 class="monument-heading word-reveal-heading">EIFFEL TOWER</h2>
+            <span class="stop-badge">Stop 4 of 7</span>
+            <h2 class="monument-heading word-reveal-heading">Eiffel Tower</h2>
             <p class="monument-location">Paris, France</p>
             <p class="monument-atmosphere">
               A beacon of iron engineering overlooking the urban heart of Europe, where environmental accords define the century ahead.
             </p>
 
-            <div class="committee-block tilt-card">
+            <div class="committee-block">
               <h3 class="committee-name">UNEP</h3>
               <div class="committee-agenda">
-                <strong>Agenda:</strong>
-                "Cutting emissions in the world's great cities."
+                <strong>Agenda:</strong> Cutting emissions in the world's great cities.
               </div>
             </div>
           </div>
@@ -3307,18 +3343,17 @@
         <!-- STOP 4: Chichén Itzá -->
         <section class="committee-stop" id="stop-4" data-index="4">
           <div class="stop-content-wrapper reveal-item">
-            <span class="stop-badge">Stop 05 · 07</span>
-            <h2 class="monument-heading word-reveal-heading">CHICHÉN ITZÁ</h2>
+            <span class="stop-badge">Stop 5 of 7</span>
+            <h2 class="monument-heading word-reveal-heading">Chichén Itzá</h2>
             <p class="monument-location">Mexico</p>
             <p class="monument-atmosphere">
               The stepped pyramid of El Castillo rises amidst the dense jungle canopy, aligned to equinox serpents and sacred ancestral memory.
             </p>
 
-            <div class="committee-block tilt-card">
-              <h3 class="committee-name">HUMAN RIGHTS COUNCIL</h3>
+            <div class="committee-block">
+              <h3 class="committee-name">Human Rights Council</h3>
               <div class="committee-agenda">
-                <strong>Agenda:</strong>
-                "Indigenous land rights and sacred sites."
+                <strong>Agenda:</strong> Indigenous land rights and sacred sites.
               </div>
             </div>
           </div>
@@ -3327,18 +3362,17 @@
         <!-- STOP 5: Colosseum -->
         <section class="committee-stop" id="stop-5" data-index="5">
           <div class="stop-content-wrapper reveal-item">
-            <span class="stop-badge">Stop 06 · 07</span>
-            <h2 class="monument-heading word-reveal-heading">COLOSSEUM</h2>
+            <span class="stop-badge">Stop 6 of 7</span>
+            <h2 class="monument-heading word-reveal-heading">Colosseum</h2>
             <p class="monument-location">Rome, Italy</p>
             <p class="monument-atmosphere">
               Arched travertine tiers where the ancient arena commanded combat, now confronting the modern ethics of warfare and autonomous machinery.
             </p>
 
-            <div class="committee-block tilt-card">
+            <div class="committee-block">
               <h3 class="committee-name">DISEC</h3>
               <div class="committee-agenda">
-                <strong>Agenda:</strong>
-                "Autonomous weapons and human control."
+                <strong>Agenda:</strong> Autonomous weapons and human control.
               </div>
             </div>
           </div>
@@ -3347,18 +3381,17 @@
         <!-- STOP 6: Taj Mahal -->
         <section class="committee-stop" id="stop-6" data-index="6">
           <div class="stop-content-wrapper reveal-item">
-            <span class="stop-badge">Stop 07 · 07</span>
-            <h2 class="monument-heading word-reveal-heading">TAJ MAHAL</h2>
+            <span class="stop-badge">Stop 7 of 7</span>
+            <h2 class="monument-heading word-reveal-heading">Taj Mahal</h2>
             <p class="monument-location">Agra, India</p>
             <p class="monument-atmosphere">
               An ivory-white marble monument to devotion, standing serene under a pale night sky as delegates champion universal equality.
             </p>
 
-            <div class="committee-block tilt-card">
-              <h3 class="committee-name">UN WOMEN</h3>
+            <div class="committee-block">
+              <h3 class="committee-name">UN Women</h3>
               <div class="committee-agenda">
-                <strong>Agenda:</strong>
-                "Access to education for girls."
+                <strong>Agenda:</strong> Access to education for girls.
               </div>
             </div>
           </div>
@@ -3371,13 +3404,12 @@
       <div class="dark-section-panel">
         <!-- 5. THE GLOBAL STAGE (CANVAS GLOBE & STATS) -->
         <section id="diplomacy">
-          <span class="eyebrow">The Global Stage</span>
-          <h2 class="section-heading word-reveal-heading">A WORLD OF <em>DIPLOMACY.</em></h2>
-          <p style="font-size: 1.15rem; max-width: 760px; margin: 0 auto 0.75rem auto; font-style: italic;" class="reveal-item">
+          <h2 class="section-heading word-reveal-heading">The global stage</h2>
+          <p style="font-size: 1.15rem; max-width: 760px; margin: 0 auto 0.75rem auto;" class="reveal-item">
             Delegates gather from every corner of the map to speak for nations, argue for principles and shape tomorrow's language.
           </p>
-          <p class="eyebrow reveal-item" style="font-size: 0.8rem; letter-spacing: 0.16em;">
-            Venue TBA · 7 Committees · 2027
+          <p class="reveal-item" style="font-size: 0.95rem; color: var(--limestone-muted); margin: 0 auto 0.75rem auto;">
+            Dates and venue will be announced soon.
           </p>
 
           <div class="globe-stage-wrapper reveal-item">
@@ -3390,7 +3422,7 @@
           </div>
 
           <p class="globe-drag-hint reveal-item" id="globe-drag-hint">
-            ✦ Drag to rotate · Tap a ping ✦
+            Drag to rotate · Tap a location
           </p>
 
           <div class="globe-chips-wrapper reveal-item" role="region" aria-label="Earth monument stops">
@@ -3434,17 +3466,17 @@
           </div>
 
           <div class="stat-cards-grid">
-            <div class="stat-card tilt-card reveal-item">
+            <div class="stat-card reveal-item">
               <div class="stat-number" data-target="7">0</div>
               <div class="stat-label">Committees</div>
               <div class="stat-sub">Across seven civilizational monuments</div>
             </div>
-            <div class="stat-card tilt-card reveal-item">
+            <div class="stat-card reveal-item">
               <div class="stat-number" data-text="2027">2027</div>
               <div class="stat-label">Conference year</div>
               <div class="stat-sub">Inaugural global session 2027 dates TBA</div>
             </div>
-            <div class="stat-card tilt-card reveal-item">
+            <div class="stat-card reveal-item">
               <div class="stat-number" data-text="TBA">TBA</div>
               <div class="stat-label">Venue</div>
               <div class="stat-sub">Host institution location announced soon</div>
@@ -3452,15 +3484,15 @@
           </div>
         </section>
 
-        <!-- 6. EXECUTIVE BOARD (EXACTLY THREE CARDS) -->
+        <!-- 6. EXECUTIVE BOARD -->
         <section id="board">
-          <span class="eyebrow">The People Behind It</span>
-          <h2 class="section-heading word-reveal-heading">EXECUTIVE <em>BOARD.</em></h2>
-          <span class="eyebrow" style="font-size: 0.8rem; margin-top: -0.5rem; color: rgba(242, 244, 255, 0.75);">Secretariat</span>
+          <h2 class="section-heading word-reveal-heading">Executive board</h2>
+
+          <span class="eyebrow" style="font-size: 0.85rem; margin-top: -0.5rem; color: var(--limestone-muted);">Secretariat</span>
 
           <div class="board-grid">
             <!-- 1. Secretary-General (Rayan Abutair) -->
-            <div class="board-card tilt-card reveal-item">
+            <div class="board-card reveal-item">
               <div class="board-avatar">
                 <img
                   src="sg.jpg"
@@ -3477,7 +3509,7 @@
             </div>
 
             <!-- 2. Deputy Secretary-General (Lama Abdelsalam) -->
-            <div class="board-card tilt-card reveal-item">
+            <div class="board-card reveal-item">
               <div class="board-avatar">
                 <img
                   src="lama-abdelsalam.jpeg"
@@ -3494,7 +3526,7 @@
             </div>
 
             <!-- 3. Under-Secretary-General (Mazen Alaa) -->
-            <div class="board-card tilt-card reveal-item">
+            <div class="board-card reveal-item">
               <div class="board-avatar">
                 <img
                   src="mazen-alaa.jpg"
@@ -3509,16 +3541,33 @@
               <h3 class="board-name">Mazen Alaa</h3>
               <p class="board-note">Operational execution, committee logistical administration and delegate affairs.</p>
             </div>
+
+            <!-- 4. Senior Advisor (Lana Ahmad) -->
+            <div class="board-card reveal-item">
+              <div class="board-avatar">
+                <img
+                  src="lana-ahmad.jpg"
+                  alt="Lana Ahmad, Senior Advisor"
+                  class="board-avatar-img"
+                  style="object-position: center 20%;"
+                  onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='public/lana-ahmad.jpg';}else{this.style.display='none';document.getElementById('sa-fallback').style.display='flex';}"
+                />
+                <span id="sa-fallback" class="board-avatar-fallback" style="display: none;">LA</span>
+              </div>
+              <span class="board-role">Senior Advisor</span>
+              <h3 class="board-name">Lana Ahmad</h3>
+              <p class="board-note">Strategic guidance and advisory support to the Secretariat.</p>
+            </div>
           </div>
 
           <!-- EXECUTIVE BOARD ACCESS & REAL EMAIL REGISTRATION PORTAL -->
           <div id="eb-portal" class="eb-portal-container reveal-item">
             <div class="eb-portal-badge">
               <span class="eb-badge-icon">🏛</span>
-              <span>SECRETARIAT PORTAL · SUPABASE AUTH</span>
+              <span>Secretariat portal · Supabase verification</span>
             </div>
 
-            <h3 class="eb-portal-title">EXECUTIVE BOARD <em>REGISTRATION & ACCESS.</em></h3>
+            <h3 class="eb-portal-title">Executive board registration</h3>
             <p class="eb-portal-sub">
               Official verification for Secretariat leaders, Committee Directors, and Crisis Staff. Sign up with your <strong>real, active email</strong> to receive official conference credentials and committee dispatch via Supabase.
             </p>
@@ -3608,25 +3657,48 @@
                   <label class="form-label" for="eb-signup-role">Executive Board Role / Assignment *</label>
                   <select id="eb-signup-role" class="form-select" required>
                     <option value="" disabled selected>Select your EB role...</option>
-                    <optgroup label="Secretariat Leadership">
-                      <option value="Secretary-General">Secretary-General</option>
-                      <option value="Deputy Secretary-General">Deputy Secretary-General</option>
-                      <option value="Under-Secretary-General">Under-Secretary-General</option>
+                    <optgroup label="Advisory">
+                      <option value="Senior Advisor">Senior Advisor</option>
+                      <option value="GA">GA</option>
                     </optgroup>
-                    <optgroup label="Committee Directors">
-                      <option value="Director · Security Council (Great Wall of China)">Director · Security Council (Great Wall of China)</option>
-                      <option value="Director · ECOSOC (Petra)">Director · ECOSOC (Petra)</option>
-                      <option value="Director · UNESCO (Pyramids of Giza)">Director · UNESCO (Pyramids of Giza)</option>
-                      <option value="Director · UNEP (Eiffel Tower)">Director · UNEP (Eiffel Tower)</option>
-                      <option value="Director · Human Rights Council (Chichén Itzá)">Director · Human Rights Council (Chichén Itzá)</option>
-                      <option value="Director · DISEC (Colosseum)">Director · DISEC (Colosseum)</option>
-                      <option value="Director · UN Women (Taj Mahal)">Director · UN Women (Taj Mahal)</option>
+                    <optgroup label="Design">
+                      <option value="Head of Design">Head of Design</option>
                     </optgroup>
-                    <optgroup label="Staff Directors & Crisis">
-                      <option value="Crisis Director / Crisis Staff">Crisis Director / Crisis Staff</option>
-                      <option value="Logistics & Delegate Affairs Director">Logistics & Delegate Affairs Director</option>
-                      <option value="Media & Communications Director">Media & Communications Director</option>
-                      <option value="Finance & Operations Director">Finance & Operations Director</option>
+                    <optgroup label="Security">
+                      <option value="Head of Security">Head of Security</option>
+                      <option value="Co-Head of Security">Co-Head of Security</option>
+                    </optgroup>
+                    <optgroup label="Media">
+                      <option value="Head of Media">Head of Media</option>
+                      <option value="Co-Head of Media">Co-Head of Media</option>
+                    </optgroup>
+                    <optgroup label="Marketing">
+                      <option value="Head of Marketing">Head of Marketing</option>
+                      <option value="Co-Head of Marketing">Co-Head of Marketing</option>
+                    </optgroup>
+                    <optgroup label="Logistics">
+                      <option value="Head of Logistics">Head of Logistics</option>
+                    </optgroup>
+                    <optgroup label="PR">
+                      <option value="Head of PR">Head of PR</option>
+                    </optgroup>
+                    <optgroup label="DCC">
+                      <option value="Head of DCC">Head of DCC</option>
+                    </optgroup>
+                    <optgroup label="Volunteers">
+                      <option value="Head of Female Volunteers">Head of Female Volunteers</option>
+                      <option value="Head of Male Volunteers">Head of Male Volunteers</option>
+                      <option value="Co-Head of Volunteers">Co-Head of Volunteers</option>
+                      <option value="Co-Head of Female Volunteers">Co-Head of Female Volunteers</option>
+                    </optgroup>
+                    <optgroup label="Ceremonies">
+                      <option value="Head of Ceremonies">Head of Ceremonies</option>
+                    </optgroup>
+                    <optgroup label="Human Resources">
+                      <option value="Head of HR">Head of HR</option>
+                    </optgroup>
+                    <optgroup label="Press">
+                      <option value="Co-Head of Press">Co-Head of Press</option>
                     </optgroup>
                   </select>
                 </div>
@@ -3704,9 +3776,8 @@
         <!-- 7. MEET THE TEAM (12 DEPARTMENTS) -->
         <section id="team">
           <div style="text-align: center; max-width: 760px; margin: 0 auto;" class="reveal-item">
-            <span class="eyebrow">Every department</span>
-            <h2 class="section-heading word-reveal-heading">MEET THE <em>TEAM.</em></h2>
-            <p style="font-size: 1.15rem; font-style: italic; color: rgba(242, 244, 255, 0.8);">
+            <h2 class="section-heading word-reveal-heading">Meet the team</h2>
+            <p style="font-size: 1.1rem; color: var(--limestone-muted); line-height: 1.6;">
               Dedicated directors and coordinators working across every facet of conference preparation.
             </p>
           </div>
@@ -3723,35 +3794,33 @@
         <section id="updates">
           <div class="updates-split">
             <div class="reveal-item">
-              <span class="eyebrow">Stay Informed</span>
-              <h2 class="section-heading word-reveal-heading">LIVE <em>UPDATES.</em></h2>
+              <h2 class="section-heading word-reveal-heading">Live updates</h2>
               <div class="update-cards-container">
-                <div class="update-glass-card tilt-card">
-                  <span class="update-date-badge">Opens TBA</span>
-                  <h3 class="timeline-title" style="margin-bottom: 0.4rem;">Delegate & Chair Applications</h3>
+                <div class="update-glass-card">
+                  <span class="update-date-badge">Opening soon</span>
+                  <h3 class="timeline-title" style="margin-bottom: 0.4rem;">Delegate and chair applications</h3>
                   <p class="timeline-desc">
-                    Opening date will be announced. Follow our socials for announcements and priority registration alerts.
+                    Opening date will be announced. Follow our updates for announcements and priority registration alerts.
                   </p>
                 </div>
 
-                <div class="update-glass-card tilt-card">
-                  <span class="update-date-badge">TBA</span>
-                  <h3 class="timeline-title" style="margin-bottom: 0.4rem;">Conference Dates</h3>
+                <div class="update-glass-card">
+                  <span class="update-date-badge">To be announced</span>
+                  <h3 class="timeline-title" style="margin-bottom: 0.4rem;">Conference dates</h3>
                   <p class="timeline-desc">
-                    Dates and venue are to be announced. The secretariat is finalizing the host arrangement.
+                    Dates and venue will be announced soon. The secretariat is finalizing the host institution arrangement.
                   </p>
                 </div>
               </div>
             </div>
 
             <!-- 9. SUGGESTIONS -->
-            <div class="suggestion-box tilt-card reveal-item" id="suggestions">
-              <span class="eyebrow">Have Something to Say?</span>
-              <h3 style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.4rem;">
-                SUGGESTIONS
+            <div class="suggestion-box reveal-item" id="suggestions">
+              <h3 style="font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; margin-bottom: 0.4rem;">
+                Suggestions
               </h3>
-              <p style="font-size: 0.95rem; color: rgba(242, 244, 255, 0.75); margin-bottom: 1.5rem;">
-                Got a requirement or a suggestion? We read every submission.
+              <p style="font-size: 0.95rem; color: var(--limestone-muted); margin-bottom: 1.5rem;">
+                Got a question or a suggestion? We read every submission.
               </p>
 
               <div id="form-status" class="status-banner"></div>
@@ -3794,9 +3863,8 @@
          ==================================================== -->
     <div id="view-committees" class="app-view">
       <a href="#/" class="back-home-link btn-interactive">← Back to home</a>
-      <span class="eyebrow">Seven committees, seven monuments</span>
-      <h1 class="section-heading">THE <em>COMMITTEES.</em></h1>
-      <p style="font-size: 1.15rem; font-style: italic; max-width: 680px; color: rgba(242, 244, 255, 0.85); margin-bottom: 2rem;">
+      <h1 class="section-heading">The committees</h1>
+      <p style="font-size: 1.15rem; max-width: 680px; color: var(--limestone-muted); margin-bottom: 2rem;">
         Explore each committee simulation, its civilizational counterpart, and the critical agenda before delegates.
       </p>
 
@@ -3810,38 +3878,34 @@
          ==================================================== -->
     <div id="view-apply" class="app-view">
       <a href="#/" class="back-home-link btn-interactive">← Back to home</a>
-      <span class="eyebrow">Applications</span>
-      <h1 class="section-heading">APPLY TO <em>MONUMENT MUN.</em></h1>
-      <p style="font-size: 1.18rem; font-style: italic; max-width: 640px; color: rgba(242, 244, 255, 0.85);">
-        Applications open on a date that is TBA. Select your role of interest below or sign up to receive priority notification when the portal opens.
+      <h1 class="section-heading">Apply to Monument MUN</h1>
+      <p style="font-size: 1.15rem; max-width: 640px; color: var(--limestone-muted);">
+        Applications will open soon. Select your role of interest below or sign up to receive priority notification when the portal opens.
       </p>
 
       <div class="apply-status-cards">
-        <div class="apply-card tilt-card reveal-item">
-          <div class="apply-role-icon">✦</div>
+        <div class="apply-card reveal-item">
           <h3 class="apply-role-name">Delegate</h3>
-          <p style="font-size: 0.95rem; color: rgba(242, 244, 255, 0.7); margin-bottom: 1rem;">
+          <p style="font-size: 0.95rem; color: var(--limestone-muted); margin-bottom: 1rem;">
             Represent a nation across seven civilizational committees in single or double delegation.
           </p>
-          <span class="apply-status-pill">Status: TBA</span>
+          <span class="apply-status-pill">Status: Opening soon</span>
         </div>
 
-        <div class="apply-card tilt-card reveal-item">
-          <div class="apply-role-icon">✦</div>
+        <div class="apply-card reveal-item">
           <h3 class="apply-role-name">Chair</h3>
-          <p style="font-size: 0.95rem; color: rgba(242, 244, 255, 0.7); margin-bottom: 1rem;">
+          <p style="font-size: 0.95rem; color: var(--limestone-muted); margin-bottom: 1rem;">
             Direct committee debate, uphold procedural integrity, and author comprehensive background dossiers.
           </p>
-          <span class="apply-status-pill">Status: TBA</span>
+          <span class="apply-status-pill">Status: Opening soon</span>
         </div>
 
-        <div class="apply-card tilt-card reveal-item">
-          <div class="apply-role-icon">✦</div>
+        <div class="apply-card reveal-item">
           <h3 class="apply-role-name">Team</h3>
-          <p style="font-size: 0.95rem; color: rgba(242, 244, 255, 0.7); margin-bottom: 1rem;">
-            Join the secretariat across twelve specialized organizing departments and support systems.
+          <p style="font-size: 0.95rem; color: var(--limestone-muted); margin-bottom: 1rem;">
+            Join the secretariat across specialized organizing departments and support systems.
           </p>
-          <span class="apply-status-pill">Status: TBA</span>
+          <span class="apply-status-pill">Status: Opening soon</span>
           <!-- Dynamic Join Team Mount inside Apply card -->
           <div id="apply-team-join-mount" style="margin-top: 1.5rem;"></div>
         </div>
@@ -3885,7 +3949,7 @@
           </div>
           <div style="margin-top: 1.15rem;">
             <button type="button" id="replay-intro-link" class="replay-intro-btn replay-intro-trigger" title="Replay intro sequence">
-              ✦ Replay intro
+              ↺ Replay intro
             </button>
           </div>
         </div>
@@ -3929,7 +3993,7 @@
             <span>Replay Intro</span>
           </button>
         </div>
-        <span>MONUMENT MUN · LOCATION TBA · 2027</span>
+        <span>Monument MUN · 2027</span>
       </div>
     </footer>
 
@@ -3939,7 +4003,7 @@
     <div id="announcement-pill" role="status">
       <a href="#/committees" class="route-link">
         <span class="pill-dot"></span>
-        <span class="pill-text">✦ 7 Committees Announced · Monument MUN <span class="view-link">View Committees →</span></span>
+        <span class="pill-text">Seven committees announced · Monument MUN <span class="view-link">View committees →</span></span>
       </a>
       <button class="dismiss-pill" id="dismiss-pill" aria-label="Dismiss notification">&times;</button>
     </div>
@@ -3954,6 +4018,121 @@
 
       (function () {
         'use strict';
+
+        /* ====================================================
+           MEET THE TEAM — ORGANIZING DEPARTMENTS DATA
+           Edit this array to add, reorder, or update members.
+           Ordering: Heads first, then Co-Heads.
+           If a role has no listed person, it is omitted (never shows TBA).
+           ==================================================== */
+        const TEAM_DEPARTMENTS_DATA = [
+          {
+            department: 'Secretariat Advisory',
+            members: [
+              { role: 'Senior Advisor', name: 'Lana Ahmad Dawoud' },
+              { role: 'GA', name: 'Saba Alhudaithi' }
+            ]
+          },
+          {
+            department: 'Design',
+            members: [
+              { role: 'Head of Design', name: 'Julia Fadel' },
+              { role: 'Head of Design', name: 'Naif Mulla' }
+            ]
+          },
+          {
+            department: 'Security',
+            members: [
+              { role: 'Head of Security', name: 'Hasan Khan' },
+              { role: 'Head of Security', name: 'Lina Khattab' },
+              { role: 'Co-Head of Security', name: 'Karma Mohamed' }
+            ]
+          },
+          {
+            department: 'Media',
+            members: [
+              { role: 'Head of Media', name: 'Alya Ismail' },
+              { role: 'Co-Head of Media', name: 'Faisal Asaad' }
+            ]
+          },
+          {
+            department: 'Marketing',
+            members: [
+              { role: 'Head of Marketing', name: 'Tala Al-Kharouf' },
+              { role: 'Head of Marketing', name: 'Abdulrahman Alenizi' },
+              { role: 'Co-Head of Marketing', name: 'Dania Hamdan' }
+            ]
+          },
+          {
+            department: 'Logistics',
+            members: [
+              { role: 'Head of Logistics', name: 'Rakan Almerbed' }
+            ]
+          },
+          {
+            department: 'PR',
+            members: [
+              { role: 'Head of PR', name: 'Jwana Majed' }
+            ]
+          },
+          {
+            department: 'DCC',
+            members: [
+              { role: 'Head of DCC', name: 'Hoorain Khan' },
+              { role: 'Head of DCC', name: 'Tala Mohammed' }
+            ]
+          },
+          {
+            department: 'Volunteers',
+            members: [
+              { role: 'Head of Female Volunteers', name: 'Muneera Bin Dos' },
+              { role: 'Head of Male Volunteers', name: 'Saad Usman' },
+              { role: 'Co-Head of Volunteers', name: 'Maram Ali' },
+              { role: 'Co-Head of Female Volunteers', name: 'Lily Kaawish' },
+              { role: 'Co-Head of Volunteers', name: 'Aiten Mohamed' }
+            ]
+          },
+          {
+            department: 'Ceremonies',
+            members: [
+              { role: 'Head of Ceremonies', name: 'Fahad Alabdulkarim' },
+              { role: 'Head of Ceremonies', name: 'Qamar Ahmed' }
+            ]
+          },
+          {
+            department: 'HR',
+            members: [
+              { role: 'Head of HR', name: 'Khalid Almahini' },
+              { role: 'Head of HR', name: 'Sultana Alfarraj' }
+            ]
+          },
+          {
+            department: 'Press',
+            members: [
+              { role: 'Co-Head of Press', name: 'Yousef Saifi' }
+            ]
+          }
+        ];
+
+        function getInitials(name) {
+          if (!name) return '';
+          const clean = name.trim();
+          if (!clean) return '';
+          const parts = clean.split(/\s+/).filter(Boolean);
+          if (parts.length === 1) {
+            return parts[0].slice(0, 2).toUpperCase();
+          }
+          return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        }
+
+        function escapeHtml(str) {
+          if (!str) return '';
+          return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+        }
 
         // Initialize dynamic portal logic (Apply page registration, admin board, head dashboard, header auth)
         initPortal();
@@ -4259,94 +4438,59 @@
           requestAnimationFrame(tick);
         }
 
-        // 7. 3D CARD TILT & RADIAL HIGHLIGHT (DESKTOP ONLY)
+        // 7. CARD HOVER (TILT REMOVED PER DESIGN CONSTITUTION)
         function setupTiltCards() {
-          const tiltCards = document.querySelectorAll('.tilt-card');
-          if (!prefersReduced && !isTouch) {
-            tiltCards.forEach((card) => {
-              card.addEventListener('mousemove', (e) => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                card.style.setProperty('--mouse-x', `${x}px`);
-                card.style.setProperty('--mouse-y', `${y}px`);
-
-                const centerX = rect.width / 2;
-                const centerY = rect.height / 2;
-                const tiltX = -((y - centerY) / centerY) * 5.5;
-                const tiltY = ((x - centerX) / centerX) * 5.5;
-
-                card.style.transform = `perspective(800px) rotateX(${tiltX.toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg) translateY(-8px) scale(1.02)`;
-              });
-
-              card.addEventListener('mouseleave', () => {
-                card.style.transform = '';
-              });
-            });
-          }
+          // No-op: Removed 3D card tilt per design requirements
         }
         setupTiltCards();
 
-        // 8. MAGNETIC BUTTON EFFECT (DESKTOP ONLY)
-        const magneticButtons = document.querySelectorAll('.magnetic-btn');
-        if (!prefersReduced && !isTouch) {
-          magneticButtons.forEach((btn) => {
-            window.addEventListener('mousemove', (e) => {
-              const rect = btn.getBoundingClientRect();
-              const btnCenterX = rect.left + rect.width / 2;
-              const btnCenterY = rect.top + rect.height / 2;
-              const dist = Math.hypot(e.clientX - btnCenterX, e.clientY - btnCenterY);
+        // 8. BUTTON HOVER (MAGNETIC PULL REMOVED PER DESIGN CONSTITUTION)
+        // Kept clean standard hover styles
 
-              if (dist < 80) {
-                const factor = (80 - dist) / 80;
-                const targetX = ((e.clientX - btnCenterX) / 80) * 8 * factor;
-                const targetY = ((e.clientY - btnCenterY) / 80) * 8 * factor;
-                btn.style.transform = `translate(${targetX.toFixed(2)}px, ${targetY.toFixed(2)}px)`;
-              } else {
-                btn.style.transform = '';
-              }
-            }, { passive: true });
-          });
-        }
-
-        // 9. DEPARTMENT DATA (12 DEPARTMENTS)
-        const teamDepartments = [
-          { name: 'Human Resources', members: ['Head of Human Resources', 'Head of Human Resources'] },
-          { name: 'Security', members: ['Head of Security'] },
-          { name: 'Media & Press', members: ['Head of Media & Press', 'Head of Media & Press'] },
-          { name: 'Volunteers', members: ['Head of Volunteers'] },
-          { name: 'DCC', members: ['Head of DCC'] },
-          { name: 'Marketing', members: ['Head of Marketing', 'Head of Marketing'] },
-          { name: 'Design', members: ['Head of Design', 'Head of Design'] },
-          { name: 'Public Relations', members: ['Head of Public Relations', 'Head of Public Relations'] },
-          { name: 'Logistics', members: ['Head of Logistics'] },
-          { name: 'Information Technology', members: ['Head of Information Technology'] },
-          { name: 'Finance', members: ['Head of Finance'] },
-          { name: 'Ceremony', members: ['Ceremony Director'] }
-        ];
-
+        // 9. MEET THE TEAM DEPARTMENT CARDS (FROM TEAM_DEPARTMENTS_DATA)
         const teamGrid = document.getElementById('team-grid-container');
         if (teamGrid) {
-          teamDepartments.forEach((dept) => {
+          teamGrid.innerHTML = '';
+          TEAM_DEPARTMENTS_DATA.forEach((dept) => {
             const card = document.createElement('div');
-            card.className = 'team-dept-card tilt-card reveal-item';
+            card.className = 'team-dept-card reveal-item';
 
+            // Filter out any members without a listed name or with TBA
+            const validMembers = (dept.members || []).filter((m) => {
+              if (!m || !m.name) return false;
+              const clean = m.name.trim();
+              return clean !== '' && clean.toUpperCase() !== 'TBA';
+            });
+
+            // If a department has no listed person for a role, simply don't show that role (never show "TBA")
             let membersHtml = '';
-            dept.members.forEach((roleTitle) => {
+            validMembers.forEach((member) => {
+              const initials = getInitials(member.name);
               membersHtml += `
                 <div class="dept-member-unit">
-                  <div class="dept-role-title">${roleTitle}</div>
-                  <div class="dept-person-name">TBA</div>
+                  <div class="dept-avatar-badge" aria-hidden="true">${escapeHtml(initials)}</div>
+                  <div class="dept-member-text">
+                    <div class="dept-role-title">${escapeHtml(member.role)}</div>
+                    <div class="dept-person-name">${escapeHtml(member.name)}</div>
+                  </div>
                 </div>
               `;
             });
 
             card.innerHTML = `
-              <div class="dept-eyebrow">${dept.name}</div>
+              <div class="dept-eyebrow">${escapeHtml(dept.department)}</div>
               <div class="dept-members-wrap">${membersHtml}</div>
             `;
             teamGrid.appendChild(card);
           });
+
+          // Hook reveal animations and 3D tilt on newly mounted team cards
+          if (typeof refreshReveals === 'function') {
+            refreshReveals();
+          }
+          if (typeof setupTiltCards === 'function') {
+            setupTiltCards();
+          }
         }
 
         // 10. COMMITTEES VIEW DATA & CARDS (7 COMMITTEES)
@@ -4407,7 +4551,7 @@
         if (commGrid) {
           committeesData.forEach((comm) => {
             const card = document.createElement('div');
-            card.className = 'committee-card-full tilt-card reveal-item';
+            card.className = 'committee-card-full reveal-item';
 
             const layerSvg = document.querySelector(`#layer-${comm.layerIndex} svg`);
             const svgMarkup = layerSvg ? layerSvg.outerHTML : '';
@@ -4418,19 +4562,19 @@
                   ${svgMarkup}
                 </div>
                 <span class="eyebrow">${comm.monument} · ${comm.location}</span>
-                <h3 style="font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; text-transform: uppercase; margin-bottom: 0.6rem; color: #ffffff;">
+                <h3 style="font-family: var(--font-display); font-size: 1.45rem; font-weight: 700; margin-bottom: 0.6rem; color: var(--limestone);">
                   ${comm.name}
                 </h3>
-                <p style="font-size: 1.05rem; font-style: italic; color: rgba(242, 244, 255, 0.88); margin-bottom: 1rem; line-height: 1.5;">
-                  <strong>Agenda:</strong> "${comm.agenda}"
+                <p style="font-size: 1.05rem; color: var(--limestone-muted); margin-bottom: 1rem; line-height: 1.5;">
+                  <strong>Agenda:</strong> ${comm.agenda}
                 </p>
-                ${comm.sentence ? `<p style="font-size: 0.88rem; color: var(--gold); font-style: italic; margin-bottom: 1rem;">✦ ${comm.sentence}</p>` : ''}
+                ${comm.sentence ? `<p style="font-size: 0.95rem; color: var(--limestone-muted); margin-bottom: 1rem;">${comm.sentence}</p>` : ''}
               </div>
 
               <div class="comm-meta-grid">
-                <div>Chairs: <strong>TBA</strong></div>
-                <div>Delegates: <strong>TBA</strong></div>
-                <div><span class="comm-bg-guide-badge">Background guide: TBA</span></div>
+                <div>Chairs: <strong>To be announced</strong></div>
+                <div>Delegates: <strong>To be announced</strong></div>
+                <div><span class="comm-bg-guide-badge">Background guide: To be announced</span></div>
               </div>
             `;
             commGrid.appendChild(card);
