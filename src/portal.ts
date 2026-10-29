@@ -44,6 +44,13 @@ import type {
   TeamKind,
   StaffAllowlistEntry
 } from './types/database';
+import { playWelcomeAnimation } from './welcome';
+
+export function isStaffRoute(): boolean {
+  const path = window.location.pathname.toLowerCase();
+  const hash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
+  return path.endsWith('/staff') || path.endsWith('/staff/') || hash === 'staff';
+}
 
 export function isAdminRoute(): boolean {
   const path = window.location.pathname.toLowerCase();
@@ -124,6 +131,8 @@ export function initPortal(): void {
 
     if (isAdminRoute()) {
       renderAdminRoute(user, loading);
+    } else if (isStaffRoute()) {
+      renderStaffRoute(user, loading);
     } else if (isTeamHeadRoute()) {
       renderTeamHeadRoute(user, loading);
     }
@@ -134,6 +143,8 @@ export function initPortal(): void {
     const user = getCachedUser();
     if (isAdminRoute()) {
       renderAdminRoute(user, false);
+    } else if (isStaffRoute()) {
+      renderStaffRoute(user, false);
     } else if (isTeamHeadRoute()) {
       renderTeamHeadRoute(user, false);
     } else {
@@ -145,6 +156,8 @@ export function initPortal(): void {
     const user = getCachedUser();
     if (isAdminRoute()) {
       renderAdminRoute(user, false);
+    } else if (isStaffRoute()) {
+      renderStaffRoute(user, false);
     } else if (isTeamHeadRoute()) {
       renderTeamHeadRoute(user, false);
     } else {
@@ -174,15 +187,15 @@ function updateHeaderAuthUI(user: CurrentUser | null, loading: boolean): void {
     return;
   }
 
-  // Head leadership pill if user role is 'head'
+  // Head leadership pill if user role is 'head' (non-link badge)
   let headPill = '';
   if (user.role === 'head') {
     const teamLabel = cachedHeadTeamName || 'My Team';
     headPill = `
-      <a href="#team-head" class="header-head-pill btn-interactive" title="Access My Team Dashboard" style="display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(217, 180, 90, 0.22); border: 1.5px solid var(--gold); color: #ffffff; padding: 0.32rem 0.75rem; border-radius: 9999px; text-decoration: none; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; white-space: nowrap; box-shadow: 0 0 10px rgba(217, 180, 90, 0.3); flex-shrink: 0;">
+      <span class="header-head-pill" title="Team Head Designation" style="display: inline-flex; align-items: center; gap: 0.35rem; background: rgba(217, 180, 90, 0.22); border: 1.5px solid var(--gold); color: #ffffff; padding: 0.32rem 0.75rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; white-space: nowrap; box-shadow: 0 0 10px rgba(217, 180, 90, 0.3); flex-shrink: 0;">
         <span style="color: var(--gold);">★</span>
         <span>${escapeHtml(teamLabel)}</span>
-      </a>
+      </span>
     `;
 
     if (user.teamId && !cachedHeadTeamName) {
@@ -769,18 +782,13 @@ export async function renderJoinTeamPanel(user: CurrentUser | null): Promise<voi
   if (user.role === 'admin') {
     for (const mount of mounts) {
       mount.innerHTML = `
-        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.92); border: 1px solid rgba(217, 180, 90, 0.35); border-radius: 16px; padding: 1.25rem 1.6rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-          <div>
-            <div style="font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase; color: #ffffff;">
-              Secretariat <em>Administration Active</em>
-            </div>
-            <div style="font-size: 0.85rem; color: rgba(242, 244, 255, 0.7); margin-top: 0.2rem;">
-              You have full administrative privileges to manage teams, assign heads, and review memberships.
-            </div>
+        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.92); border: 1px solid rgba(217, 180, 90, 0.35); border-radius: 16px; padding: 1.25rem 1.6rem;">
+          <div style="font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase; color: #ffffff;">
+            Secretariat <em>Administration Active</em>
           </div>
-          <a href="#/admin" class="btn-interactive" style="background: rgba(217, 180, 90, 0.2); border: 1px solid var(--gold); color: #ffffff; padding: 0.5rem 1.2rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; text-transform: uppercase; text-decoration: none;">
-            Open Admin Board →
-          </a>
+          <div style="font-size: 0.85rem; color: rgba(242, 244, 255, 0.7); margin-top: 0.2rem;">
+            You have full administrative privileges to manage teams, assign heads, and review memberships.
+          </div>
         </div>
       `;
     }
@@ -791,18 +799,13 @@ export async function renderJoinTeamPanel(user: CurrentUser | null): Promise<voi
   if (user.role === 'head') {
     for (const mount of mounts) {
       mount.innerHTML = `
-        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.92); border: 1px solid rgba(217, 180, 90, 0.45); border-radius: 16px; padding: 1.25rem 1.6rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-          <div>
-            <div style="font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase; color: #ffffff;">
-              ★ Team Head <em>Leadership Active</em>
-            </div>
-            <div style="font-size: 0.85rem; color: rgba(242, 244, 255, 0.7); margin-top: 0.2rem;">
-              You are the designated Head of your team. Access your leadership board to review applications.
-            </div>
+        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.92); border: 1px solid rgba(217, 180, 90, 0.45); border-radius: 16px; padding: 1.25rem 1.6rem;">
+          <div style="font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase; color: #ffffff;">
+            ★ Team Head <em>Leadership Active</em>
           </div>
-          <a href="#team-head" class="btn-interactive" style="background: var(--gold); color: #080a1e; padding: 0.5rem 1.2rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; text-transform: uppercase; text-decoration: none; box-shadow: 0 4px 15px var(--gold-glow);">
-            Open My Team Dashboard →
-          </a>
+          <div style="font-size: 0.85rem; color: rgba(242, 244, 255, 0.7); margin-top: 0.2rem;">
+            You are the designated Head of your team. You can review committee and department member requests from the staff portal.
+          </div>
         </div>
       `;
     }
@@ -1523,15 +1526,15 @@ export async function renderAdminRoute(user: CurrentUser | null, loading: boolea
     return;
   }
 
-  // 1. Logged out visitor on /admin -> show Staff Portal Auth (Sign up, Sign in, Reset password)
+  // 1. Logged out visitor on /admin -> show Admin Auth (Sign In & Reset Password ONLY - no sign up tab)
   if (!user) {
-    renderStaffPortalAuth(viewAdmin);
+    renderAdminAuth(viewAdmin);
     return;
   }
 
-  // 2. Logged in, but NOT an admin -> show "Your Executive Board profile" card
+  // 2. Logged in, but NOT an admin -> redirect to /staff (never show admin content!)
   if (user.role !== 'admin') {
-    renderEbProfileCard(viewAdmin, user);
+    window.location.hash = '#/staff';
     return;
   }
 
@@ -1578,16 +1581,306 @@ async function refreshAdminData(): Promise<void> {
   }
 }
 
-let staffPortalAuthTab: 'signup' | 'signin' | 'reset' = 'signup';
+let adminAuthTab: 'signin' | 'reset' = 'signin';
+let staffAuthTab: 'signup' | 'signin' | 'reset' = 'signup';
+
+// Staff Panel State
+let staffRegistrations: Registration[] = [];
+let staffFilter: 'all' | 'pending' | 'approved' | 'rejected' = 'all';
+let staffSearchQuery = '';
+let staffActiveTab: 'delegates' | 'team' = 'delegates';
+let staffHeadTeam: Team | null = null;
+let staffHeadTeamMembers: Profile[] = [];
 
 /**
- * Staff Portal Authentication for /admin and #admin (Logged-out visitors)
+ * Fetch registrations and head team data for staff panel
+ */
+async function refreshStaffPanelData(user: CurrentUser): Promise<void> {
+  const regRes = await fetchAllRegistrations();
+  if (regRes.data) {
+    staffRegistrations = regRes.data;
+  }
+
+  if (user.role === 'head' && user.teamId) {
+    const [teamRes, membersRes] = await Promise.all([
+      fetchTeamById(user.teamId),
+      fetchTeamMembers(user.teamId)
+    ]);
+    if (teamRes.data) {
+      staffHeadTeam = teamRes.data;
+    }
+    if (membersRes.data) {
+      staffHeadTeamMembers = membersRes.data;
+    }
+  }
+}
+
+/**
+ * Admin Authentication (/admin) - Sign In and Reset Password ONLY (No Sign-Up)
+ */
+function renderAdminAuth(container: HTMLElement): void {
+  const isSignIn = adminAuthTab === 'signin';
+  const isReset = adminAuthTab === 'reset';
+
+  container.innerHTML = `
+    <div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem;">
+      <div class="tilt-card" style="width: 100%; max-width: 480px; background: rgba(8, 10, 30, 0.96); border: 1px solid rgba(217, 180, 90, 0.4); border-radius: var(--card-radius); padding: clamp(1.75rem, 5vw, 2.5rem); box-shadow: 0 20px 50px rgba(0,0,0,0.65);">
+        <div style="text-align: center; margin-bottom: 1.75rem;">
+          <span class="eyebrow">Monument MUN 2027 · Secretariat</span>
+          <h2 style="font-family: var(--font-display); font-size: clamp(1.6rem, 4vw, 2rem); font-weight: 800; text-transform: uppercase; color: #ffffff; margin-bottom: 0.4rem; letter-spacing: 0.02em;">
+            ADMINISTRATOR <em>ACCESS.</em>
+          </h2>
+          <p style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.72); line-height: 1.5;">
+            Dedicated checkpoint for conference directors and administrators.
+          </p>
+        </div>
+
+        <!-- Auth Tabs: Sign In, Reset Password ONLY -->
+        <div style="display: flex; background: rgba(255, 255, 255, 0.05); border-radius: 9999px; padding: 4px; margin-bottom: 1.5rem; border: 1px solid rgba(217, 180, 90, 0.25);">
+          <button type="button" id="admin-tab-signin-btn" class="btn-interactive" style="flex: 1; padding: 0.6rem 0.5rem; border: none; border-radius: 9999px; background: ${isSignIn ? 'var(--gold)' : 'transparent'}; color: ${isSignIn ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.2s ease;">
+            Admin Sign In
+          </button>
+          <button type="button" id="admin-tab-reset-btn" class="btn-interactive" style="flex: 1; padding: 0.6rem 0.5rem; border: none; border-radius: 9999px; background: ${isReset ? 'var(--gold)' : 'transparent'}; color: ${isReset ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.2s ease;">
+            Reset Password
+          </button>
+        </div>
+
+        <div id="admin-auth-feedback" class="status-banner" style="display: none; margin-bottom: 1.25rem;"></div>
+
+        <!-- 1. SIGN IN FORM -->
+        <form id="admin-signin-form" style="${isSignIn ? 'display: block;' : 'display: none;'}" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="admin-signin-email">Administrator Email *</label>
+            <input type="email" id="admin-signin-email" class="form-input" placeholder="admin@domain.com" required autocomplete="email" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="admin-signin-password">Password *</label>
+            <input type="password" id="admin-signin-password" class="form-input" placeholder="Enter your password" required autocomplete="current-password" />
+          </div>
+
+          <button type="submit" id="admin-signin-submit-btn" class="form-submit-btn btn-interactive" style="width: 100%; margin-top: 0.5rem;">
+            Authenticate Admin Credentials
+          </button>
+        </form>
+
+        <!-- 2. RESET PASSWORD FORM -->
+        <form id="admin-reset-form" style="${isReset ? 'display: block;' : 'display: none;'}" novalidate>
+          <p style="font-size: 0.88rem; color: rgba(242, 244, 255, 0.75); line-height: 1.5; margin-bottom: 1.25rem;">
+            Enter your administrator email address. We will dispatch a secure link to reset your password.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label" for="admin-reset-email">Administrator Email *</label>
+            <input type="email" id="admin-reset-email" class="form-input" placeholder="admin@domain.com" required autocomplete="email" />
+          </div>
+
+          <button type="submit" id="admin-reset-submit-btn" class="form-submit-btn btn-interactive" style="width: 100%; margin-top: 0.5rem;">
+            Send Reset Instructions
+          </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem;">
+          <a href="#/" style="font-size: 0.8rem; color: rgba(242, 244, 255, 0.6); text-decoration: none;">← Return to site</a>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const tabSigninBtn = document.getElementById('admin-tab-signin-btn');
+  const tabResetBtn = document.getElementById('admin-tab-reset-btn');
+  const feedback = document.getElementById('admin-auth-feedback');
+
+  tabSigninBtn?.addEventListener('click', () => {
+    adminAuthTab = 'signin';
+    renderAdminAuth(container);
+  });
+
+  tabResetBtn?.addEventListener('click', () => {
+    adminAuthTab = 'reset';
+    renderAdminAuth(container);
+  });
+
+  const signinForm = document.getElementById('admin-signin-form') as HTMLFormElement | null;
+  const signinSubmitBtn = document.getElementById('admin-signin-submit-btn') as HTMLButtonElement | null;
+
+  signinForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!feedback) return;
+    feedback.style.display = 'none';
+
+    const email = (document.getElementById('admin-signin-email') as HTMLInputElement | null)?.value.trim().toLowerCase() || '';
+    const password = (document.getElementById('admin-signin-password') as HTMLInputElement | null)?.value || '';
+
+    if (!email || !password) {
+      feedback.className = 'status-banner status-error';
+      feedback.textContent = 'Please enter both administrator email and password.';
+      feedback.style.display = 'block';
+      return;
+    }
+
+    if (signinSubmitBtn) {
+      signinSubmitBtn.disabled = true;
+      signinSubmitBtn.textContent = 'Verifying Credentials...';
+    }
+
+    const res = await signInWithEmail(email, password);
+    if (res.error) {
+      feedback.className = 'status-banner status-error';
+      feedback.textContent = res.error;
+      feedback.style.display = 'block';
+      if (signinSubmitBtn) {
+        signinSubmitBtn.disabled = false;
+        signinSubmitBtn.textContent = 'Authenticate Admin Credentials';
+      }
+      return;
+    }
+
+    await refreshCurrentUserProfile();
+    const currentUser = getCachedUser();
+
+    if (currentUser) {
+      await playWelcomeAnimation({
+        type: 'signin',
+        fullName: currentUser.fullName,
+        role: currentUser.role,
+        ebPosition: currentUser.profile?.eb_position || 'Administrator'
+      });
+
+      if (currentUser.role === 'admin') {
+        renderAdminRoute(currentUser, false);
+      } else {
+        window.location.hash = '#/staff';
+      }
+    }
+  });
+
+  const resetForm = document.getElementById('admin-reset-form') as HTMLFormElement | null;
+  const resetSubmitBtn = document.getElementById('admin-reset-submit-btn') as HTMLButtonElement | null;
+
+  resetForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!feedback) return;
+    feedback.style.display = 'none';
+
+    const email = (document.getElementById('admin-reset-email') as HTMLInputElement | null)?.value.trim() || '';
+    if (!email) {
+      feedback.className = 'status-banner status-error';
+      feedback.textContent = 'Please enter your administrator email address.';
+      feedback.style.display = 'block';
+      return;
+    }
+
+    if (resetSubmitBtn) {
+      resetSubmitBtn.disabled = true;
+      resetSubmitBtn.textContent = 'Sending Link...';
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/admin'
+      });
+
+      if (error) {
+        feedback.className = 'status-banner status-error';
+        feedback.textContent = error.message;
+        feedback.style.display = 'block';
+      } else {
+        feedback.className = 'status-banner status-success';
+        feedback.textContent = '✓ Password reset instructions have been dispatched to your email.';
+        feedback.style.display = 'block';
+      }
+    } catch (err: unknown) {
+      feedback.className = 'status-banner status-error';
+      feedback.textContent = err instanceof Error ? err.message : 'Failed to send reset link.';
+      feedback.style.display = 'block';
+    } finally {
+      if (resetSubmitBtn) {
+        resetSubmitBtn.disabled = false;
+        resetSubmitBtn.textContent = 'Send Reset Instructions';
+      }
+    }
+  });
+}
+
+/**
+ * Staff Route: Executive Board panel & sign-up / sign-in (/staff & #staff)
+ */
+export async function renderStaffRoute(user: CurrentUser | null, loading: boolean): Promise<void> {
+  const viewHome = document.getElementById('view-home');
+  const viewCommittees = document.getElementById('view-committees');
+  const viewApply = document.getElementById('view-apply');
+  const viewAdmin = document.getElementById('view-admin');
+  const viewStaff = document.getElementById('view-staff');
+  const viewTeamHead = document.getElementById('view-team-head');
+  const dotNav = document.getElementById('dot-nav');
+  const mobileCounter = document.getElementById('mobile-stop-counter');
+
+  document.body.classList.add('admin-mode-active');
+  if (viewHome) viewHome.classList.remove('active-view');
+  if (viewCommittees) viewCommittees.classList.remove('active-view');
+  if (viewApply) viewApply.classList.remove('active-view');
+  if (viewAdmin) viewAdmin.classList.remove('active-view');
+  if (viewTeamHead) viewTeamHead.classList.remove('active-view');
+  if (dotNav) dotNav.classList.add('nav-hidden');
+  if (mobileCounter) mobileCounter.classList.remove('visible');
+
+  if (!viewStaff) return;
+  viewStaff.classList.add('active-view');
+  window.scrollTo(0, 0);
+
+  if (loading) {
+    viewStaff.innerHTML = `
+      <div style="min-height: 70vh; display: flex; align-items: center; justify-content: center; color: var(--gold); font-family: var(--font-display);">
+        <div style="text-align: center;">
+          <div style="display: inline-block; width: 36px; height: 36px; border: 3px solid rgba(217, 180, 90, 0.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1rem;"></div>
+          <p style="font-size: 0.95rem; letter-spacing: 0.1em; text-transform: uppercase;">Connecting to Staff Workspace...</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // 1. Logged out visitor on /staff -> show Staff Auth (Sign up, Sign in, Reset password)
+  if (!user) {
+    renderStaffAuth(viewStaff);
+    return;
+  }
+
+  // 2. Logged in as Admin -> redirect to /admin
+  if (user.role === 'admin') {
+    window.location.hash = '#/admin';
+    return;
+  }
+
+  // 3. Logged in as 'user' -> show short no-access message
+  if (user.role === 'user') {
+    renderStaffNoAccess(viewStaff, user);
+    return;
+  }
+
+  // 4. Logged in as 'eb', 'head', or 'security' -> Render Staff Panel
+  viewStaff.innerHTML = `
+    <div style="min-height: 70vh; display: flex; align-items: center; justify-content: center; color: var(--gold); font-family: var(--font-display);">
+      <div style="text-align: center;">
+        <div style="display: inline-block; width: 36px; height: 36px; border: 3px solid rgba(217, 180, 90, 0.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1rem;"></div>
+        <p style="font-size: 0.95rem; letter-spacing: 0.1em; text-transform: uppercase;">Loading Staff Panel...</p>
+      </div>
+    </div>
+  `;
+
+  await refreshStaffPanelData(user);
+  renderStaffPanel(viewStaff, user);
+}
+
+/**
+ * Staff Authentication for /staff and #staff (Logged-out visitors)
  * Offers: Sign Up, Sign In, Reset Password
  */
-function renderStaffPortalAuth(container: HTMLElement): void {
-  const isSignUp = staffPortalAuthTab === 'signup';
-  const isSignIn = staffPortalAuthTab === 'signin';
-  const isReset = staffPortalAuthTab === 'reset';
+function renderStaffAuth(container: HTMLElement): void {
+  const isSignUp = staffAuthTab === 'signup';
+  const isSignIn = staffAuthTab === 'signin';
+  const isReset = staffAuthTab === 'reset';
 
   container.innerHTML = `
     <div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem;">
@@ -1595,10 +1888,10 @@ function renderStaffPortalAuth(container: HTMLElement): void {
         <div style="text-align: center; margin-bottom: 1.75rem;">
           <span class="eyebrow">Monument MUN 2027</span>
           <h2 style="font-family: var(--font-display); font-size: clamp(1.6rem, 4vw, 2rem); font-weight: 800; text-transform: uppercase; color: #ffffff; margin-bottom: 0.4rem; letter-spacing: 0.02em;">
-            STAFF <em>PORTAL.</em>
+            EXECUTIVE BOARD <em>PORTAL.</em>
           </h2>
           <p style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.72); line-height: 1.5;">
-            Exclusive portal for Executive Board, Secretariat, and Staff members.
+            Exclusive panel for Executive Board members, Committee Chairs, and Staff.
           </p>
         </div>
 
@@ -1617,7 +1910,7 @@ function renderStaffPortalAuth(container: HTMLElement): void {
 
         <div id="staff-portal-feedback" class="status-banner" style="display: none; margin-bottom: 1.25rem;"></div>
 
-        <!-- 1. SIGN UP FORM -->
+        <!-- 1. SIGN UP FORM (No role dropdown) -->
         <form id="staff-signup-form" style="${isSignUp ? 'display: block;' : 'display: none;'}" novalidate>
           <div class="form-group">
             <label class="form-label" for="staff-signup-name">Full Name *</label>
@@ -1684,25 +1977,24 @@ function renderStaffPortalAuth(container: HTMLElement): void {
     </div>
   `;
 
-  // Attach tab switch handlers
   const tabSignupBtn = document.getElementById('staff-tab-signup-btn');
   const tabSigninBtn = document.getElementById('staff-tab-signin-btn');
   const tabResetBtn = document.getElementById('staff-tab-reset-btn');
   const feedback = document.getElementById('staff-portal-feedback');
 
   tabSignupBtn?.addEventListener('click', () => {
-    staffPortalAuthTab = 'signup';
-    renderStaffPortalAuth(container);
+    staffAuthTab = 'signup';
+    renderStaffAuth(container);
   });
 
   tabSigninBtn?.addEventListener('click', () => {
-    staffPortalAuthTab = 'signin';
-    renderStaffPortalAuth(container);
+    staffAuthTab = 'signin';
+    renderStaffAuth(container);
   });
 
   tabResetBtn?.addEventListener('click', () => {
-    staffPortalAuthTab = 'reset';
-    renderStaffPortalAuth(container);
+    staffAuthTab = 'reset';
+    renderStaffAuth(container);
   });
 
   // Attach Sign Up submit handler
@@ -1746,8 +2038,8 @@ function renderStaffPortalAuth(container: HTMLElement): void {
     }
 
     // Step 1: Pre-check is_email_allowed RPC
-    const isAllowed = await isEmailAllowedRpc(email);
-    if (!isAllowed) {
+    const allowRes = await isEmailAllowedRpc(email);
+    if (!allowRes.allowed) {
       feedback.className = 'status-banner status-error';
       feedback.textContent = "You can't sign up because your email wasn't found in the Monument MUN team list. Use the exact email you gave the Secretariat, or contact an admin.";
       feedback.style.display = 'block';
@@ -1783,10 +2075,24 @@ function renderStaffPortalAuth(container: HTMLElement): void {
       return;
     }
 
-    // Step 3: Immediate sign-in upon sign-up
+    // Step 3: Immediate sign-in upon sign-up -> welcome animation
     await refreshCurrentUserProfile();
     const currentUser = getCachedUser();
-    renderAdminRoute(currentUser, false);
+
+    if (currentUser) {
+      await playWelcomeAnimation({
+        type: 'signup',
+        fullName: currentUser.fullName,
+        role: currentUser.role,
+        ebPosition: currentUser.profile?.eb_position || 'Executive Board Member'
+      });
+
+      if (currentUser.role === 'admin') {
+        window.location.hash = '#/admin';
+      } else {
+        renderStaffRoute(currentUser, false);
+      }
+    }
   });
 
   // Attach Sign In submit handler
@@ -1826,8 +2132,23 @@ function renderStaffPortalAuth(container: HTMLElement): void {
       return;
     }
 
-    const cached = getCachedUser();
-    renderAdminRoute(cached, false);
+    await refreshCurrentUserProfile();
+    const currentUser = getCachedUser();
+
+    if (currentUser) {
+      await playWelcomeAnimation({
+        type: 'signin',
+        fullName: currentUser.fullName,
+        role: currentUser.role,
+        ebPosition: currentUser.profile?.eb_position || 'Executive Board Member'
+      });
+
+      if (currentUser.role === 'admin') {
+        window.location.hash = '#/admin';
+      } else {
+        renderStaffRoute(currentUser, false);
+      }
+    }
   });
 
   // Attach Reset Password submit handler
@@ -1855,7 +2176,7 @@ function renderStaffPortalAuth(container: HTMLElement): void {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/admin'
+        redirectTo: window.location.origin + '/staff'
       });
 
       if (error) {
@@ -1881,65 +2202,34 @@ function renderStaffPortalAuth(container: HTMLElement): void {
 }
 
 /**
- * Render "Your Executive Board profile" card for authenticated non-admin users visiting /admin or #admin.
- * They must NEVER see the admin board or any admin controls.
+ * Message card for logged-in 'user' role visiting /staff
  */
-function renderEbProfileCard(container: HTMLElement, user: CurrentUser): void {
-  const position = user.profile?.eb_position || 'Executive Board Member';
-  const roleDisplay = user.role.toUpperCase();
-
+function renderStaffNoAccess(container: HTMLElement, user: CurrentUser): void {
   container.innerHTML = `
     <div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem;">
-      <div class="tilt-card" style="width: 100%; max-width: 540px; background: rgba(8, 10, 30, 0.96); border: 1px solid rgba(217, 180, 90, 0.4); border-radius: var(--card-radius); padding: clamp(1.75rem, 5vw, 2.75rem); box-shadow: 0 20px 50px rgba(0,0,0,0.65);">
-        <div style="text-align: center; margin-bottom: 2rem;">
-          <span class="eyebrow">Monument MUN 2027 · Staff Portal</span>
-          <h2 style="font-family: var(--font-display); font-size: clamp(1.6rem, 4vw, 2.1rem); font-weight: 800; text-transform: uppercase; color: #ffffff; margin-bottom: 0.5rem; letter-spacing: 0.02em;">
-            YOUR EXECUTIVE BOARD <em>PROFILE.</em>
-          </h2>
-          <p style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.72); line-height: 1.5;">
-            Verified conference credentials and active staff standing.
-          </p>
+      <div class="tilt-card" style="width: 100%; max-width: 500px; background: rgba(8, 10, 30, 0.96); border: 1px solid rgba(217, 180, 90, 0.4); border-radius: var(--card-radius); padding: clamp(1.75rem, 5vw, 2.5rem); box-shadow: 0 20px 50px rgba(0,0,0,0.65); text-align: center;">
+        <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; display: inline-flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1.25rem;">
+          ✕
         </div>
 
-        <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 14px; padding: 1.5rem; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 1.15rem;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 1rem;">
-            <div>
-              <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(242, 244, 255, 0.5); margin-bottom: 0.25rem;">Full Name</div>
-              <div style="font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; color: #ffffff;">${escapeHtml(user.fullName)}</div>
-            </div>
-            <span style="background: rgba(217, 180, 90, 0.2); border: 1px solid var(--gold); color: var(--gold); padding: 0.25rem 0.75rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">
-              ${escapeHtml(roleDisplay)}
-            </span>
-          </div>
+        <span class="eyebrow">Monument MUN 2027 · Staff Clearance</span>
+        <h2 style="font-family: var(--font-display); font-size: clamp(1.4rem, 4vw, 1.85rem); font-weight: 800; text-transform: uppercase; color: #ffffff; margin-bottom: 0.75rem;">
+          STAFF <em>CLEARANCE.</em>
+        </h2>
 
-          <div>
-            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(242, 244, 255, 0.5); margin-bottom: 0.25rem;">Declared Position</div>
-            <div style="font-size: 1.05rem; font-weight: 700; color: var(--gold);">
-              ${escapeHtml(position)}
-            </div>
-          </div>
+        <p style="font-size: 1.05rem; color: #fca5a5; line-height: 1.6; margin-bottom: 1rem; font-weight: 600;">
+          Your account has no staff access yet. Contact an admin.
+        </p>
 
-          <div>
-            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(242, 244, 255, 0.5); margin-bottom: 0.25rem;">Authorized Email</div>
-            <div style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.85); font-family: monospace;">
-              ${escapeHtml(user.email)}
-            </div>
-          </div>
+        <p style="font-size: 0.88rem; color: rgba(242, 244, 255, 0.65); line-height: 1.5; margin-bottom: 2rem;">
+          Signed in as <strong style="color: #ffffff;">${escapeHtml(user.email)}</strong>. If you are an Executive Board or Secretariat member, ensure your email address matches the authorized team list.
+        </p>
 
-          <div>
-            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(242, 244, 255, 0.5); margin-bottom: 0.25rem;">Access Level</div>
-            <div style="font-size: 0.9rem; color: #ffffff; text-transform: capitalize;">
-              ${escapeHtml(user.role)} Staff Privileges
-            </div>
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+        <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
           <a href="#/" class="btn-interactive" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; text-decoration: none;">
             ← Return to Site
           </a>
-
-          <button type="button" id="eb-profile-signout-btn" class="btn-interactive" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 0.65rem 1.5rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
+          <button type="button" id="staff-no-access-signout-btn" class="btn-interactive" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.45); color: #ffffff; padding: 0.65rem 1.5rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
             Sign Out
           </button>
         </div>
@@ -1947,10 +2237,534 @@ function renderEbProfileCard(container: HTMLElement, user: CurrentUser): void {
     </div>
   `;
 
-  const signoutBtn = document.getElementById('eb-profile-signout-btn');
-  signoutBtn?.addEventListener('click', async () => {
+  document.getElementById('staff-no-access-signout-btn')?.addEventListener('click', async () => {
     await signOut();
-    renderAdminRoute(null, false);
+    renderStaffRoute(null, false);
+  });
+}
+
+/**
+ * Staff Panel for role 'eb', 'head', and 'security'
+ */
+function renderStaffPanel(container: HTMLElement, user: CurrentUser): void {
+  const position = user.profile?.eb_position || 'Executive Board Member';
+  const roleDisplay = user.role.toUpperCase();
+  const isHead = user.role === 'head';
+
+  const regStats = computeAdminStats(staffRegistrations);
+
+  container.innerHTML = `
+    <div style="max-width: 1200px; margin: 0 auto; padding: 2rem 0 5rem;">
+      <!-- Staff Top Bar: User Identity & Sign Out -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(217, 180, 90, 0.25); padding-bottom: 1.5rem;">
+        <div>
+          <span class="eyebrow">Monument MUN 2027 · Executive Board Panel</span>
+          <h1 style="font-family: var(--font-display); font-size: clamp(1.8rem, 4.5vw, 2.5rem); font-weight: 800; text-transform: uppercase; color: #ffffff; line-height: 1.1; margin-bottom: 0.35rem;">
+            STAFF <em>CONTROL PANEL.</em>
+          </h1>
+          <p style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.7);">
+            Active session: <strong style="color: #ffffff;">${escapeHtml(user.fullName)}</strong> · <span style="color: var(--gold);">${escapeHtml(position)}</span> (<span style="font-family: monospace;">${escapeHtml(user.email)}</span>)
+          </p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <span style="background: rgba(217, 180, 90, 0.2); border: 1.5px solid var(--gold); color: var(--gold); padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;">
+            ${escapeHtml(roleDisplay)} ACCESS
+          </span>
+          <button type="button" id="staff-panel-signout-btn" class="btn-interactive" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 0.5rem 1.25rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
+            Sign Out
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Feedback Banner -->
+      <div id="staff-panel-action-feedback" class="status-banner" style="display: none; margin-bottom: 1.5rem;"></div>
+
+      ${isHead ? `
+        <!-- Head Sub-navigation Tabs -->
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.75rem; flex-wrap: wrap;">
+          <button type="button" id="staff-tab-delegates-btn" class="btn-interactive" style="padding: 0.65rem 1.4rem; border-radius: 9999px; border: 1px solid ${staffActiveTab === 'delegates' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.15)'}; background: ${staffActiveTab === 'delegates' ? 'rgba(217, 180, 90, 0.18)' : 'transparent'}; color: ${staffActiveTab === 'delegates' ? 'var(--gold)' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer;">
+            Delegate Applications (${regStats.total})
+          </button>
+          <button type="button" id="staff-tab-team-btn" class="btn-interactive" style="padding: 0.65rem 1.4rem; border-radius: 9999px; border: 1px solid ${staffActiveTab === 'team' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.15)'}; background: ${staffActiveTab === 'team' ? 'rgba(217, 180, 90, 0.18)' : 'transparent'}; color: ${staffActiveTab === 'team' ? 'var(--gold)' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer;">
+            ★ My Team: ${escapeHtml(staffHeadTeam?.name || 'Assigned Team')} (${staffHeadTeamMembers.length})
+          </button>
+        </div>
+      ` : ''}
+
+      <!-- TAB 1: DELEGATE APPLICATIONS -->
+      <div id="staff-section-delegates" style="${staffActiveTab === 'delegates' ? 'display: block;' : 'display: none;'}">
+        <!-- Stats Cards Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2.25rem;">
+          <div class="tilt-card" style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 16px; padding: 1.5rem; text-align: center;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(242, 244, 255, 0.6); margin-bottom: 0.35rem;">Total Applications</div>
+            <div id="staff-stat-total" style="font-family: var(--font-display); font-size: 2.5rem; font-weight: 800; color: #ffffff;">${regStats.total}</div>
+          </div>
+          <div class="tilt-card" style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(251, 191, 36, 0.35); border-radius: 16px; padding: 1.5rem; text-align: center;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: #fde68a; margin-bottom: 0.35rem;">Pending Review</div>
+            <div id="staff-stat-pending" style="font-family: var(--font-display); font-size: 2.5rem; font-weight: 800; color: #fbbf24;">${regStats.pending}</div>
+          </div>
+          <div class="tilt-card" style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(52, 211, 153, 0.35); border-radius: 16px; padding: 1.5rem; text-align: center;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: #a7f3d0; margin-bottom: 0.35rem;">Approved Delegates</div>
+            <div id="staff-stat-approved" style="font-family: var(--font-display); font-size: 2.5rem; font-weight: 800; color: #34d399;">${regStats.approved}</div>
+          </div>
+          <div class="tilt-card" style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(248, 113, 113, 0.35); border-radius: 16px; padding: 1.5rem; text-align: center;">
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: #fecaca; margin-bottom: 0.35rem;">Rejected</div>
+            <div id="staff-stat-rejected" style="font-family: var(--font-display); font-size: 2.5rem; font-weight: 800; color: #f87171;">${regStats.rejected}</div>
+          </div>
+        </div>
+
+        <!-- Search & Filter Controls -->
+        <div style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div style="flex: 1; min-width: 260px;">
+            <input type="text" id="staff-search-input" value="${escapeHtml(staffSearchQuery)}" placeholder="Search by name, email, school, or committee..." class="form-input" style="padding: 0.65rem 1rem; font-size: 0.88rem; width: 100%;" />
+          </div>
+
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button type="button" class="staff-filter-pill ${staffFilter === 'all' ? 'active' : ''}" data-filter="all" style="padding: 0.45rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${staffFilter === 'all' ? 'var(--gold)' : 'rgba(255,255,255,0.15)'}; background: ${staffFilter === 'all' ? 'var(--gold)' : 'transparent'}; color: ${staffFilter === 'all' ? '#080a1e' : '#f2f4ff'}; cursor: pointer;">
+              All (${staffRegistrations.length})
+            </button>
+            <button type="button" class="staff-filter-pill ${staffFilter === 'pending' ? 'active' : ''}" data-filter="pending" style="padding: 0.45rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${staffFilter === 'pending' ? '#fbbf24' : 'rgba(255,255,255,0.15)'}; background: ${staffFilter === 'pending' ? '#fbbf24' : 'transparent'}; color: ${staffFilter === 'pending' ? '#080a1e' : '#f2f4ff'}; cursor: pointer;">
+              Pending (${regStats.pending})
+            </button>
+            <button type="button" class="staff-filter-pill ${staffFilter === 'approved' ? 'active' : ''}" data-filter="approved" style="padding: 0.45rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${staffFilter === 'approved' ? '#34d399' : 'rgba(255,255,255,0.15)'}; background: ${staffFilter === 'approved' ? '#34d399' : 'transparent'}; color: ${staffFilter === 'approved' ? '#080a1e' : '#f2f4ff'}; cursor: pointer;">
+              Approved (${regStats.approved})
+            </button>
+            <button type="button" class="staff-filter-pill ${staffFilter === 'rejected' ? 'active' : ''}" data-filter="rejected" style="padding: 0.45rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${staffFilter === 'rejected' ? '#f87171' : 'rgba(255,255,255,0.15)'}; background: ${staffFilter === 'rejected' ? '#f87171' : 'transparent'}; color: ${staffFilter === 'rejected' ? '#080a1e' : '#f2f4ff'}; cursor: pointer;">
+              Rejected (${regStats.rejected})
+            </button>
+          </div>
+        </div>
+
+        <!-- Applications Table Container -->
+        <div id="staff-table-mount"></div>
+      </div>
+
+      ${isHead ? `
+        <!-- TAB 2: MY TEAM (Head Only) -->
+        <div id="staff-section-team" style="${staffActiveTab === 'team' ? 'display: block;' : 'display: none;'}">
+          ${renderStaffTeamSection(user)}
+        </div>
+      ` : ''}
+    </div>
+  `;
+
+  // Attach signout listener
+  document.getElementById('staff-panel-signout-btn')?.addEventListener('click', async () => {
+    await signOut();
+    renderStaffRoute(null, false);
+  });
+
+  // Attach tab switcher (Head only)
+  if (isHead) {
+    document.getElementById('staff-tab-delegates-btn')?.addEventListener('click', () => {
+      staffActiveTab = 'delegates';
+      renderStaffPanel(container, user);
+    });
+
+    document.getElementById('staff-tab-team-btn')?.addEventListener('click', () => {
+      staffActiveTab = 'team';
+      renderStaffPanel(container, user);
+    });
+  }
+
+  // Attach search and filter listeners for delegate applications
+  const searchInput = document.getElementById('staff-search-input') as HTMLInputElement | null;
+  searchInput?.addEventListener('input', (e) => {
+    staffSearchQuery = (e.target as HTMLInputElement).value;
+    renderStaffRegistrationsTable();
+  });
+
+  const filterPills = container.querySelectorAll('.staff-filter-pill');
+  filterPills.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      staffFilter = (btn.getAttribute('data-filter') as 'all' | 'pending' | 'approved' | 'rejected') || 'all';
+      renderStaffPanel(container, user);
+    });
+  });
+
+  // Render initial table
+  renderStaffRegistrationsTable();
+
+  // If Head team active, attach review handlers
+  if (isHead && staffActiveTab === 'team') {
+    attachStaffTeamReviewHandlers(container, user);
+  }
+}
+
+/**
+ * Render the filtered delegate applications table
+ */
+function renderStaffRegistrationsTable(): void {
+  const mount = document.getElementById('staff-table-mount');
+  if (!mount) return;
+
+  const query = staffSearchQuery.trim().toLowerCase();
+  const filtered = staffRegistrations.filter((reg) => {
+    const matchesFilter = staffFilter === 'all' || reg.status === staffFilter;
+    if (!matchesFilter) return false;
+    if (!query) return true;
+
+    const name = (reg.full_name || '').toLowerCase();
+    const email = (reg.email || '').toLowerCase();
+    const school = (reg.school || '').toLowerCase();
+    const committee = (reg.committee || '').toLowerCase();
+
+    return (
+      name.includes(query) ||
+      email.includes(query) ||
+      school.includes(query) ||
+      committee.includes(query)
+    );
+  });
+
+  if (filtered.length === 0) {
+    mount.innerHTML = `
+      <div style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.25); border-radius: 16px; padding: 3rem 1.5rem; text-align: center;">
+        <p style="font-family: var(--font-display); font-size: 1.15rem; color: #ffffff; margin-bottom: 0.5rem;">No applications found.</p>
+        <p style="font-size: 0.88rem; color: rgba(242, 244, 255, 0.6);">
+          ${staffSearchQuery ? 'No delegate applications match your search query.' : 'There are no applications matching the selected filter.'}
+        </p>
+      </div>
+    `;
+    return;
+  }
+
+  mount.innerHTML = `
+    <div style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid rgba(217, 180, 90, 0.25); background: rgba(255, 255, 255, 0.03);">
+              <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold);">Applicant</th>
+              <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold);">Institution / Committee</th>
+              <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold);">Applied Date</th>
+              <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold);">Status</th>
+              <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold); text-align: right;">Review Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filtered.map((reg) => {
+              const statusColor =
+                reg.status === 'approved' ? '#34d399' :
+                reg.status === 'rejected' ? '#f87171' : '#fbbf24';
+              const statusBg =
+                reg.status === 'approved' ? 'rgba(52, 211, 153, 0.12)' :
+                reg.status === 'rejected' ? 'rgba(248, 113, 113, 0.12)' : 'rgba(251, 191, 36, 0.12)';
+
+              return `
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.15s ease;">
+                  <td style="padding: 1rem 1.25rem;">
+                    <div style="font-weight: 700; color: #ffffff; font-size: 0.95rem;">${escapeHtml(reg.full_name)}</div>
+                    <div style="font-size: 0.8rem; color: rgba(242, 244, 255, 0.6); font-family: monospace;">${escapeHtml(reg.email)}</div>
+                    ${reg.phone ? `<div style="font-size: 0.75rem; color: rgba(242, 244, 255, 0.45);">${escapeHtml(reg.phone)}</div>` : ''}
+                  </td>
+                  <td style="padding: 1rem 1.25rem;">
+                    <div style="color: #ffffff; font-weight: 600;">${escapeHtml(reg.committee || 'Unassigned Committee')}</div>
+                    <div style="font-size: 0.8rem; color: rgba(242, 244, 255, 0.6);">${escapeHtml(reg.school || 'Independent Delegate')}</div>
+                  </td>
+                  <td style="padding: 1rem 1.25rem; color: rgba(242, 244, 255, 0.7); font-size: 0.82rem; white-space: nowrap;">
+                    ${formatDate(reg.created_at)}
+                  </td>
+                  <td style="padding: 1rem 1.25rem;">
+                    <span style="display: inline-block; padding: 0.25rem 0.65rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; background: ${statusBg}; border: 1px solid ${statusColor}; color: ${statusColor};">
+                      ${escapeHtml(reg.status)}
+                    </span>
+                  </td>
+                  <td style="padding: 1rem 1.25rem; text-align: right; white-space: nowrap;">
+                    <div style="display: inline-flex; gap: 0.5rem; justify-content: flex-end;">
+                      <button type="button" class="btn-interactive staff-reg-approve-btn" data-id="${reg.id}" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${reg.status === 'approved' ? '#34d399' : 'rgba(52, 211, 153, 0.4)'}; background: ${reg.status === 'approved' ? '#34d399' : 'rgba(52, 211, 153, 0.15)'}; color: ${reg.status === 'approved' ? '#080a1e' : '#a7f3d0'}; cursor: pointer;">
+                        ${reg.status === 'approved' ? '✓ Approved' : 'Approve'}
+                      </button>
+                      <button type="button" class="btn-interactive staff-reg-reject-btn" data-id="${reg.id}" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${reg.status === 'rejected' ? '#f87171' : 'rgba(248, 113, 113, 0.4)'}; background: ${reg.status === 'rejected' ? '#f87171' : 'rgba(248, 113, 113, 0.15)'}; color: ${reg.status === 'rejected' ? '#ffffff' : '#fecaca'}; cursor: pointer;">
+                        ${reg.status === 'rejected' ? '✕ Rejected' : 'Reject'}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // Attach Approve & Reject button listeners
+  const approveButtons = mount.querySelectorAll('.staff-reg-approve-btn');
+  const rejectButtons = mount.querySelectorAll('.staff-reg-reject-btn');
+  const actionFeedback = document.getElementById('staff-panel-action-feedback');
+
+  approveButtons.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      if (!id) return;
+
+      btn.setAttribute('disabled', 'true');
+      btn.textContent = 'Updating...';
+
+      const res = await updateRegistrationStatus(id, 'approved');
+      if (res.error) {
+        if (actionFeedback) {
+          actionFeedback.className = 'status-banner status-error';
+          actionFeedback.textContent = res.error;
+          actionFeedback.style.display = 'block';
+        }
+        renderStaffRegistrationsTable();
+      } else {
+        const target = staffRegistrations.find((r) => String(r.id) === String(id));
+        if (target) target.status = 'approved';
+
+        if (actionFeedback) {
+          actionFeedback.className = 'status-banner status-success';
+          actionFeedback.textContent = `✓ Application for ${target?.full_name || 'delegate'} approved.`;
+          actionFeedback.style.display = 'block';
+        }
+
+        // Update stats counters in UI
+        const updatedStats = computeAdminStats(staffRegistrations);
+        const elTotal = document.getElementById('staff-stat-total');
+        const elPending = document.getElementById('staff-stat-pending');
+        const elApproved = document.getElementById('staff-stat-approved');
+        const elRejected = document.getElementById('staff-stat-rejected');
+        if (elTotal) elTotal.textContent = String(updatedStats.total);
+        if (elPending) elPending.textContent = String(updatedStats.pending);
+        if (elApproved) elApproved.textContent = String(updatedStats.approved);
+        if (elRejected) elRejected.textContent = String(updatedStats.rejected);
+
+        renderStaffRegistrationsTable();
+      }
+    });
+  });
+
+  rejectButtons.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      if (!id) return;
+
+      btn.setAttribute('disabled', 'true');
+      btn.textContent = 'Updating...';
+
+      const res = await updateRegistrationStatus(id, 'rejected');
+      if (res.error) {
+        if (actionFeedback) {
+          actionFeedback.className = 'status-banner status-error';
+          actionFeedback.textContent = res.error;
+          actionFeedback.style.display = 'block';
+        }
+        renderStaffRegistrationsTable();
+      } else {
+        const target = staffRegistrations.find((r) => String(r.id) === String(id));
+        if (target) target.status = 'rejected';
+
+        if (actionFeedback) {
+          actionFeedback.className = 'status-banner status-error';
+          actionFeedback.textContent = `✕ Application for ${target?.full_name || 'delegate'} marked as rejected.`;
+          actionFeedback.style.display = 'block';
+        }
+
+        const updatedStats = computeAdminStats(staffRegistrations);
+        const elTotal = document.getElementById('staff-stat-total');
+        const elPending = document.getElementById('staff-stat-pending');
+        const elApproved = document.getElementById('staff-stat-approved');
+        const elRejected = document.getElementById('staff-stat-rejected');
+        if (elTotal) elTotal.textContent = String(updatedStats.total);
+        if (elPending) elPending.textContent = String(updatedStats.pending);
+        if (elApproved) elApproved.textContent = String(updatedStats.approved);
+        if (elRejected) elRejected.textContent = String(updatedStats.rejected);
+
+        renderStaffRegistrationsTable();
+      }
+    });
+  });
+}
+
+/**
+ * Render My Team section for role 'head'
+ */
+function renderStaffTeamSection(user: CurrentUser): string {
+  const teamName = staffHeadTeam?.name || 'Assigned Conference Team';
+  const teamKind = staffHeadTeam?.kind || 'committee';
+
+  const pendingRequests = staffHeadTeamMembers.filter((m) => m.team_status === 'pending');
+  const approvedMembers = staffHeadTeamMembers.filter((m) => m.team_status === 'approved');
+
+  return `
+    <div>
+      <!-- Team Header & Counts -->
+      <div style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <span class="eyebrow" style="color: var(--gold);">Team Leadership Roster</span>
+            <h2 style="font-family: var(--font-display); font-size: clamp(1.4rem, 3.5vw, 1.9rem); font-weight: 800; text-transform: uppercase; color: #ffffff;">
+              ${escapeHtml(teamName)}
+            </h2>
+            <p style="font-size: 0.88rem; color: rgba(242, 244, 255, 0.7); text-transform: capitalize;">
+              Kind: <strong>${escapeHtml(teamKind)}</strong> · Managed by Head: <strong>${escapeHtml(user.fullName)}</strong>
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 0.65rem 1.25rem; text-align: center;">
+              <div style="font-size: 0.7rem; text-transform: uppercase; color: rgba(242, 244, 255, 0.5);">Total Roster</div>
+              <div style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; color: #ffffff;">${staffHeadTeamMembers.length}</div>
+            </div>
+            <div style="background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 0.65rem 1.25rem; text-align: center;">
+              <div style="font-size: 0.7rem; text-transform: uppercase; color: #fde68a;">Pending Requests</div>
+              <div style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; color: #fbbf24;">${pendingRequests.length}</div>
+            </div>
+            <div style="background: rgba(52, 211, 153, 0.08); border: 1px solid rgba(52, 211, 153, 0.3); border-radius: 12px; padding: 0.65rem 1.25rem; text-align: center;">
+              <div style="font-size: 0.7rem; text-transform: uppercase; color: #a7f3d0;">Approved Members</div>
+              <div style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 800; color: #34d399;">${approvedMembers.length}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 1: PENDING REQUESTS -->
+      <div style="margin-bottom: 2.5rem;">
+        <h3 style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>Pending Join Requests</span>
+          <span style="font-size: 0.78rem; background: rgba(251, 191, 36, 0.2); border: 1px solid #fbbf24; color: #fbbf24; padding: 0.15rem 0.6rem; border-radius: 9999px;">${pendingRequests.length}</span>
+        </h3>
+
+        ${pendingRequests.length === 0 ? `
+          <div style="background: rgba(8, 10, 30, 0.6); border: 1px dashed rgba(217, 180, 90, 0.25); border-radius: 12px; padding: 2rem 1.5rem; text-align: center; color: rgba(242, 244, 255, 0.6); font-size: 0.9rem;">
+            No pending requests for your team at this time.
+          </div>
+        ` : `
+          <div style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 16px; overflow: hidden;">
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                <thead>
+                  <tr style="border-bottom: 1px solid rgba(217, 180, 90, 0.25); background: rgba(255, 255, 255, 0.03);">
+                    <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; color: var(--gold);">Applicant</th>
+                    <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; color: var(--gold);">Declared Role</th>
+                    <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; color: var(--gold); text-align: right;">Review Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${pendingRequests.map((m) => `
+                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                      <td style="padding: 1rem 1.25rem;">
+                        <div style="font-weight: 700; color: #ffffff;">${escapeHtml(m.full_name)}</div>
+                        <div style="font-size: 0.8rem; color: rgba(242, 244, 255, 0.6); font-family: monospace;">${escapeHtml(m.email)}</div>
+                      </td>
+                      <td style="padding: 1rem 1.25rem;">
+                        <span style="color: var(--gold); font-weight: 600;">${escapeHtml(m.eb_position || m.role)}</span>
+                      </td>
+                      <td style="padding: 1rem 1.25rem; text-align: right; white-space: nowrap;">
+                        <div style="display: inline-flex; gap: 0.5rem; justify-content: flex-end;">
+                          <button type="button" class="btn-interactive head-review-btn" data-userid="${m.id}" data-decision="approved" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid #34d399; background: rgba(52, 211, 153, 0.15); color: #a7f3d0; cursor: pointer;">
+                            Accept
+                          </button>
+                          <button type="button" class="btn-interactive head-review-btn" data-userid="${m.id}" data-decision="rejected" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid #f87171; background: rgba(248, 113, 113, 0.15); color: #fecaca; cursor: pointer;">
+                            Reject
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `}
+      </div>
+
+      <!-- SECTION 2: APPROVED TEAM MEMBERS -->
+      <div>
+        <h3 style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 800; text-transform: uppercase; color: #34d399; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <span>Approved Team Members</span>
+          <span style="font-size: 0.78rem; background: rgba(52, 211, 153, 0.2); border: 1px solid #34d399; color: #a7f3d0; padding: 0.15rem 0.6rem; border-radius: 9999px;">${approvedMembers.length}</span>
+        </h3>
+
+        ${approvedMembers.length === 0 ? `
+          <div style="background: rgba(8, 10, 30, 0.6); border: 1px dashed rgba(217, 180, 90, 0.25); border-radius: 12px; padding: 2rem 1.5rem; text-align: center; color: rgba(242, 244, 255, 0.6); font-size: 0.9rem;">
+            No approved members in your team yet.
+          </div>
+        ` : `
+          <div style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 16px; overflow: hidden;">
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                <thead>
+                  <tr style="border-bottom: 1px solid rgba(217, 180, 90, 0.25); background: rgba(255, 255, 255, 0.03);">
+                    <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; color: var(--gold);">Team Member</th>
+                    <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; color: var(--gold);">Position</th>
+                    <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; color: var(--gold);">Status</th>
+                    <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; color: var(--gold); text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${approvedMembers.map((m) => `
+                    <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                      <td style="padding: 1rem 1.25rem;">
+                        <div style="font-weight: 700; color: #ffffff;">${escapeHtml(m.full_name)}</div>
+                        <div style="font-size: 0.8rem; color: rgba(242, 244, 255, 0.6); font-family: monospace;">${escapeHtml(m.email)}</div>
+                      </td>
+                      <td style="padding: 1rem 1.25rem;">
+                        <span style="color: var(--gold); font-weight: 600;">${escapeHtml(m.eb_position || m.role)}</span>
+                      </td>
+                      <td style="padding: 1rem 1.25rem;">
+                        <span style="display: inline-block; padding: 0.2rem 0.55rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; background: rgba(52, 211, 153, 0.15); border: 1px solid #34d399; color: #a7f3d0;">
+                          Active
+                        </span>
+                      </td>
+                      <td style="padding: 1rem 1.25rem; text-align: right; white-space: nowrap;">
+                        <button type="button" class="btn-interactive head-review-btn" data-userid="${m.id}" data-decision="removed" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.15); color: #fca5a5; cursor: pointer;">
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Attach Accept, Reject, Remove listeners for Head team management
+ */
+function attachStaffTeamReviewHandlers(container: HTMLElement, user: CurrentUser): void {
+  const reviewButtons = container.querySelectorAll('.head-review-btn');
+  const actionFeedback = document.getElementById('staff-panel-action-feedback');
+
+  reviewButtons.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const userId = btn.getAttribute('data-userid');
+      const decision = btn.getAttribute('data-decision') as 'approved' | 'rejected' | 'removed';
+      if (!userId || !decision) return;
+
+      btn.setAttribute('disabled', 'true');
+      btn.textContent = 'Updating...';
+
+      const res = await reviewTeamMemberRpc(userId, decision);
+      if (res.error) {
+        if (actionFeedback) {
+          actionFeedback.className = 'status-banner status-error';
+          actionFeedback.textContent = res.error;
+          actionFeedback.style.display = 'block';
+        }
+      } else {
+        if (actionFeedback) {
+          actionFeedback.className = 'status-banner status-success';
+          actionFeedback.textContent = `✓ Team member updated (${decision}).`;
+          actionFeedback.style.display = 'block';
+        }
+        if (user.teamId) {
+          const fresh = await fetchTeamMembers(user.teamId);
+          if (fresh.data) {
+            staffHeadTeamMembers = fresh.data;
+          }
+        }
+      }
+      renderStaffPanel(container, user);
+    });
   });
 }
 

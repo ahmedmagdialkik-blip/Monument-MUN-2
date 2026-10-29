@@ -2182,7 +2182,8 @@
 
       #view-committees,
       #view-apply,
-      #view-admin {
+      #view-admin,
+      #view-staff {
         padding-top: calc(56px + env(safe-area-inset-top) + 2rem);
         padding-bottom: 110px;
         max-width: 1300px;
@@ -3979,6 +3980,12 @@
     <div id="view-admin" class="app-view"></div>
 
     <!-- ====================================================
+         VIEW 4B: STAFF PANEL (ONLY /staff or #staff)
+         Zero links anywhere in the site or navigation.
+         ==================================================== -->
+    <div id="view-staff" class="app-view"></div>
+
+    <!-- ====================================================
          VIEW 5: HEAD DASHBOARD (#team-head or #/team-head)
          Dedicated to role 'head' (and admins)
          ==================================================== -->
@@ -4069,7 +4076,7 @@
          ---------------------------------------------------- -->
     <script type="module">
       import { supabase } from '/src/lib/supabase.ts';
-      import { initPortal, isAdminRoute, renderAdminRoute, renderTeamHeadRoute } from '/src/portal.ts';
+      import { initPortal, isAdminRoute, isStaffRoute, renderAdminRoute, renderStaffRoute, renderTeamHeadRoute } from '/src/portal.ts';
       import { getCachedUser, isAuthReady, signUpWithEmail, signInWithEmail, signOut, subscribeAuth } from '/src/auth.ts';
 
       (function () {
@@ -4250,11 +4257,12 @@
         window.addEventListener('resize', debounce(fitHeroWordmark, 150));
         window.addEventListener('orientationchange', debounce(fitHeroWordmark, 150));
 
-        // 2. HASH ROUTING (#/ or #/committees or #/apply or hidden /admin and #team-head)
+        // 2. HASH ROUTING (#/ or #/committees or #/apply or hidden /admin, /staff, and #team-head)
         const viewHome = document.getElementById('view-home');
         const viewCommittees = document.getElementById('view-committees');
         const viewApply = document.getElementById('view-apply');
         const viewAdmin = document.getElementById('view-admin');
+        const viewStaff = document.getElementById('view-staff');
         const viewTeamHead = document.getElementById('view-team-head');
         const dotNav = document.getElementById('dot-nav');
         const mobileCounter = document.getElementById('mobile-stop-counter');
@@ -4263,9 +4271,10 @@
           const path = window.location.pathname.toLowerCase();
           const cleanHash = (hash || window.location.hash || '').replace(/^#\/?/, '').toLowerCase();
           const isTargetAdmin = path.endsWith('/admin') || path.endsWith('/admin/') || cleanHash === 'admin';
+          const isTargetStaff = path.endsWith('/staff') || path.endsWith('/staff/') || cleanHash === 'staff';
           const isTargetTeamHead = path.endsWith('/team-head') || path.endsWith('/team-head/') || cleanHash === 'team-head' || cleanHash === 'my-team';
 
-          [viewHome, viewCommittees, viewApply, viewAdmin, viewTeamHead].forEach((view) => {
+          [viewHome, viewCommittees, viewApply, viewAdmin, viewStaff, viewTeamHead].forEach((view) => {
             if (view) view.classList.remove('active-view');
           });
 
@@ -4277,6 +4286,15 @@
             if (mobileCounter) mobileCounter.classList.remove('visible');
             lockBackgroundToStop6();
             renderAdminRoute(getCachedUser(), !isAuthReady());
+            return;
+          }
+
+          if (isTargetStaff) {
+            document.body.classList.add('admin-mode-active');
+            if (dotNav) dotNav.classList.add('nav-hidden');
+            if (mobileCounter) mobileCounter.classList.remove('visible');
+            lockBackgroundToStop6();
+            renderStaffRoute(getCachedUser(), !isAuthReady());
             return;
           }
 
