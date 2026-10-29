@@ -105,42 +105,55 @@ async function syncUserState(sessionUser: { id: string; email?: string; user_met
 /**
  * Instant sign up with email and password without confirmation step.
  * Automatically logs the user in immediately.
+ * Validates with is_email_allowed RPC before signing up.
  */
 export async function signUpWithEmail(
   fullName: string,
   email: string,
-  password: string,
-  ebPosition?: string
+  password: string
 ): Promise<{ user: CurrentUser | null; error?: string }> {
   try {
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = fullName.trim();
-    const cleanPosition = ebPosition?.trim() || null;
 
+    // 1. Verify that email is on the Secretariat allowlist
+    const { data: allowed, error: rpcError } = await supabase.rpc('is_email_allowed', {
+      p_email: cleanEmail
+    });
+
+    if (rpcError || !allowed) {
+      return {
+        user: null,
+        error: "You can't sign up because your email wasn't found in the Monument MUN team list. Use the exact email you gave the Secretariat, or contact an admin."
+      };
+    }
+
+    // 2. Perform Supabase Auth SignUp
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: cleanEmail,
       password,
       options: {
         data: {
-          full_name: cleanName,
-          ...(cleanPosition ? { eb_position: cleanPosition } : {})
+          full_name: cleanName
         }
       }
     });
 
     if (signUpError) {
+      if (
+        signUpError.message.includes('Database error saving new user') ||
+        signUpError.message.toLowerCase().includes('database error saving new user')
+      ) {
+        return {
+          user: null,
+          error: "You can't sign up because your email wasn't found in the Monument MUN team list. Use the exact email you gave the Secretariat, or contact an admin."
+        };
+      }
       return { user: null, error: signUpError.message };
     }
 
-    const userId = signUpData.session?.user?.id || signUpData.user?.id;
-
     // If session is already returned, immediately sync
     if (signUpData.session?.user) {
-      if (cleanPosition && userId) {
-        try {
-          await supabase.from('profiles').update({ eb_position: cleanPosition }).eq('id', userId);
-        } catch {}
-      }
       await syncUserState(signUpData.session.user);
       return { user: currentUserState };
     }
@@ -153,11 +166,6 @@ export async function signUpWithEmail(
 
     if (signInError) {
       if (signUpData.user) {
-        if (cleanPosition && userId) {
-          try {
-            await supabase.from('profiles').update({ eb_position: cleanPosition }).eq('id', userId);
-          } catch {}
-        }
         await syncUserState(signUpData.user);
         return { user: currentUserState };
       }
@@ -165,11 +173,6 @@ export async function signUpWithEmail(
     }
 
     if (signInData.user) {
-      if (cleanPosition && signInData.user.id) {
-        try {
-          await supabase.from('profiles').update({ eb_position: cleanPosition }).eq('id', signInData.user.id);
-        } catch {}
-      }
       await syncUserState(signInData.user);
       return { user: currentUserState };
     }

@@ -16,11 +16,11 @@
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <!-- Google Fonts: Archivo (extended display) & Source Serif 4 (editorial body) -->
+    <!-- Google Fonts: Cinzel (display), Cormorant Garamond (editorial serif), Montserrat (sans) & Inter (fallback) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..900;1,62..125,400..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Montserrat:wght@300;400;500;600;700&family=Inter:wght@400;600&display=swap"
       rel="stylesheet"
     />
 
@@ -61,8 +61,9 @@
          TOKENS & THEME
          ---------------------------------------------------- */
       :root {
-        --font-display: 'Archivo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        --font-serif: 'Source Serif 4', Georgia, Cambria, 'Times New Roman', Times, serif;
+        --font-display: 'Cinzel', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        --font-serif: 'Cormorant Garamond', Georgia, Cambria, 'Times New Roman', Times, serif;
+        --font-sans: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
         /* Easing & Timing tokens */
         --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -77,14 +78,13 @@
         --monument-ink: #3b4a58;
         --text-color: #1d2a36;
 
-        /* Design tokens: Gold STRICTLY CTA & Current/Active state only */
+        /* Monument MUN Luxury Gold & Glass Tokens */
         --gold: #d9b45a;
-        --limestone: #eae7df;
-        --limestone-muted: #b8b4a8;
-        --limestone-faint: rgba(234, 231, 223, 0.35);
-        --border-subtle: rgba(234, 231, 223, 0.14);
-        --navy-surface: #0b0e1d;
-        --radius-ui: 8px;
+        --gold-light: #f3d88a;
+        --gold-faint: rgba(217, 180, 90, 0.15);
+        --border-gold: rgba(217, 180, 90, 0.28);
+        --bg-navy: #080a1e;
+        --bg-card: rgba(15, 20, 48, 0.75);
       }
 
       /* ----------------------------------------------------
@@ -137,16 +137,16 @@
         max-width: 68ch;
       }
 
-      /* Typography Scale (Editorial & Clean) */
+      /* Typography Scale (Monument MUN Luxury & Roman Monument Theme) */
       .eyebrow {
         font-family: var(--font-display);
-        font-size: 0.85rem;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        text-transform: none;
-        color: var(--limestone-muted);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--gold);
         display: block;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.6rem;
       }
 
       .eyebrow:empty {
@@ -156,48 +156,51 @@
       .section-heading {
         font-family: var(--font-display);
         font-weight: 800;
-        font-size: clamp(2.2rem, 7vw, 3.6rem);
-        line-height: 1.08;
-        letter-spacing: -0.025em;
-        text-transform: none;
+        font-size: clamp(2rem, 6vw, 3.2rem);
+        line-height: 1.15;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
         margin-bottom: 1.25rem;
-        color: inherit;
+        color: #ffffff;
       }
 
       .section-heading em,
       .section-heading i {
-        font-family: inherit;
-        font-style: normal;
-        font-weight: inherit;
+        font-family: var(--font-serif);
+        font-style: italic;
+        font-weight: 400;
+        color: var(--gold);
         text-transform: none;
-        color: inherit;
-        letter-spacing: inherit;
+        letter-spacing: 0.02em;
       }
 
       .monument-heading {
         font-family: var(--font-display);
         font-size: clamp(2.2rem, 8vw, 3.8rem);
-        font-weight: 800;
+        font-weight: 900;
         line-height: 1.05;
-        letter-spacing: -0.025em;
-        text-transform: none;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
         color: var(--text-color);
         margin-bottom: 0.4rem;
       }
 
       .committee-name,
       .apply-role-name,
-      .board-name,
       .timeline-title {
-        font-size: 1.25rem;
+        font-size: 1.35rem;
         font-family: var(--font-display);
         font-weight: 800;
-        letter-spacing: -0.01em;
-        text-transform: none;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
       }
 
       .section-divider {
-        display: none !important;
+        display: block;
+        font-size: 1.2rem;
+        color: var(--gold);
+        text-align: center;
+        margin: 0 auto 1rem auto;
       }
 
       /* ----------------------------------------------------
@@ -512,7 +515,7 @@
       }
 
       /* ----------------------------------------------------
-         BUTTONS & CONTROLS (8px radius, gold strictly for CTA)
+         BUTTONS & CONTROLS (Restored Luxury Gold Styling)
          ---------------------------------------------------- */
       .btn-interactive,
       .apply-pill-btn,
@@ -527,8 +530,7 @@
         cursor: pointer;
         user-select: none;
         text-decoration: none;
-        border-radius: var(--radius-ui);
-        transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease), color var(--fast) var(--ease), opacity var(--fast) var(--ease);
+        transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease), color var(--fast) var(--ease), box-shadow var(--fast) var(--ease), transform var(--fast) var(--ease);
       }
 
       .btn-interactive:active,
@@ -554,51 +556,61 @@
 
       .apply-pill-btn {
         background: var(--gold);
-        color: #0b0e1d !important;
+        color: #080a1e !important;
         font-family: var(--font-display);
-        font-weight: 700;
-        letter-spacing: -0.01em;
-        text-transform: none;
-        padding: 0.7rem 1.45rem;
-        border-radius: var(--radius-ui);
+        font-weight: 800;
+        font-size: 0.75rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        padding: 0.65rem 1.4rem;
+        border-radius: 9999px;
         border: none;
+        box-shadow: 0 0 16px rgba(217, 180, 90, 0.4);
       }
 
       .apply-pill-btn:hover {
-        opacity: 0.92;
+        background: var(--gold-light);
+        box-shadow: 0 0 24px rgba(217, 180, 90, 0.65);
       }
 
       .hero-outline-btn {
-        background: transparent;
-        color: var(--text-color);
-        border: 1.5px solid currentColor;
-        padding: 0.75rem 1.5rem;
-        border-radius: var(--radius-ui);
+        background: rgba(8, 10, 30, 0.6);
+        color: var(--gold);
+        border: 1.5px solid var(--gold);
+        padding: 0.9rem 2rem;
+        border-radius: 9999px;
         font-family: var(--font-display);
+        font-size: 0.85rem;
         font-weight: 700;
-        letter-spacing: -0.01em;
-        text-transform: none;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        box-shadow: 0 0 16px rgba(217, 180, 90, 0.25);
       }
 
       .hero-outline-btn:hover {
-        background: rgba(0, 0, 0, 0.05);
+        background: var(--gold);
+        color: #080a1e;
+        box-shadow: 0 0 28px rgba(217, 180, 90, 0.55);
       }
 
       .form-submit-btn {
         width: 100%;
         min-height: 48px;
         background: var(--gold);
-        color: #0b0e1d;
+        color: #080a1e;
         border: none;
-        border-radius: var(--radius-ui);
+        border-radius: 12px;
         font-family: var(--font-display);
-        font-weight: 700;
-        letter-spacing: -0.01em;
-        text-transform: none;
+        font-size: 0.85rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        box-shadow: 0 0 16px rgba(217, 180, 90, 0.35);
       }
 
       .form-submit-btn:hover {
-        opacity: 0.92;
+        background: var(--gold-light);
+        box-shadow: 0 0 24px rgba(217, 180, 90, 0.6);
       }
 
       /* ----------------------------------------------------
@@ -687,14 +699,39 @@
       }
 
       /* ----------------------------------------------------
-         REVEAL ANIMATIONS (Quiet fade-in for headings only)
+         REVEAL ANIMATIONS & TILT CARD EFFECTS
          ---------------------------------------------------- */
       .reveal-item {
         opacity: 0;
-        transition: opacity 0.5s var(--ease);
+        transform: translateY(22px);
+        transition: opacity 0.75s cubic-bezier(0.25, 0.1, 0.25, 1), transform 0.75s cubic-bezier(0.25, 0.1, 0.25, 1);
+        will-change: opacity, transform;
       }
 
       .reveal-item.revealed {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .tilt-card {
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.18s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+      }
+
+      .tilt-card::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(217, 180, 90, 0.18), transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .tilt-card:hover::before {
         opacity: 1;
       }
 
@@ -967,30 +1004,38 @@
       }
 
       .committee-block {
-        background: transparent;
-        border: none;
-        border-left: 2px solid color-mix(in srgb, var(--monument-ink) 25%, transparent);
-        padding: 0.4rem 0 0.4rem 1.25rem;
-        border-radius: 0;
-        width: 100%;
-        color: var(--text-color);
+        margin-top: 1.25rem;
+        padding: 1.25rem 1.4rem;
+        background: rgba(12, 16, 38, 0.72);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid var(--border-gold);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(217, 180, 90, 0.2);
+        max-width: 540px;
+        color: #ffffff;
+        transition: transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease), border-color var(--fast) var(--ease);
+      }
+
+      .committee-block:hover {
+        border-color: var(--gold);
+        box-shadow: 0 12px 38px rgba(0, 0, 0, 0.5), 0 0 24px rgba(217, 180, 90, 0.25);
       }
 
       .committee-block .committee-name {
-        color: var(--text-color);
+        color: #ffffff;
         font-size: clamp(1.35rem, 3.5vw, 1.8rem);
         font-weight: 800;
-        text-transform: none;
-        letter-spacing: -0.02em;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
         margin-bottom: 0.35rem;
       }
 
       .committee-agenda {
         font-size: 1.05rem;
         line-height: 1.6;
-        font-style: normal;
-        color: var(--text-color);
-        opacity: 0.88;
+        font-style: italic;
+        color: rgba(242, 244, 255, 0.9);
         max-width: 60ch;
       }
 
@@ -999,9 +1044,7 @@
         font-style: normal;
         font-size: inherit;
         font-weight: 700;
-        letter-spacing: normal;
-        text-transform: none;
-        color: var(--text-color);
+        color: var(--gold);
         display: inline;
         margin-right: 0.35rem;
       }
@@ -1198,42 +1241,49 @@
       }
 
       /* ----------------------------------------------------
-         STAT CARDS (Clean editorial stats, no boxes)
+         STAT CARDS (Glass Tiles with 3D Tilt & Glow)
          ---------------------------------------------------- */
       .stat-cards-grid {
         display: grid;
         grid-template-columns: 1fr;
         gap: 1.5rem;
-        margin-top: 2rem;
-        border-top: 1px solid var(--border-subtle);
-        padding-top: 2rem;
+        margin-top: 2.5rem;
       }
 
       .stat-card {
-        padding: 0.5rem 0;
-        background: transparent;
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
+        padding: 1.75rem 1.4rem;
+        background: rgba(14, 18, 44, 0.7);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-gold);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
         text-align: center;
+        transition: transform var(--fast) var(--ease), border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+      }
+
+      .stat-card:hover {
+        border-color: var(--gold);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 26px rgba(217, 180, 90, 0.22);
       }
 
       .stat-number {
         font-family: var(--font-display);
         font-size: clamp(2.5rem, 6vw, 3.5rem);
         font-weight: 800;
-        color: var(--limestone);
+        color: var(--gold);
         line-height: 1;
         margin-bottom: 0.35rem;
-        letter-spacing: -0.03em;
+        letter-spacing: 0.02em;
       }
 
       .stat-label {
         font-family: var(--font-display);
         font-size: 0.95rem;
         font-weight: 700;
-        text-transform: none;
-        color: var(--limestone);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #ffffff;
         margin-bottom: 0.25rem;
       }
 
@@ -1241,24 +1291,24 @@
         font-family: var(--font-serif);
         font-size: 0.85rem;
         font-style: italic;
-        color: var(--limestone-muted);
+        color: rgba(242, 244, 255, 0.75);
       }
 
       /* ----------------------------------------------------
-         EXECUTIVE BOARD (Rectangular photos, plain text, no card box)
+         EXECUTIVE BOARD (Apple Website Product Tiles)
          ---------------------------------------------------- */
       #board {
         padding-top: 5rem;
         padding-bottom: 4.5rem;
         max-width: 1280px;
         margin: 0 auto;
-        text-align: left;
+        text-align: center;
       }
 
       .board-grid {
         display: grid;
         grid-template-columns: 1fr;
-        gap: 2rem;
+        gap: 1.5rem;
         margin-top: 2.5rem;
       }
 
@@ -1266,7 +1316,7 @@
       @media (min-width: 640px) {
         .board-grid {
           grid-template-columns: repeat(2, 1fr);
-          gap: 2rem;
+          gap: 1.5rem;
         }
       }
 
@@ -1274,90 +1324,99 @@
       @media (min-width: 1100px) {
         .board-grid {
           grid-template-columns: repeat(4, 1fr);
-          gap: 2rem;
+          gap: 1.75rem;
         }
       }
 
-      .board-card {
-        padding: 0;
-        background: transparent;
+      .sec-card {
+        background: #1d1d1f;
         border: none;
-        border-radius: 0;
-        box-shadow: none;
+        outline: none;
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
         text-align: left;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+        transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
       }
 
-      .board-avatar {
+      .sec-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+      }
+
+      .sec-photo-wrap {
         width: 100%;
         aspect-ratio: 4 / 5;
-        max-width: 100%;
-        height: auto;
-        border-radius: 0;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid var(--border-subtle);
-        box-shadow: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1rem;
-        color: var(--limestone-muted);
-        font-family: var(--font-display);
-        font-weight: 700;
-        font-size: 1.5rem;
-        overflow: hidden;
         position: relative;
+        overflow: hidden;
+        background: #151516;
       }
 
-      .board-avatar-img {
+      .sec-photo {
         width: 100%;
         height: 100%;
+        aspect-ratio: 4 / 5;
         object-fit: cover;
-        border-radius: 0;
         display: block;
       }
 
-      .board-avatar-fallback {
+      .sec-fallback {
         width: 100%;
         height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 0;
-        color: var(--limestone-muted);
+        background: linear-gradient(135deg, #2a2a2d 0%, #1d1d1f 100%);
+        color: #86868b;
+        font-size: clamp(3rem, 6vw, 4.5rem);
+        font-weight: 600;
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+        user-select: none;
       }
 
-      .board-role {
-        font-family: var(--font-serif);
-        font-size: 0.9rem;
-        font-style: italic;
-        color: var(--limestone-muted);
-        text-transform: none;
-        letter-spacing: normal;
-        margin-bottom: 0.2rem;
-        overflow-wrap: normal !important;
-        word-break: normal !important;
+      .sec-info {
+        padding: 1.4rem;
+        display: flex;
+        flex-direction: column;
+        background: #1d1d1f;
+        flex: 1;
       }
 
-      .board-name {
-        font-family: var(--font-display);
-        font-size: 1.3rem;
-        font-weight: 800;
+      .sec-role {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+        font-size: 13px;
+        font-weight: 600;
+        color: #86868b;
         text-transform: none;
-        letter-spacing: -0.015em;
-        color: var(--limestone);
+        letter-spacing: 0;
         margin-bottom: 0.35rem;
+        white-space: normal;
         overflow-wrap: normal !important;
         word-break: normal !important;
       }
 
-      .board-note {
-        font-size: 0.88rem;
-        line-height: 1.5;
-        color: var(--limestone-muted);
-        max-width: 36ch;
+      .sec-name {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+        font-size: 1.6rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: #f5f5f7;
+        line-height: 1.1;
+        margin-bottom: 0.5rem;
+        white-space: normal;
+        overflow-wrap: normal !important;
+        word-break: normal !important;
+      }
+
+      .sec-note {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Arial, sans-serif;
+        font-size: 13px;
+        line-height: 1.4;
+        color: #a1a1a6;
+        margin-top: 0.45rem;
       }
 
       /* ----------------------------------------------------
@@ -1819,26 +1878,34 @@
       }
 
       .team-dept-card {
-        padding: 0 0 1.5rem 0;
-        background: transparent;
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
+        background: rgba(14, 18, 44, 0.75);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-gold);
+        border-radius: 20px;
+        padding: 1.6rem 1.4rem;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
+        transition: transform var(--fast) var(--ease), border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+      }
+
+      .team-dept-card:hover {
+        border-color: var(--gold);
+        box-shadow: 0 12px 38px rgba(0, 0, 0, 0.55), 0 0 22px rgba(217, 180, 90, 0.2);
       }
 
       .dept-eyebrow {
         font-family: var(--font-display);
-        font-size: 1.15rem;
-        font-weight: 800;
-        letter-spacing: -0.015em;
-        text-transform: none;
-        color: var(--limestone);
-        margin-bottom: 0.85rem;
-        border-bottom: 1px solid var(--border-subtle);
-        padding-bottom: 0.45rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 1rem;
+        border-bottom: 1px solid rgba(217, 180, 90, 0.2);
+        padding-bottom: 0.6rem;
         overflow-wrap: normal !important;
         word-break: normal !important;
       }
@@ -1846,20 +1913,30 @@
       .dept-members-wrap {
         display: flex;
         flex-direction: column;
-        gap: 0;
+        gap: 0.85rem;
         flex: 1;
       }
 
       .dept-member-unit {
         display: flex;
-        align-items: baseline;
-        gap: 0.75rem;
-        padding: 0.65rem 0;
-        border-bottom: 1px solid rgba(234, 231, 223, 0.08);
+        align-items: center;
+        gap: 0.85rem;
       }
 
       .dept-avatar-badge {
-        display: none;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: rgba(217, 180, 90, 0.15);
+        border: 1px solid var(--gold);
+        color: var(--gold);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-display);
+        font-size: 0.75rem;
+        font-weight: 700;
+        flex-shrink: 0;
       }
 
       .dept-member-text {
@@ -1868,11 +1945,11 @@
       }
 
       .dept-role-title {
-        font-size: 0.82rem;
-        color: var(--limestone-muted);
+        font-size: 0.85rem;
+        color: rgba(242, 244, 255, 0.7);
         font-family: var(--font-serif);
         font-style: italic;
-        line-height: 1.35;
+        line-height: 1.2;
         margin-bottom: 0.15rem;
         text-transform: none;
         overflow-wrap: normal !important;
@@ -1880,10 +1957,10 @@
       }
 
       .dept-person-name {
-        font-family: var(--font-display);
+        font-family: var(--font-sans);
         font-weight: 700;
-        font-size: 1.05rem;
-        color: var(--limestone);
+        font-size: 0.95rem;
+        color: #ffffff;
         line-height: 1.3;
         text-transform: none;
         overflow-wrap: normal !important;
@@ -1895,8 +1972,8 @@
          ---------------------------------------------------- */
       #updates {
         padding-top: 5rem;
-        padding-bottom: 110px;
-        max-width: 1100px;
+        padding-bottom: 5rem;
+        max-width: 1200px;
         margin: 0 auto;
       }
 
@@ -1904,6 +1981,12 @@
         display: grid;
         grid-template-columns: 1fr;
         gap: 2.5rem;
+      }
+
+      @media (min-width: 800px) {
+        .updates-split {
+          grid-template-columns: 1fr 1fr;
+        }
       }
 
       .update-cards-container {
@@ -1914,34 +1997,49 @@
       }
 
       .update-glass-card {
-        padding: 0.5rem 0 0.5rem 1.25rem;
-        background: transparent;
-        border: none;
-        border-left: 2px solid var(--border-subtle);
-        border-radius: 0;
-        box-shadow: none;
+        padding: 1.5rem 1.6rem;
+        background: rgba(14, 18, 44, 0.75);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-gold);
+        border-radius: 18px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        transition: transform var(--fast) var(--ease), border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+      }
+
+      .update-glass-card:hover {
+        border-color: var(--gold);
+        box-shadow: 0 12px 38px rgba(0, 0, 0, 0.55), 0 0 20px rgba(217, 180, 90, 0.2);
       }
 
       .update-date-badge {
         display: inline-block;
-        background: transparent;
-        border: 1px solid var(--border-subtle);
-        color: var(--limestone-muted);
+        background: rgba(217, 180, 90, 0.15);
+        border: 1px solid var(--gold);
+        color: var(--gold);
         font-family: var(--font-display);
-        font-size: 0.76rem;
-        font-weight: 600;
-        text-transform: none;
-        padding: 0.2rem 0.6rem;
-        border-radius: var(--radius-ui);
-        margin-bottom: 0.45rem;
+        font-size: 0.74rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 0.25rem 0.7rem;
+        border-radius: 9999px;
+        margin-bottom: 0.75rem;
       }
 
       .suggestion-box {
-        padding: 2rem 1.6rem;
-        background: var(--navy-surface);
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-ui);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        padding: 2.2rem 1.8rem;
+        background: rgba(14, 18, 44, 0.75);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-gold);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+        transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+      }
+
+      .suggestion-box:hover {
+        border-color: var(--gold);
       }
 
       /* ----------------------------------------------------
@@ -1991,24 +2089,32 @@
         font-family: var(--font-display);
         font-size: 0.88rem;
         font-weight: 700;
-        text-transform: none;
-        color: var(--limestone);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--gold);
         margin-bottom: 1.75rem;
         display: inline-flex;
         gap: 0.45rem;
       }
 
-      /* Committees Full View: Full-width rows with large committee name, agenda in sentence, no card box */
+      /* Committees Full View: Glass Cards */
       .committee-card-full {
-        padding: 2.2rem 0;
-        background: transparent;
-        border: none;
-        border-bottom: 1px solid var(--border-subtle);
-        border-radius: 0;
-        box-shadow: none;
+        background: rgba(14, 18, 44, 0.8);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-gold);
+        border-radius: 22px;
+        padding: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        justify-content: space-between;
+        transition: transform var(--fast) var(--ease), border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+      }
+
+      .committee-card-full:hover {
+        border-color: var(--gold);
+        box-shadow: 0 14px 44px rgba(0, 0, 0, 0.6), 0 0 26px rgba(217, 180, 90, 0.25);
       }
 
       .comm-icon-wrapper {
@@ -2023,57 +2129,83 @@
       .comm-icon-svg {
         height: 100%;
         width: auto;
-        fill: var(--limestone-muted);
+        fill: var(--gold);
         opacity: 0.9;
       }
 
       .comm-meta-grid {
-        margin-top: 0.75rem;
-        padding-top: 0.75rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(217, 180, 90, 0.2);
         display: flex;
         flex-wrap: wrap;
         gap: 1.5rem;
         font-family: var(--font-display);
-        font-size: 0.85rem;
-        font-weight: 600;
-        text-transform: none;
-        color: var(--limestone-muted);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(242, 244, 255, 0.75);
       }
 
       .comm-bg-guide-badge {
         display: inline-block;
-        background: transparent;
-        color: var(--limestone-muted);
-        border: 1px solid var(--border-subtle);
-        padding: 0.2rem 0.65rem;
-        border-radius: var(--radius-ui);
-        font-size: 0.78rem;
+        background: rgba(217, 180, 90, 0.15);
+        color: var(--gold);
+        border: 1px solid var(--gold);
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+      }
+
+      .apply-status-cards {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.75rem;
+        margin-top: 2rem;
+      }
+
+      @media (min-width: 768px) {
+        .apply-status-cards {
+          grid-template-columns: repeat(3, 1fr);
+        }
       }
 
       .apply-card {
-        padding: 1.85rem 1.5rem;
-        background: var(--navy-surface);
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-ui);
+        background: rgba(14, 18, 44, 0.78);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid var(--border-gold);
+        border-radius: 20px;
+        padding: 2rem 1.6rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+        text-align: center;
+        transition: transform var(--fast) var(--ease), border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+      }
+
+      .apply-card:hover {
+        border-color: var(--gold);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 24px rgba(217, 180, 90, 0.22);
       }
 
       .apply-role-icon {
-        font-size: 1.4rem;
-        color: var(--limestone-muted);
-        margin-bottom: 0.65rem;
+        font-size: 1.8rem;
+        color: var(--gold);
+        margin-bottom: 0.75rem;
       }
 
       .apply-status-pill {
         display: inline-block;
-        background: transparent;
-        border: 1px solid var(--border-subtle);
-        color: var(--limestone-muted);
+        background: rgba(217, 180, 90, 0.15);
+        border: 1px solid var(--gold);
+        color: var(--gold);
         font-family: var(--font-display);
         font-size: 0.76rem;
-        font-weight: 600;
-        text-transform: none;
-        padding: 0.25rem 0.75rem;
-        border-radius: var(--radius-ui);
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 0.3rem 0.85rem;
+        border-radius: 9999px;
         margin-top: 0.5rem;
       }
 
@@ -2853,9 +2985,8 @@
           border-color: var(--limestone-muted);
         }
 
-        .tilt-card {
-          /* 3D tilt removed per design specification */
-          transform: none !important;
+        .tilt-card:hover {
+          border-color: var(--gold);
         }
 
         .footer-links-list a:hover {
@@ -3129,7 +3260,6 @@
           <li><a href="#/committees" class="route-link">Committees</a></li>
           <li><a href="#about" class="section-link">About</a></li>
           <li><a href="#board" class="section-link">EB</a></li>
-          <li><a href="#eb-portal" class="section-link eb-header-pill" id="header-eb-pill">EB Portal</a></li>
           <li><a href="#updates" class="section-link">Updates</a></li>
           <li id="header-auth-container">
             <a href="#/apply" class="apply-pill-btn magnetic-btn route-link">
@@ -3151,7 +3281,6 @@
       <a href="#/committees" class="mobile-link route-link">Committees</a>
       <a href="#about" class="mobile-link section-link">About Monument MUN</a>
       <a href="#board" class="mobile-link section-link">EB Members</a>
-      <a href="#eb-portal" class="mobile-link section-link">EB Portal & Sign Up</a>
       <a href="#updates" class="mobile-link section-link">Live Updates</a>
       <a href="#suggestions" class="mobile-link section-link">Suggestions</a>
       <a href="#/apply" class="apply-pill-btn mobile-link route-link" style="margin-top: 1rem;">Apply Now</a>
@@ -3214,14 +3343,14 @@
             <span class="hero-line hero-line-2" id="line-mun">MUN</span>
           </h1>
 
-          <p class="hero-tagline">Where every monument has a seat.</p>
-          <p class="hero-subline">Elegance in international discourse</p>
+          <p class="hero-tagline">WHERE EVERY MONUMENT HAS A SEAT.</p>
+          <p class="hero-subline">elegance in international discourse</p>
 
           <div class="hero-dates-venue">
-            <span>Dates and venue will be announced soon.</span>
+            <span>Dates TBA · Venue TBA</span>
           </div>
 
-          <a href="#/apply" class="apply-pill-btn hero-outline-btn route-link">
+          <a href="#/apply" class="apply-pill-btn magnetic-btn hero-outline-btn route-link">
             Apply to Monument MUN
           </a>
         </div>
@@ -3235,24 +3364,26 @@
       <!-- 2. DUAL-TRACK CONTINUOUS MARQUEE -->
       <div class="marquee-wrapper" id="marquee-section" aria-hidden="true">
         <div class="marquee-track track-1" id="marquee-track-1">
-          <div class="marquee-item">Monument MUN <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Model United Nations <span class="sep">·</span> Socials to be announced <span class="sep">·</span></div>
-          <div class="marquee-item">Monument MUN <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Model United Nations <span class="sep">·</span> Socials to be announced <span class="sep">·</span></div>
-          <div class="marquee-item">Monument MUN <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Model United Nations <span class="sep">·</span> Socials to be announced <span class="sep">·</span></div>
-          <div class="marquee-item">Monument MUN <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Model United Nations <span class="sep">·</span> Socials to be announced <span class="sep">·</span></div>
+          <div class="marquee-item">MONUMENT MUN <span class="sep">✦</span> WHERE EVERY MONUMENT HAS A SEAT <span class="sep">✦</span> DATES TBA <span class="sep">✦</span> MODEL UNITED NATIONS <span class="sep">✦</span> SOCIALS TBA <span class="sep">✦</span></div>
+          <div class="marquee-item">MONUMENT MUN <span class="sep">✦</span> WHERE EVERY MONUMENT HAS A SEAT <span class="sep">✦</span> DATES TBA <span class="sep">✦</span> MODEL UNITED NATIONS <span class="sep">✦</span> SOCIALS TBA <span class="sep">✦</span></div>
+          <div class="marquee-item">MONUMENT MUN <span class="sep">✦</span> WHERE EVERY MONUMENT HAS A SEAT <span class="sep">✦</span> DATES TBA <span class="sep">✦</span> MODEL UNITED NATIONS <span class="sep">✦</span> SOCIALS TBA <span class="sep">✦</span></div>
+          <div class="marquee-item">MONUMENT MUN <span class="sep">✦</span> WHERE EVERY MONUMENT HAS A SEAT <span class="sep">✦</span> DATES TBA <span class="sep">✦</span> MODEL UNITED NATIONS <span class="sep">✦</span> SOCIALS TBA <span class="sep">✦</span></div>
         </div>
 
         <div class="marquee-track track-2" id="marquee-track-2">
-          <div class="marquee-item">Monument Model United Nations <span class="sep">·</span> International diplomacy <span class="sep">·</span> Global discourse <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span></div>
-          <div class="marquee-item">Monument Model United Nations <span class="sep">·</span> International diplomacy <span class="sep">·</span> Global discourse <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span></div>
-          <div class="marquee-item">Monument Model United Nations <span class="sep">·</span> International diplomacy <span class="sep">·</span> Global discourse <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span></div>
-          <div class="marquee-item">Monument Model United Nations <span class="sep">·</span> International diplomacy <span class="sep">·</span> Global discourse <span class="sep">·</span> Dates to be announced <span class="sep">·</span> Where every monument has a seat <span class="sep">·</span></div>
+          <div class="marquee-item">MONUMENT MODEL UNITED NATIONS <span class="sep">✦</span> INTERNATIONAL DIPLOMACY <span class="sep">✦</span> GLOBAL DISCOURSE <span class="sep">✦</span> DATES TBA <span class="sep">✦</span> WHERE EVERY MONUMENT HAS A SEAT <span class="sep">✦</span></div>
+          <div class="marquee-item">MONUMENT MODEL UNITED NATIONS <span class="sep">✦</span> INTERNATIONAL DIPLOMACY <span class="sep">✦</span> GLOBAL DISCOURSE <span class="sep">✦</span> DATES TBA <span class="sep">✦</span> WHERE EVERY MONUMENT HAS A SEAT <span class="sep">✦</span></div>
+          <div class="marquee-item">MONUMENT MODEL UNITED NATIONS <span class="sep">✦</span> INTERNATIONAL DIPLOMACY <span class="sep">✦</span> GLOBAL DISCOURSE <span class="sep">✦</span> DATES TBA <span class="sep">✦</span> WHERE EVERY MONUMENT HAS A SEAT <span class="sep">✦</span></div>
+          <div class="marquee-item">MONUMENT MODEL UNITED NATIONS <span class="sep">✦</span> INTERNATIONAL DIPLOMACY <span class="sep">✦</span> GLOBAL DISCOURSE <span class="sep">✦</span> DATES TBA <span class="sep">✦</span> WHERE EVERY MONUMENT HAS A SEAT <span class="sep">✦</span></div>
         </div>
       </div>
 
       <!-- 3. ABOUT SECTION -->
       <section id="about">
+        <div class="section-divider">✦</div>
         <div class="about-container reveal-item">
-          <h2 class="section-heading word-reveal-heading">About Monument MUN</h2>
+          <span class="eyebrow">The Vision</span>
+          <h2 class="section-heading word-reveal-heading">ABOUT <em>MONUMENT MUN.</em></h2>
           <p class="about-lead">
             A youth-led Model United Nations conference that merges diplomatic tradition with contemporary elegance, born from a passion for meaningful international discourse, bringing together ambitious young minds to engage in high-calibre debate, forge coalitions and leave a lasting mark on tomorrow's world.
           </p>
@@ -3267,15 +3398,15 @@
         <!-- STOP 0: Great Wall of China -->
         <section class="committee-stop" id="stop-0" data-index="0">
           <div class="stop-content-wrapper reveal-item">
-            <span class="stop-badge">Stop 1 of 7</span>
-            <h2 class="monument-heading word-reveal-heading">Great Wall of China</h2>
+            <span class="stop-badge">Stop 01 · 07</span>
+            <h2 class="monument-heading word-reveal-heading">GREAT WALL OF <em>CHINA.</em></h2>
             <p class="monument-location">China</p>
             <p class="monument-atmosphere">
               Centuries of fortified ramparts and watchtowers follow mountain ridges, marking sovereign boundaries through history.
             </p>
 
-            <div class="committee-block">
-              <h3 class="committee-name">Security Council</h3>
+            <div class="committee-block tilt-card">
+              <h3 class="committee-name">SECURITY COUNCIL</h3>
               <div class="committee-agenda">
                 <strong>Agenda:</strong> Disputed borders and the use of force along them.
               </div>
@@ -3286,15 +3417,15 @@
         <!-- STOP 1: Petra -->
         <section class="committee-stop" id="stop-1" data-index="1">
           <div class="stop-content-wrapper reveal-item">
-            <span class="stop-badge">Stop 2 of 7</span>
-            <h2 class="monument-heading word-reveal-heading">Petra</h2>
+            <span class="stop-badge">Stop 02 · 07</span>
+            <h2 class="monument-heading word-reveal-heading"><em>PETRA.</em></h2>
             <p class="monument-location">Jordan</p>
             <p class="monument-atmosphere">
               Rose-red sandstone canyons carved into monumental facades, commanding the vital crossroads of water and desert commerce.
             </p>
 
-            <div class="committee-block">
-              <h3 class="committee-name">Economic and Social Council</h3>
+            <div class="committee-block tilt-card">
+              <h3 class="committee-name">ECONOMIC &amp; SOCIAL COUNCIL (ECOSOC)</h3>
               <div class="committee-agenda">
                 <strong>Agenda:</strong> Shared water and trade routes in arid regions.
               </div>
@@ -3305,14 +3436,14 @@
         <!-- STOP 2: The Pyramids -->
         <section class="committee-stop" id="stop-2" data-index="2">
           <div class="stop-content-wrapper reveal-item">
-            <span class="stop-badge">Stop 3 of 7</span>
-            <h2 class="monument-heading word-reveal-heading">The Pyramids of Giza</h2>
+            <span class="stop-badge">Stop 03 · 07</span>
+            <h2 class="monument-heading word-reveal-heading">THE PYRAMIDS OF <em>GIZA.</em></h2>
             <p class="monument-location">Giza, Egypt</p>
             <p class="monument-atmosphere">
               The oldest wonder on the list and the only ancient one still standing.
             </p>
 
-            <div class="committee-block">
+            <div class="committee-block tilt-card">
               <h3 class="committee-name">UNESCO</h3>
               <div class="committee-agenda">
                 <strong>Agenda:</strong> Returning cultural heritage held in foreign museums.
@@ -3324,14 +3455,14 @@
         <!-- STOP 3: Eiffel Tower -->
         <section class="committee-stop" id="stop-3" data-index="3">
           <div class="stop-content-wrapper reveal-item">
-            <span class="stop-badge">Stop 4 of 7</span>
-            <h2 class="monument-heading word-reveal-heading">Eiffel Tower</h2>
+            <span class="stop-badge">Stop 04 · 07</span>
+            <h2 class="monument-heading word-reveal-heading">EIFFEL <em>TOWER.</em></h2>
             <p class="monument-location">Paris, France</p>
             <p class="monument-atmosphere">
               A beacon of iron engineering overlooking the urban heart of Europe, where environmental accords define the century ahead.
             </p>
 
-            <div class="committee-block">
+            <div class="committee-block tilt-card">
               <h3 class="committee-name">UNEP</h3>
               <div class="committee-agenda">
                 <strong>Agenda:</strong> Cutting emissions in the world's great cities.
@@ -3343,15 +3474,15 @@
         <!-- STOP 4: Chichén Itzá -->
         <section class="committee-stop" id="stop-4" data-index="4">
           <div class="stop-content-wrapper reveal-item">
-            <span class="stop-badge">Stop 5 of 7</span>
-            <h2 class="monument-heading word-reveal-heading">Chichén Itzá</h2>
+            <span class="stop-badge">Stop 05 · 07</span>
+            <h2 class="monument-heading word-reveal-heading">CHICHÉN <em>ITZÁ.</em></h2>
             <p class="monument-location">Mexico</p>
             <p class="monument-atmosphere">
               The stepped pyramid of El Castillo rises amidst the dense jungle canopy, aligned to equinox serpents and sacred ancestral memory.
             </p>
 
-            <div class="committee-block">
-              <h3 class="committee-name">Human Rights Council</h3>
+            <div class="committee-block tilt-card">
+              <h3 class="committee-name">UN HUMAN RIGHTS COUNCIL</h3>
               <div class="committee-agenda">
                 <strong>Agenda:</strong> Indigenous land rights and sacred sites.
               </div>
@@ -3362,14 +3493,14 @@
         <!-- STOP 5: Colosseum -->
         <section class="committee-stop" id="stop-5" data-index="5">
           <div class="stop-content-wrapper reveal-item">
-            <span class="stop-badge">Stop 6 of 7</span>
-            <h2 class="monument-heading word-reveal-heading">Colosseum</h2>
+            <span class="stop-badge">Stop 06 · 07</span>
+            <h2 class="monument-heading word-reveal-heading"><em>COLOSSEUM.</em></h2>
             <p class="monument-location">Rome, Italy</p>
             <p class="monument-atmosphere">
               Arched travertine tiers where the ancient arena commanded combat, now confronting the modern ethics of warfare and autonomous machinery.
             </p>
 
-            <div class="committee-block">
+            <div class="committee-block tilt-card">
               <h3 class="committee-name">DISEC</h3>
               <div class="committee-agenda">
                 <strong>Agenda:</strong> Autonomous weapons and human control.
@@ -3381,15 +3512,15 @@
         <!-- STOP 6: Taj Mahal -->
         <section class="committee-stop" id="stop-6" data-index="6">
           <div class="stop-content-wrapper reveal-item">
-            <span class="stop-badge">Stop 7 of 7</span>
-            <h2 class="monument-heading word-reveal-heading">Taj Mahal</h2>
+            <span class="stop-badge">Stop 07 · 07</span>
+            <h2 class="monument-heading word-reveal-heading">TAJ <em>MAHAL.</em></h2>
             <p class="monument-location">Agra, India</p>
             <p class="monument-atmosphere">
               An ivory-white marble monument to devotion, standing serene under a pale night sky as delegates champion universal equality.
             </p>
 
-            <div class="committee-block">
-              <h3 class="committee-name">UN Women</h3>
+            <div class="committee-block tilt-card">
+              <h3 class="committee-name">UN WOMEN</h3>
               <div class="committee-agenda">
                 <strong>Agenda:</strong> Access to education for girls.
               </div>
@@ -3404,12 +3535,13 @@
       <div class="dark-section-panel">
         <!-- 5. THE GLOBAL STAGE (CANVAS GLOBE & STATS) -->
         <section id="diplomacy">
-          <h2 class="section-heading word-reveal-heading">The global stage</h2>
+          <span class="eyebrow">The Global Stage</span>
+          <h2 class="section-heading word-reveal-heading">A WORLD OF <em>DIPLOMACY.</em></h2>
           <p style="font-size: 1.15rem; max-width: 760px; margin: 0 auto 0.75rem auto;" class="reveal-item">
             Delegates gather from every corner of the map to speak for nations, argue for principles and shape tomorrow's language.
           </p>
-          <p class="reveal-item" style="font-size: 0.95rem; color: var(--limestone-muted); margin: 0 auto 0.75rem auto;">
-            Dates and venue will be announced soon.
+          <p class="reveal-item" style="font-size: 0.95rem; color: var(--gold); margin: 0 auto 0.75rem auto;">
+            Venue TBA · 7 Committees · 2027
           </p>
 
           <div class="globe-stage-wrapper reveal-item">
@@ -3422,7 +3554,7 @@
           </div>
 
           <p class="globe-drag-hint reveal-item" id="globe-drag-hint">
-            Drag to rotate · Tap a location
+            ✦ Drag to rotate · Tap a location ✦
           </p>
 
           <div class="globe-chips-wrapper reveal-item" role="region" aria-label="Earth monument stops">
@@ -3466,17 +3598,17 @@
           </div>
 
           <div class="stat-cards-grid">
-            <div class="stat-card reveal-item">
+            <div class="stat-card tilt-card reveal-item">
               <div class="stat-number" data-target="7">0</div>
               <div class="stat-label">Committees</div>
               <div class="stat-sub">Across seven civilizational monuments</div>
             </div>
-            <div class="stat-card reveal-item">
+            <div class="stat-card tilt-card reveal-item">
               <div class="stat-number" data-text="2027">2027</div>
               <div class="stat-label">Conference year</div>
               <div class="stat-sub">Inaugural global session 2027 dates TBA</div>
             </div>
-            <div class="stat-card reveal-item">
+            <div class="stat-card tilt-card reveal-item">
               <div class="stat-number" data-text="TBA">TBA</div>
               <div class="stat-label">Venue</div>
               <div class="stat-sub">Host institution location announced soon</div>
@@ -3486,289 +3618,86 @@
 
         <!-- 6. EXECUTIVE BOARD -->
         <section id="board">
-          <h2 class="section-heading word-reveal-heading">Executive board</h2>
+          <span class="eyebrow">The People Behind It</span>
+          <h2 class="section-heading word-reveal-heading">EXECUTIVE <em>BOARD.</em></h2>
 
-          <span class="eyebrow" style="font-size: 0.85rem; margin-top: -0.5rem; color: var(--limestone-muted);">Secretariat</span>
+          <span class="eyebrow" style="font-size: 0.85rem; margin-top: -0.5rem; color: var(--gold);">Secretariat</span>
 
           <div class="board-grid">
             <!-- 1. Secretary-General (Rayan Abutair) -->
-            <div class="board-card reveal-item">
-              <div class="board-avatar">
+            <div class="sec-card reveal-item">
+              <div class="sec-photo-wrap">
                 <img
                   src="sg.jpg"
-                  alt="Rayan Abutair, Secretary-General"
-                  class="board-avatar-img"
+                  alt="Rayan Abutair"
+                  class="sec-photo"
                   style="object-position: 50% 25%;"
-                  onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='public/sg.jpg';}else{this.style.display='none';document.getElementById('sg-fallback').style.display='flex';}"
+                  onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='public/sg.jpg';}else{this.style.display='none';document.getElementById('sec-fallback-ra').style.display='flex';}"
                 />
-                <span id="sg-fallback" class="board-avatar-fallback" style="display: none;">RA</span>
+                <div id="sec-fallback-ra" class="sec-fallback" style="display: none;">RA</div>
               </div>
-              <span class="board-role">Secretary-General</span>
-              <h3 class="board-name">Rayan Abutair</h3>
-              <p class="board-note">Conference governance, external partnerships and assembly leadership.</p>
+              <div class="sec-info">
+                <div class="sec-role">Secretary-General</div>
+                <div class="sec-name">Rayan Abutair</div>
+                <div class="sec-note">Conference governance, external partnerships and assembly leadership.</div>
+              </div>
             </div>
 
             <!-- 2. Deputy Secretary-General (Lama Abdelsalam) -->
-            <div class="board-card reveal-item">
-              <div class="board-avatar">
+            <div class="sec-card reveal-item">
+              <div class="sec-photo-wrap">
                 <img
                   src="lama-abdelsalam.jpeg"
-                  alt="Lama Abdelsalam, Deputy Secretary-General"
-                  class="board-avatar-img"
+                  alt="Lama Abdelsalam"
+                  class="sec-photo"
                   style="object-position: center 20%;"
-                  onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='public/lama-abdelsalam.jpeg';}else{this.style.display='none';document.getElementById('dsg-fallback').style.display='flex';}"
+                  onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='public/lama-abdelsalam.jpeg';}else{this.style.display='none';document.getElementById('sec-fallback-la').style.display='flex';}"
                 />
-                <span id="dsg-fallback" class="board-avatar-fallback" style="display: none;">LA</span>
+                <div id="sec-fallback-la" class="sec-fallback" style="display: none;">LA</div>
               </div>
-              <span class="board-role">Deputy Secretary-General</span>
-              <h3 class="board-name">Lama Abdelsalam</h3>
-              <p class="board-note">Substantive coordination, crisis management and delegate hospitality.</p>
+              <div class="sec-info">
+                <div class="sec-role">Deputy Secretary-General</div>
+                <div class="sec-name">Lama Abdelsalam</div>
+                <div class="sec-note">Substantive coordination, crisis management and delegate hospitality.</div>
+              </div>
             </div>
 
             <!-- 3. Under-Secretary-General (Mazen Alaa) -->
-            <div class="board-card reveal-item">
-              <div class="board-avatar">
+            <div class="sec-card reveal-item">
+              <div class="sec-photo-wrap">
                 <img
                   src="mazen-alaa.jpg"
-                  alt="Mazen Alaa, Under-Secretary-General"
-                  class="board-avatar-img"
+                  alt="Mazen Alaa"
+                  class="sec-photo"
                   style="object-position: 46% 25%;"
-                  onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='public/mazen-alaa.jpg';}else{this.style.display='none';document.getElementById('usg-fallback').style.display='flex';}"
+                  onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='public/mazen-alaa.jpg';}else{this.style.display='none';document.getElementById('sec-fallback-ma').style.display='flex';}"
                 />
-                <span id="usg-fallback" class="board-avatar-fallback" style="display: none;">MA</span>
+                <div id="sec-fallback-ma" class="sec-fallback" style="display: none;">MA</div>
               </div>
-              <span class="board-role">Under-Secretary-General</span>
-              <h3 class="board-name">Mazen Alaa</h3>
-              <p class="board-note">Operational execution, committee logistical administration and delegate affairs.</p>
+              <div class="sec-info">
+                <div class="sec-role">Under-Secretary-General</div>
+                <div class="sec-name">Mazen Alaa</div>
+                <div class="sec-note">Operational execution, committee logistical administration and delegate affairs.</div>
+              </div>
             </div>
 
             <!-- 4. Senior Advisor (Lana Ahmad) -->
-            <div class="board-card reveal-item">
-              <div class="board-avatar">
+            <div class="sec-card reveal-item">
+              <div class="sec-photo-wrap">
                 <img
-                  src="lana-ahmad.jpg"
-                  alt="Lana Ahmad, Senior Advisor"
-                  class="board-avatar-img"
+                  src="/lana-ahmad.jpg"
+                  alt="Lana Ahmad"
+                  class="sec-photo"
                   style="object-position: center 20%;"
-                  onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='public/lana-ahmad.jpg';}else{this.style.display='none';document.getElementById('sa-fallback').style.display='flex';}"
+                  onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='public/lana-ahmad.jpg';}else{this.style.display='none';document.getElementById('sec-fallback-la2').style.display='flex';}"
                 />
-                <span id="sa-fallback" class="board-avatar-fallback" style="display: none;">LA</span>
+                <div id="sec-fallback-la2" class="sec-fallback" style="display: none;">LA</div>
               </div>
-              <span class="board-role">Senior Advisor</span>
-              <h3 class="board-name">Lana Ahmad</h3>
-              <p class="board-note">Strategic guidance and advisory support to the Secretariat.</p>
-            </div>
-          </div>
-
-          <!-- EXECUTIVE BOARD ACCESS & REAL EMAIL REGISTRATION PORTAL -->
-          <div id="eb-portal" class="eb-portal-container reveal-item">
-            <div class="eb-portal-badge">
-              <span class="eb-badge-icon">🏛</span>
-              <span>Secretariat portal · Supabase verification</span>
-            </div>
-
-            <h3 class="eb-portal-title">Executive board registration</h3>
-            <p class="eb-portal-sub">
-              Official verification for Secretariat leaders, Committee Directors, and Crisis Staff. Sign up with your <strong>real, active email</strong> to receive official conference credentials and committee dispatch via Supabase.
-            </p>
-
-            <!-- AUTHENTICATED STATE (DISPLAYED WHEN LOGGED IN) -->
-            <div id="eb-authenticated-card" class="eb-authenticated-card" style="display: none;">
-              <div class="eb-auth-header">
-                <div class="eb-user-avatar" id="eb-user-avatar">EB</div>
-                <div class="eb-user-meta">
-                  <div class="eb-user-badge">✓ Active Executive Board Member</div>
-                  <h4 class="eb-user-name" id="eb-user-name">Welcome Back</h4>
-                  <div class="eb-user-role" id="eb-user-role">Committee Director</div>
-                  <div class="eb-user-email-row">
-                    <span class="eb-user-email" id="eb-user-email">email@domain.com</span>
-                    <span class="eb-verified-tag" id="eb-email-verified-tag">Real Email Confirmed ✓</span>
-                  </div>
-                </div>
+              <div class="sec-info">
+                <div class="sec-role">Senior Advisor</div>
+                <div class="sec-name">Lana Ahmad</div>
+                <div class="sec-note">Strategic guidance and advisory support to the Secretariat.</div>
               </div>
-
-              <div class="eb-portal-actions-grid">
-                <div class="eb-action-card">
-                  <span class="eb-action-icon">📋</span>
-                  <div class="eb-action-title">Committee Directives & Agendas</div>
-                  <p class="eb-action-desc">Access 2027 background guides, crisis trees, and motion matrix.</p>
-                  <span class="eb-action-status">Authorized · Live</span>
-                </div>
-                <div class="eb-action-card">
-                  <span class="eb-action-icon">👥</span>
-                  <div class="eb-action-title">Delegate Matrix & Allocations</div>
-                  <p class="eb-action-desc">Review assigned delegations across all seven civilizational stops.</p>
-                  <span class="eb-action-status">Authorized · Live</span>
-                </div>
-                <div class="eb-action-card">
-                  <span class="eb-action-icon">📜</span>
-                  <div class="eb-action-title">Secretariat Dispatch</div>
-                  <p class="eb-action-desc">Direct communications with Rayan Abutair and the board.</p>
-                  <span class="eb-action-status">Encrypted Channel</span>
-                </div>
-              </div>
-
-              <div class="eb-auth-footer">
-                <button type="button" id="eb-signout-btn" class="eb-signout-btn">
-                  Sign Out from EB Portal
-                </button>
-              </div>
-            </div>
-
-            <!-- UNAUTHENTICATED STATE (SIGN UP / SIGN IN / RESET TABS) -->
-            <div id="eb-guest-card" class="eb-guest-card">
-              <!-- Tab Navigation -->
-              <div class="eb-tabs" role="tablist">
-                <button type="button" class="eb-tab active" id="tab-btn-signup" data-tab="signup" role="tab" aria-selected="true">
-                  Sign Up (New EB Member)
-                </button>
-                <button type="button" class="eb-tab" id="tab-btn-signin" data-tab="signin" role="tab" aria-selected="false">
-                  Sign In (Existing Member)
-                </button>
-                <button type="button" class="eb-tab" id="tab-btn-reset" data-tab="reset" role="tab" aria-selected="false">
-                  Reset Password
-                </button>
-              </div>
-
-              <!-- Status Banner -->
-              <div id="eb-form-status" class="status-banner" role="alert"></div>
-
-              <!-- 1. SIGN UP FORM -->
-              <form id="eb-signup-form" class="eb-form active-form" novalidate>
-                <div class="eb-form-info-callout">
-                  <span class="info-icon">✉</span>
-                  <div>
-                    <strong>Real Email Requirement:</strong> Supabase will transmit an authentic verification email to the address entered below. You must enter a real, reachable email inbox.
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="eb-signup-name">Full Name *</label>
-                  <input type="text" id="eb-signup-name" class="form-input" placeholder="e.g. Mazen Alaa or Rayan Abutair" required autocomplete="name" />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="eb-signup-email">Real Email Address *</label>
-                  <input type="email" id="eb-signup-email" class="form-input" placeholder="e.g. yourname@institution.edu or personal email" required autocomplete="email" />
-                  <span class="form-help-text">Must be a valid, real email inbox where you can receive your verification email.</span>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="eb-signup-role">Executive Board Role / Assignment *</label>
-                  <select id="eb-signup-role" class="form-select" required>
-                    <option value="" disabled selected>Select your EB role...</option>
-                    <optgroup label="Advisory">
-                      <option value="Senior Advisor">Senior Advisor</option>
-                      <option value="GA">GA</option>
-                    </optgroup>
-                    <optgroup label="Design">
-                      <option value="Head of Design">Head of Design</option>
-                    </optgroup>
-                    <optgroup label="Security">
-                      <option value="Head of Security">Head of Security</option>
-                      <option value="Co-Head of Security">Co-Head of Security</option>
-                    </optgroup>
-                    <optgroup label="Media">
-                      <option value="Head of Media">Head of Media</option>
-                      <option value="Co-Head of Media">Co-Head of Media</option>
-                    </optgroup>
-                    <optgroup label="Marketing">
-                      <option value="Head of Marketing">Head of Marketing</option>
-                      <option value="Co-Head of Marketing">Co-Head of Marketing</option>
-                    </optgroup>
-                    <optgroup label="Logistics">
-                      <option value="Head of Logistics">Head of Logistics</option>
-                    </optgroup>
-                    <optgroup label="PR">
-                      <option value="Head of PR">Head of PR</option>
-                    </optgroup>
-                    <optgroup label="DCC">
-                      <option value="Head of DCC">Head of DCC</option>
-                    </optgroup>
-                    <optgroup label="Volunteers">
-                      <option value="Head of Female Volunteers">Head of Female Volunteers</option>
-                      <option value="Head of Male Volunteers">Head of Male Volunteers</option>
-                      <option value="Co-Head of Volunteers">Co-Head of Volunteers</option>
-                      <option value="Co-Head of Female Volunteers">Co-Head of Female Volunteers</option>
-                    </optgroup>
-                    <optgroup label="Ceremonies">
-                      <option value="Head of Ceremonies">Head of Ceremonies</option>
-                    </optgroup>
-                    <optgroup label="Human Resources">
-                      <option value="Head of HR">Head of HR</option>
-                    </optgroup>
-                    <optgroup label="Press">
-                      <option value="Co-Head of Press">Co-Head of Press</option>
-                    </optgroup>
-                  </select>
-                </div>
-
-                <div class="form-row-2">
-                  <div class="form-group">
-                    <label class="form-label" for="eb-signup-password">Password *</label>
-                    <input type="password" id="eb-signup-password" class="form-input" placeholder="Min. 6 characters" required autocomplete="new-password" />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="eb-signup-confirm">Confirm Password *</label>
-                    <input type="password" id="eb-signup-confirm" class="form-input" placeholder="Re-enter password" required autocomplete="new-password" />
-                  </div>
-                </div>
-
-                <div class="eb-checkbox-group">
-                  <label class="eb-checkbox-label">
-                    <input type="checkbox" id="eb-real-email-consent" required />
-                    <span>I confirm that this is my <strong>real and active email address</strong> and I can access it to receive verification mail.</span>
-                  </label>
-                </div>
-
-                <button type="submit" id="eb-signup-submit-btn" class="form-submit-btn btn-interactive eb-submit-btn">
-                  Create Executive Board Account
-                </button>
-              </form>
-
-              <!-- 2. SIGN IN FORM -->
-              <form id="eb-signin-form" class="eb-form" style="display: none;" novalidate>
-                <div class="form-group">
-                  <label class="form-label" for="eb-signin-email">Registered Real Email *</label>
-                  <input type="email" id="eb-signin-email" class="form-input" placeholder="your-email@address.com" required autocomplete="email" />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="eb-signin-password">Password *</label>
-                  <input type="password" id="eb-signin-password" class="form-input" placeholder="Your password" required autocomplete="current-password" />
-                </div>
-
-                <div class="eb-form-helpers">
-                  <button type="button" class="eb-link-btn" id="go-to-reset-btn">Forgot password?</button>
-                </div>
-
-                <button type="submit" id="eb-signin-submit-btn" class="form-submit-btn btn-interactive eb-submit-btn">
-                  Sign In to EB Portal
-                </button>
-              </form>
-
-              <!-- 3. RESET PASSWORD FORM -->
-              <form id="eb-reset-form" class="eb-form" style="display: none;" novalidate>
-                <div class="eb-form-info-callout">
-                  <span class="info-icon">🔑</span>
-                  <div>
-                    Enter the real email associated with your Executive Board registration. Supabase will send an authorized password reset link.
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="eb-reset-email">Real Email Address *</label>
-                  <input type="email" id="eb-reset-email" class="form-input" placeholder="your-email@address.com" required autocomplete="email" />
-                </div>
-
-                <button type="submit" id="eb-reset-submit-btn" class="form-submit-btn btn-interactive eb-submit-btn">
-                  Send Password Reset Email
-                </button>
-
-                <div style="text-align: center; margin-top: 1rem;">
-                  <button type="button" class="eb-link-btn" id="back-to-signin-btn">← Back to Sign In</button>
-                </div>
-              </form>
             </div>
           </div>
         </section>
@@ -3776,7 +3705,8 @@
         <!-- 7. MEET THE TEAM (12 DEPARTMENTS) -->
         <section id="team">
           <div style="text-align: center; max-width: 760px; margin: 0 auto;" class="reveal-item">
-            <h2 class="section-heading word-reveal-heading">Meet the team</h2>
+            <span class="eyebrow">Every department</span>
+            <h2 class="section-heading word-reveal-heading">MEET THE <em>TEAM.</em></h2>
             <p style="font-size: 1.1rem; color: var(--limestone-muted); line-height: 1.6;">
               Dedicated directors and coordinators working across every facet of conference preparation.
             </p>
@@ -3794,9 +3724,10 @@
         <section id="updates">
           <div class="updates-split">
             <div class="reveal-item">
-              <h2 class="section-heading word-reveal-heading">Live updates</h2>
+              <span class="eyebrow">Stay Informed</span>
+              <h2 class="section-heading word-reveal-heading">LIVE <em>UPDATES.</em></h2>
               <div class="update-cards-container">
-                <div class="update-glass-card">
+                <div class="update-glass-card tilt-card">
                   <span class="update-date-badge">Opening soon</span>
                   <h3 class="timeline-title" style="margin-bottom: 0.4rem;">Delegate and chair applications</h3>
                   <p class="timeline-desc">
@@ -3804,7 +3735,7 @@
                   </p>
                 </div>
 
-                <div class="update-glass-card">
+                <div class="update-glass-card tilt-card">
                   <span class="update-date-badge">To be announced</span>
                   <h3 class="timeline-title" style="margin-bottom: 0.4rem;">Conference dates</h3>
                   <p class="timeline-desc">
@@ -3815,9 +3746,10 @@
             </div>
 
             <!-- 9. SUGGESTIONS -->
-            <div class="suggestion-box reveal-item" id="suggestions">
-              <h3 style="font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; margin-bottom: 0.4rem;">
-                Suggestions
+            <div class="suggestion-box tilt-card reveal-item" id="suggestions">
+              <span class="eyebrow">Delegate Feedback</span>
+              <h3 style="font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; margin-bottom: 0.4rem; color: var(--limestone);">
+                SUGGESTION <em>BOX.</em>
               </h3>
               <p style="font-size: 0.95rem; color: var(--limestone-muted); margin-bottom: 1.5rem;">
                 Got a question or a suggestion? We read every submission.
@@ -3863,7 +3795,8 @@
          ==================================================== -->
     <div id="view-committees" class="app-view">
       <a href="#/" class="back-home-link btn-interactive">← Back to home</a>
-      <h1 class="section-heading">The committees</h1>
+      <span class="eyebrow">Seven committees, seven monuments</span>
+      <h1 class="section-heading">THE <em>COMMITTEES.</em></h1>
       <p style="font-size: 1.15rem; max-width: 680px; color: var(--limestone-muted); margin-bottom: 2rem;">
         Explore each committee simulation, its civilizational counterpart, and the critical agenda before delegates.
       </p>
@@ -3878,13 +3811,14 @@
          ==================================================== -->
     <div id="view-apply" class="app-view">
       <a href="#/" class="back-home-link btn-interactive">← Back to home</a>
-      <h1 class="section-heading">Apply to Monument MUN</h1>
+      <span class="eyebrow">Applications</span>
+      <h1 class="section-heading">APPLY TO <em>MONUMENT MUN.</em></h1>
       <p style="font-size: 1.15rem; max-width: 640px; color: var(--limestone-muted);">
         Applications will open soon. Select your role of interest below or sign up to receive priority notification when the portal opens.
       </p>
 
       <div class="apply-status-cards">
-        <div class="apply-card reveal-item">
+        <div class="apply-card tilt-card reveal-item">
           <h3 class="apply-role-name">Delegate</h3>
           <p style="font-size: 0.95rem; color: var(--limestone-muted); margin-bottom: 1rem;">
             Represent a nation across seven civilizational committees in single or double delegation.
@@ -3892,7 +3826,7 @@
           <span class="apply-status-pill">Status: Opening soon</span>
         </div>
 
-        <div class="apply-card reveal-item">
+        <div class="apply-card tilt-card reveal-item">
           <h3 class="apply-role-name">Chair</h3>
           <p style="font-size: 0.95rem; color: var(--limestone-muted); margin-bottom: 1rem;">
             Direct committee debate, uphold procedural integrity, and author comprehensive background dossiers.
@@ -3900,7 +3834,7 @@
           <span class="apply-status-pill">Status: Opening soon</span>
         </div>
 
-        <div class="apply-card reveal-item">
+        <div class="apply-card tilt-card reveal-item">
           <h3 class="apply-role-name">Team</h3>
           <p style="font-size: 0.95rem; color: var(--limestone-muted); margin-bottom: 1rem;">
             Join the secretariat across specialized organizing departments and support systems.
@@ -3963,7 +3897,6 @@
             <li><a href="#about" class="section-link">About Monument MUN</a></li>
             <li><a href="#diplomacy" class="section-link">The Global Stage</a></li>
             <li><a href="#board" class="section-link">Executive Board</a></li>
-            <li><a href="#eb-portal" class="section-link">EB Portal & Sign Up</a></li>
             <li><a href="#team" class="section-link">Meet the Team</a></li>
             <li><a href="#updates" class="section-link">Live Updates</a></li>
           </ul>
@@ -4245,13 +4178,13 @@
             if (dotNav) dotNav.classList.add('nav-hidden');
             if (mobileCounter) mobileCounter.classList.remove('visible');
             lockBackgroundToStop6();
-          } else if (cleanHash === 'eb-portal' || cleanHash === 'eb') {
+          } else if (cleanHash === 'board' || cleanHash === 'eb') {
             if (viewHome) viewHome.classList.add('active-view');
             if (dotNav) dotNav.classList.remove('nav-hidden');
             releaseBackground();
             fitHeroWordmark();
             setTimeout(() => {
-              const ebEl = document.getElementById('eb-portal');
+              const ebEl = document.getElementById('board');
               if (ebEl) ebEl.scrollIntoView({ behavior: 'smooth' });
             }, 120);
           } else {
@@ -4438,14 +4371,56 @@
           requestAnimationFrame(tick);
         }
 
-        // 7. CARD HOVER (TILT REMOVED PER DESIGN CONSTITUTION)
+        // 7. 3D CARD TILT INTERACTION (RESTORED)
         function setupTiltCards() {
-          // No-op: Removed 3D card tilt per design requirements
+          if (prefersReduced) return;
+          const cards = document.querySelectorAll('.tilt-card');
+          cards.forEach((card) => {
+            if (card.__tiltBound) return;
+            card.__tiltBound = true;
+            let bounds;
+            function updateBounds() {
+              bounds = card.getBoundingClientRect();
+            }
+            card.addEventListener('mouseenter', updateBounds);
+            card.addEventListener('mousemove', (e) => {
+              if (!bounds) updateBounds();
+              const mouseX = e.clientX - bounds.left;
+              const mouseY = e.clientY - bounds.top;
+              const xPct = mouseX / bounds.width - 0.5;
+              const yPct = mouseY / bounds.height - 0.5;
+              const tiltX = -yPct * 10;
+              const tiltY = xPct * 10;
+              card.style.transform = `perspective(1000px) rotateX(${tiltX.toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg) translateY(-4px)`;
+              card.style.setProperty('--mouse-x', `${(mouseX / bounds.width * 100).toFixed(1)}%`);
+              card.style.setProperty('--mouse-y', `${(mouseY / bounds.height * 100).toFixed(1)}%`);
+            });
+            card.addEventListener('mouseleave', () => {
+              card.style.transform = '';
+            });
+          });
         }
         setupTiltCards();
 
-        // 8. BUTTON HOVER (MAGNETIC PULL REMOVED PER DESIGN CONSTITUTION)
-        // Kept clean standard hover styles
+        // 8. MAGNETIC BUTTON INTERACTION (RESTORED)
+        function setupMagneticButtons() {
+          if (prefersReduced || isTouch) return;
+          const btns = document.querySelectorAll('.magnetic-btn');
+          btns.forEach((btn) => {
+            if (btn.__magneticBound) return;
+            btn.__magneticBound = true;
+            btn.addEventListener('mousemove', (e) => {
+              const rect = btn.getBoundingClientRect();
+              const x = e.clientX - rect.left - rect.width / 2;
+              const y = e.clientY - rect.top - rect.height / 2;
+              btn.style.transform = `translate(${x * 0.28}px, ${y * 0.28}px)`;
+            });
+            btn.addEventListener('mouseleave', () => {
+              btn.style.transform = '';
+            });
+          });
+        }
+        setupMagneticButtons();
 
         // 9. MEET THE TEAM DEPARTMENT CARDS (FROM TEAM_DEPARTMENTS_DATA)
         const teamGrid = document.getElementById('team-grid-container');
@@ -4453,7 +4428,7 @@
           teamGrid.innerHTML = '';
           TEAM_DEPARTMENTS_DATA.forEach((dept) => {
             const card = document.createElement('div');
-            card.className = 'team-dept-card reveal-item';
+            card.className = 'team-dept-card tilt-card reveal-item';
 
             // Filter out any members without a listed name or with TBA
             const validMembers = (dept.members || []).filter((m) => {
@@ -4551,7 +4526,7 @@
         if (commGrid) {
           committeesData.forEach((comm) => {
             const card = document.createElement('div');
-            card.className = 'committee-card-full reveal-item';
+            card.className = 'committee-card-full tilt-card reveal-item';
 
             const layerSvg = document.querySelector(`#layer-${comm.layerIndex} svg`);
             const svgMarkup = layerSvg ? layerSvg.outerHTML : '';
@@ -4579,6 +4554,9 @@
             `;
             commGrid.appendChild(card);
           });
+          if (typeof setupTiltCards === 'function') {
+            setupTiltCards();
+          }
         }
 
         // 11. BACKGROUND PALETTES & CONTINUOUS SCROLL INTERPOLATION

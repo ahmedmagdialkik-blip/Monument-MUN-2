@@ -3,6 +3,7 @@ import type {
   Profile,
   Registration,
   RegistrationStatus,
+  StaffAllowlistEntry,
   Team,
   TeamDecision,
   TeamKind,
@@ -391,4 +392,117 @@ export function computeAdminStats(registrations: Registration[]): AdminStats {
   }
 
   return stats;
+}
+
+// ----------------------------------------------------
+// STAFF ALLOWLIST & EMAIL AUTHORIZATION APIS
+// ----------------------------------------------------
+
+export async function isEmailAllowedRpc(email: string): Promise<{ allowed: boolean; error?: string }> {
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail) {
+    return { allowed: false, error: 'Email address is required.' };
+  }
+
+  try {
+    const { data, error } = await supabase.rpc('is_email_allowed', {
+      p_email: cleanEmail
+    });
+
+    if (error) {
+      return { allowed: false, error: error.message };
+    }
+
+    return { allowed: Boolean(data) };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to verify email authorization.';
+    return { allowed: false, error: message };
+  }
+}
+
+export async function fetchStaffAllowlist(): Promise<{ data: StaffAllowlistEntry[]; error?: string }> {
+  try {
+    const { data, error } = await supabase
+      .from('staff_allowlist')
+      .select('email, full_name, position, app_role, claimed_by, claimed_at')
+      .order('email', { ascending: true });
+
+    if (error) {
+      return { data: [], error: error.message };
+    }
+
+    return { data: (data as unknown as StaffAllowlistEntry[]) || [] };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to load team email list.';
+    return { data: [], error: message };
+  }
+}
+
+export async function addStaffAllowlistEntry(
+  fullName: string,
+  email: string,
+  position: string
+): Promise<{ success: boolean; error?: string }> {
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanName = fullName.trim();
+  const cleanPosition = position.trim();
+
+  if (!cleanName) return { success: false, error: 'Please enter the member\'s full name.' };
+  if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+    return { success: false, error: 'Please enter a valid email address.' };
+  }
+  if (!cleanPosition) return { success: false, error: 'Please enter the member\'s position.' };
+
+  try {
+    const { error } = await supabase
+      .from('staff_allowlist')
+      .insert({
+        email: cleanEmail,
+        full_name: cleanName,
+        position: cleanPosition,
+        app_role: 'eb'
+      });
+
+    if (error) {
+      if (
+        error.code === '23505' ||
+        error.message.toLowerCase().includes('duplicate') ||
+        error.message.toLowerCase().includes('unique')
+      ) {
+        return { success: false, error: `The email "${cleanEmail}" is already registered on the team list.` };
+      }
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to add member to team list.';
+    return { success: false, error: message };
+  }
+}
+
+export async function removeStaffAllowlistEntry(
+  email: string
+): Promise<{ success: boolean; error?: string }> {
+  const cleanEmail = email.trim().toLowerCase();
+  if (!cleanEmail) {
+    return { success: false, error: 'Email address is required.' };
+  }
+
+  try {
+    const { error } = await supabase
+      .from('staff_allowlist')
+      .delete()
+      .eq('email', cleanEmail)
+      .is('claimed_by', null);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to remove entry from team list.';
+    return { success: false, error: message };
+  }
 }

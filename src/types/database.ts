@@ -47,6 +47,15 @@ export interface RegistrationInput {
   committee: string;
 }
 
+export interface StaffAllowlistEntry {
+  email: string;
+  full_name: string | null;
+  position: string | null;
+  app_role: UserRole;
+  claimed_by: string | null;
+  claimed_at: string | null;
+}
+
 export interface AuthState {
   user: {
     id: string;

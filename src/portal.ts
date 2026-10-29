@@ -7,6 +7,7 @@ import {
   refreshCurrentUserProfile,
   type CurrentUser
 } from './auth';
+import { supabase } from './lib/supabase';
 import {
   COMMITTEES,
   getUserRegistration,
@@ -28,6 +29,10 @@ import {
   requestTeamRpc,
   reviewTeamMemberRpc,
   fetchTeamMembers,
+  isEmailAllowedRpc,
+  fetchStaffAllowlist,
+  addStaffAllowlistEntry,
+  removeStaffAllowlistEntry,
   type AdminStats,
   type EbStats
 } from './admin';
@@ -36,7 +41,8 @@ import type {
   Profile,
   UserRole,
   Team,
-  TeamKind
+  TeamKind,
+  StaffAllowlistEntry
 } from './types/database';
 
 export function isAdminRoute(): boolean {
@@ -59,7 +65,8 @@ export function isTeamHeadRoute(): boolean {
 /**
  * Escapes unsafe characters for safe innerHTML insertion
  */
-function escapeHtml(str: string): string {
+function escapeHtml(str?: string | null): string {
+  if (!str) return '';
   return str
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -90,11 +97,14 @@ let adminRegistrations: Registration[] = [];
 let adminStaff: Profile[] = [];
 let adminEbProfiles: Profile[] = [];
 let adminTeams: Team[] = [];
-let adminActiveTab: 'delegates' | 'eb' | 'teams' = 'delegates';
+let adminStaffAllowlist: StaffAllowlistEntry[] = [];
+let adminActiveTab: 'delegates' | 'eb' | 'teams' | 'allowlist' = 'delegates';
 let adminFilter: 'all' | 'pending' | 'approved' | 'rejected' = 'all';
 let adminSearchQuery = '';
 let adminEbFilter: 'all' | 'pending' | 'eb' | 'head' | 'admin' | 'security' = 'all';
 let adminEbSearchQuery = '';
+let adminAllowlistSearchQuery = '';
+let adminAllowlistFilter: 'all' | 'claimed' | 'unclaimed' = 'all';
 
 let currentRegistration: Registration | null = null;
 
@@ -186,12 +196,6 @@ function updateHeaderAuthUI(user: CurrentUser | null, loading: boolean): void {
         }
       });
     }
-  } else if (user.role === 'admin') {
-    headPill = `
-      <a href="#/admin" class="btn-interactive" title="Secretariat Admin Board" style="display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(217, 180, 90, 0.35); color: var(--gold); padding: 0.32rem 0.7rem; border-radius: 9999px; text-decoration: none; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; white-space: nowrap; flex-shrink: 0;">
-        Admin
-      </a>
-    `;
   }
 
   const roleColor = user.role === 'head' ? 'var(--gold)' : (user.role === 'admin' ? '#38bdf8' : 'rgba(217, 180, 90, 0.8)');
@@ -1519,19 +1523,19 @@ export async function renderAdminRoute(user: CurrentUser | null, loading: boolea
     return;
   }
 
-  // 1. Logged out visitor on /admin -> show Login form
+  // 1. Logged out visitor on /admin -> show Staff Portal Auth (Sign up, Sign in, Reset password)
   if (!user) {
-    renderAdminLoginForm(viewAdmin);
+    renderStaffPortalAuth(viewAdmin);
     return;
   }
 
-  // 2. Logged in, but NOT an admin -> show a PLAIN 404 Page Not Found
+  // 2. Logged in, but NOT an admin -> show "Your Executive Board profile" card
   if (user.role !== 'admin') {
-    renderPlain404(viewAdmin);
+    renderEbProfileCard(viewAdmin, user);
     return;
   }
 
-  // 3. User is verified ADMIN -> Load registrations, staff, EB profiles, and teams
+  // 3. User is verified ADMIN -> Load registrations, staff, EB profiles, teams, and allowlist
   viewAdmin.innerHTML = `
     <div style="min-height: 70vh; display: flex; align-items: center; justify-content: center; color: var(--gold); font-family: var(--font-display);">
       <div style="text-align: center;">
@@ -1546,14 +1550,15 @@ export async function renderAdminRoute(user: CurrentUser | null, loading: boolea
 }
 
 /**
- * Fetch registrations, staff profiles, EB profiles, and teams for the admin board
+ * Fetch registrations, staff profiles, EB profiles, teams, and allowlist for the admin board
  */
 async function refreshAdminData(): Promise<void> {
-  const [regRes, staffRes, ebRes, teamsRes] = await Promise.all([
+  const [regRes, staffRes, ebRes, teamsRes, allowlistRes] = await Promise.all([
     fetchAllRegistrations(),
     fetchStaffProfiles(),
     fetchEbProfiles(),
-    fetchAllTeams()
+    fetchAllTeams(),
+    fetchStaffAllowlist()
   ]);
 
   if (regRes.data) {
@@ -1568,40 +1573,107 @@ async function refreshAdminData(): Promise<void> {
   if (teamsRes.data) {
     adminTeams = teamsRes.data;
   }
+  if (allowlistRes.data) {
+    adminStaffAllowlist = allowlistRes.data;
+  }
 }
 
+let staffPortalAuthTab: 'signup' | 'signin' | 'reset' = 'signup';
+
 /**
- * Admin Login Form for unauthenticated visitors on /admin
+ * Staff Portal Authentication for /admin and #admin (Logged-out visitors)
+ * Offers: Sign Up, Sign In, Reset Password
  */
-function renderAdminLoginForm(container: HTMLElement): void {
+function renderStaffPortalAuth(container: HTMLElement): void {
+  const isSignUp = staffPortalAuthTab === 'signup';
+  const isSignIn = staffPortalAuthTab === 'signin';
+  const isReset = staffPortalAuthTab === 'reset';
+
   container.innerHTML = `
-    <div style="min-height: 75vh; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem;">
-      <div class="tilt-card" style="width: 100%; max-width: 460px; background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.4); border-radius: var(--card-radius); padding: clamp(1.75rem, 5vw, 2.5rem); box-shadow: 0 16px 45px rgba(0,0,0,0.6);">
-        <div style="text-align: center; margin-bottom: 2rem;">
-          <span class="eyebrow">Administrative Authentication</span>
-          <h2 style="font-family: var(--font-display); font-size: 1.75rem; font-weight: 800; text-transform: uppercase; color: #ffffff; margin-bottom: 0.5rem;">
-            SIGN <em>IN.</em>
+    <div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem;">
+      <div class="tilt-card" style="width: 100%; max-width: 500px; background: rgba(8, 10, 30, 0.96); border: 1px solid rgba(217, 180, 90, 0.4); border-radius: var(--card-radius); padding: clamp(1.75rem, 5vw, 2.5rem); box-shadow: 0 20px 50px rgba(0,0,0,0.65);">
+        <div style="text-align: center; margin-bottom: 1.75rem;">
+          <span class="eyebrow">Monument MUN 2027</span>
+          <h2 style="font-family: var(--font-display); font-size: clamp(1.6rem, 4vw, 2rem); font-weight: 800; text-transform: uppercase; color: #ffffff; margin-bottom: 0.4rem; letter-spacing: 0.02em;">
+            STAFF <em>PORTAL.</em>
           </h2>
-          <p style="font-size: 0.9rem; color: rgba(242, 244, 255, 0.7);">
-            Sign in with your authorized credentials to proceed.
+          <p style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.72); line-height: 1.5;">
+            Exclusive portal for Executive Board, Secretariat, and Staff members.
           </p>
         </div>
 
-        <div id="admin-login-feedback" class="status-banner" style="display: none; margin-bottom: 1.25rem;"></div>
+        <!-- Auth Tabs: Sign Up, Sign In, Reset Password -->
+        <div style="display: flex; background: rgba(255, 255, 255, 0.05); border-radius: 9999px; padding: 4px; margin-bottom: 1.5rem; border: 1px solid rgba(217, 180, 90, 0.25);">
+          <button type="button" id="staff-tab-signup-btn" class="btn-interactive" style="flex: 1; padding: 0.6rem 0.5rem; border: none; border-radius: 9999px; background: ${isSignUp ? 'var(--gold)' : 'transparent'}; color: ${isSignUp ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.2s ease;">
+            Sign Up
+          </button>
+          <button type="button" id="staff-tab-signin-btn" class="btn-interactive" style="flex: 1; padding: 0.6rem 0.5rem; border: none; border-radius: 9999px; background: ${isSignIn ? 'var(--gold)' : 'transparent'}; color: ${isSignIn ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.2s ease;">
+            Sign In
+          </button>
+          <button type="button" id="staff-tab-reset-btn" class="btn-interactive" style="flex: 1; padding: 0.6rem 0.5rem; border: none; border-radius: 9999px; background: ${isReset ? 'var(--gold)' : 'transparent'}; color: ${isReset ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.2s ease;">
+            Reset Password
+          </button>
+        </div>
 
-        <form id="admin-login-form" novalidate>
+        <div id="staff-portal-feedback" class="status-banner" style="display: none; margin-bottom: 1.25rem;"></div>
+
+        <!-- 1. SIGN UP FORM -->
+        <form id="staff-signup-form" style="${isSignUp ? 'display: block;' : 'display: none;'}" novalidate>
           <div class="form-group">
-            <label class="form-label" for="admin-email">Email Address *</label>
-            <input type="email" id="admin-email" class="form-input" placeholder="admin@domain.com" required autocomplete="email" />
+            <label class="form-label" for="staff-signup-name">Full Name *</label>
+            <input type="text" id="staff-signup-name" class="form-input" placeholder="e.g. Maya Lin" required autocomplete="name" />
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="admin-password">Password *</label>
-            <input type="password" id="admin-password" class="form-input" placeholder="Your password" required autocomplete="current-password" />
+            <label class="form-label" for="staff-signup-email">Authorized Email Address *</label>
+            <input type="email" id="staff-signup-email" class="form-input" placeholder="name@domain.com" required autocomplete="email" />
           </div>
 
-          <button type="submit" id="admin-login-submit" class="form-submit-btn btn-interactive" style="width: 100%; margin-top: 0.5rem;">
+          <div class="form-group">
+            <label class="form-label" for="staff-signup-password">Password *</label>
+            <input type="password" id="staff-signup-password" class="form-input" placeholder="At least 6 characters" required autocomplete="new-password" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="staff-signup-confirm">Confirm Password *</label>
+            <input type="password" id="staff-signup-confirm" class="form-input" placeholder="Re-enter your password" required autocomplete="new-password" />
+          </div>
+
+          <button type="submit" id="staff-signup-submit-btn" class="form-submit-btn btn-interactive" style="width: 100%; margin-top: 0.5rem;">
+            Create Staff Account
+          </button>
+        </form>
+
+        <!-- 2. SIGN IN FORM -->
+        <form id="staff-signin-form" style="${isSignIn ? 'display: block;' : 'display: none;'}" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="staff-signin-email">Email Address *</label>
+            <input type="email" id="staff-signin-email" class="form-input" placeholder="staff@domain.com" required autocomplete="email" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="staff-signin-password">Password *</label>
+            <input type="password" id="staff-signin-password" class="form-input" placeholder="Your password" required autocomplete="current-password" />
+          </div>
+
+          <button type="submit" id="staff-signin-submit-btn" class="form-submit-btn btn-interactive" style="width: 100%; margin-top: 0.5rem;">
             Authenticate & Proceed
+          </button>
+        </form>
+
+        <!-- 3. RESET PASSWORD FORM -->
+        <form id="staff-reset-form" style="${isReset ? 'display: block;' : 'display: none;'}" novalidate>
+          <p style="font-size: 0.88rem; color: rgba(242, 244, 255, 0.75); line-height: 1.5; margin-bottom: 1.25rem;">
+            Enter your authorized email address. We will send a secure password reset link to regain access.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label" for="staff-reset-email">Account Email *</label>
+            <input type="email" id="staff-reset-email" class="form-input" placeholder="name@domain.com" required autocomplete="email" />
+          </div>
+
+          <button type="submit" id="staff-reset-submit-btn" class="form-submit-btn btn-interactive" style="width: 100%; margin-top: 0.5rem;">
+            Send Reset Instructions
           </button>
         </form>
 
@@ -1612,17 +1684,122 @@ function renderAdminLoginForm(container: HTMLElement): void {
     </div>
   `;
 
-  const form = document.getElementById('admin-login-form') as HTMLFormElement | null;
-  const feedback = document.getElementById('admin-login-feedback');
-  const submitBtn = document.getElementById('admin-login-submit') as HTMLButtonElement | null;
+  // Attach tab switch handlers
+  const tabSignupBtn = document.getElementById('staff-tab-signup-btn');
+  const tabSigninBtn = document.getElementById('staff-tab-signin-btn');
+  const tabResetBtn = document.getElementById('staff-tab-reset-btn');
+  const feedback = document.getElementById('staff-portal-feedback');
 
-  form?.addEventListener('submit', async (e) => {
+  tabSignupBtn?.addEventListener('click', () => {
+    staffPortalAuthTab = 'signup';
+    renderStaffPortalAuth(container);
+  });
+
+  tabSigninBtn?.addEventListener('click', () => {
+    staffPortalAuthTab = 'signin';
+    renderStaffPortalAuth(container);
+  });
+
+  tabResetBtn?.addEventListener('click', () => {
+    staffPortalAuthTab = 'reset';
+    renderStaffPortalAuth(container);
+  });
+
+  // Attach Sign Up submit handler
+  const signupForm = document.getElementById('staff-signup-form') as HTMLFormElement | null;
+  const signupSubmitBtn = document.getElementById('staff-signup-submit-btn') as HTMLButtonElement | null;
+
+  signupForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!feedback) return;
     feedback.style.display = 'none';
 
-    const email = (document.getElementById('admin-email') as HTMLInputElement | null)?.value.trim() || '';
-    const password = (document.getElementById('admin-password') as HTMLInputElement | null)?.value || '';
+    const name = (document.getElementById('staff-signup-name') as HTMLInputElement | null)?.value.trim() || '';
+    const email = (document.getElementById('staff-signup-email') as HTMLInputElement | null)?.value.trim().toLowerCase() || '';
+    const password = (document.getElementById('staff-signup-password') as HTMLInputElement | null)?.value || '';
+    const confirm = (document.getElementById('staff-signup-confirm') as HTMLInputElement | null)?.value || '';
+
+    if (!name || !email || !password || !confirm) {
+      feedback.className = 'status-banner status-error';
+      feedback.textContent = 'Please fill out all fields.';
+      feedback.style.display = 'block';
+      return;
+    }
+
+    if (password.length < 6) {
+      feedback.className = 'status-banner status-error';
+      feedback.textContent = 'Password must be at least 6 characters.';
+      feedback.style.display = 'block';
+      return;
+    }
+
+    if (password !== confirm) {
+      feedback.className = 'status-banner status-error';
+      feedback.textContent = 'Passwords do not match.';
+      feedback.style.display = 'block';
+      return;
+    }
+
+    if (signupSubmitBtn) {
+      signupSubmitBtn.disabled = true;
+      signupSubmitBtn.textContent = 'Verifying Authorization...';
+    }
+
+    // Step 1: Pre-check is_email_allowed RPC
+    const isAllowed = await isEmailAllowedRpc(email);
+    if (!isAllowed) {
+      feedback.className = 'status-banner status-error';
+      feedback.textContent = "You can't sign up because your email wasn't found in the Monument MUN team list. Use the exact email you gave the Secretariat, or contact an admin.";
+      feedback.style.display = 'block';
+      if (signupSubmitBtn) {
+        signupSubmitBtn.disabled = false;
+        signupSubmitBtn.textContent = 'Create Staff Account';
+      }
+      return;
+    }
+
+    if (signupSubmitBtn) {
+      signupSubmitBtn.textContent = 'Creating Account...';
+    }
+
+    // Step 2: Call signUpWithEmail
+    const res = await signUpWithEmail(name, email, password);
+
+    if (res.error) {
+      feedback.className = 'status-banner status-error';
+      if (
+        res.error.includes('Database error saving new user') ||
+        res.error.includes("wasn't found in the Monument MUN team list")
+      ) {
+        feedback.textContent = "You can't sign up because your email wasn't found in the Monument MUN team list. Use the exact email you gave the Secretariat, or contact an admin.";
+      } else {
+        feedback.textContent = res.error;
+      }
+      feedback.style.display = 'block';
+      if (signupSubmitBtn) {
+        signupSubmitBtn.disabled = false;
+        signupSubmitBtn.textContent = 'Create Staff Account';
+      }
+      return;
+    }
+
+    // Step 3: Immediate sign-in upon sign-up
+    await refreshCurrentUserProfile();
+    const currentUser = getCachedUser();
+    renderAdminRoute(currentUser, false);
+  });
+
+  // Attach Sign In submit handler
+  const signinForm = document.getElementById('staff-signin-form') as HTMLFormElement | null;
+  const signinSubmitBtn = document.getElementById('staff-signin-submit-btn') as HTMLButtonElement | null;
+
+  signinForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!feedback) return;
+    feedback.style.display = 'none';
+
+    const email = (document.getElementById('staff-signin-email') as HTMLInputElement | null)?.value.trim() || '';
+    const password = (document.getElementById('staff-signin-password') as HTMLInputElement | null)?.value || '';
 
     if (!email || !password) {
       feedback.className = 'status-banner status-error';
@@ -1631,9 +1808,9 @@ function renderAdminLoginForm(container: HTMLElement): void {
       return;
     }
 
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Authenticating...';
+    if (signinSubmitBtn) {
+      signinSubmitBtn.disabled = true;
+      signinSubmitBtn.textContent = 'Authenticating...';
     }
 
     const res = await signInWithEmail(email, password);
@@ -1642,15 +1819,138 @@ function renderAdminLoginForm(container: HTMLElement): void {
       feedback.className = 'status-banner status-error';
       feedback.textContent = res.error;
       feedback.style.display = 'block';
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Authenticate & Proceed';
+      if (signinSubmitBtn) {
+        signinSubmitBtn.disabled = false;
+        signinSubmitBtn.textContent = 'Authenticate & Proceed';
       }
       return;
     }
 
     const cached = getCachedUser();
     renderAdminRoute(cached, false);
+  });
+
+  // Attach Reset Password submit handler
+  const resetForm = document.getElementById('staff-reset-form') as HTMLFormElement | null;
+  const resetSubmitBtn = document.getElementById('staff-reset-submit-btn') as HTMLButtonElement | null;
+
+  resetForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!feedback) return;
+    feedback.style.display = 'none';
+
+    const email = (document.getElementById('staff-reset-email') as HTMLInputElement | null)?.value.trim() || '';
+
+    if (!email) {
+      feedback.className = 'status-banner status-error';
+      feedback.textContent = 'Please enter your email address.';
+      feedback.style.display = 'block';
+      return;
+    }
+
+    if (resetSubmitBtn) {
+      resetSubmitBtn.disabled = true;
+      resetSubmitBtn.textContent = 'Sending Link...';
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/admin'
+      });
+
+      if (error) {
+        feedback.className = 'status-banner status-error';
+        feedback.textContent = error.message;
+        feedback.style.display = 'block';
+      } else {
+        feedback.className = 'status-banner status-success';
+        feedback.textContent = '✓ Password reset instructions have been dispatched to your email.';
+        feedback.style.display = 'block';
+      }
+    } catch (err: unknown) {
+      feedback.className = 'status-banner status-error';
+      feedback.textContent = err instanceof Error ? err.message : 'Failed to send reset link.';
+      feedback.style.display = 'block';
+    } finally {
+      if (resetSubmitBtn) {
+        resetSubmitBtn.disabled = false;
+        resetSubmitBtn.textContent = 'Send Reset Instructions';
+      }
+    }
+  });
+}
+
+/**
+ * Render "Your Executive Board profile" card for authenticated non-admin users visiting /admin or #admin.
+ * They must NEVER see the admin board or any admin controls.
+ */
+function renderEbProfileCard(container: HTMLElement, user: CurrentUser): void {
+  const position = user.profile?.eb_position || 'Executive Board Member';
+  const roleDisplay = user.role.toUpperCase();
+
+  container.innerHTML = `
+    <div style="min-height: 80vh; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem;">
+      <div class="tilt-card" style="width: 100%; max-width: 540px; background: rgba(8, 10, 30, 0.96); border: 1px solid rgba(217, 180, 90, 0.4); border-radius: var(--card-radius); padding: clamp(1.75rem, 5vw, 2.75rem); box-shadow: 0 20px 50px rgba(0,0,0,0.65);">
+        <div style="text-align: center; margin-bottom: 2rem;">
+          <span class="eyebrow">Monument MUN 2027 · Staff Portal</span>
+          <h2 style="font-family: var(--font-display); font-size: clamp(1.6rem, 4vw, 2.1rem); font-weight: 800; text-transform: uppercase; color: #ffffff; margin-bottom: 0.5rem; letter-spacing: 0.02em;">
+            YOUR EXECUTIVE BOARD <em>PROFILE.</em>
+          </h2>
+          <p style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.72); line-height: 1.5;">
+            Verified conference credentials and active staff standing.
+          </p>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 14px; padding: 1.5rem; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 1.15rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 1rem;">
+            <div>
+              <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(242, 244, 255, 0.5); margin-bottom: 0.25rem;">Full Name</div>
+              <div style="font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; color: #ffffff;">${escapeHtml(user.fullName)}</div>
+            </div>
+            <span style="background: rgba(217, 180, 90, 0.2); border: 1px solid var(--gold); color: var(--gold); padding: 0.25rem 0.75rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">
+              ${escapeHtml(roleDisplay)}
+            </span>
+          </div>
+
+          <div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(242, 244, 255, 0.5); margin-bottom: 0.25rem;">Declared Position</div>
+            <div style="font-size: 1.05rem; font-weight: 700; color: var(--gold);">
+              ${escapeHtml(position)}
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(242, 244, 255, 0.5); margin-bottom: 0.25rem;">Authorized Email</div>
+            <div style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.85); font-family: monospace;">
+              ${escapeHtml(user.email)}
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(242, 244, 255, 0.5); margin-bottom: 0.25rem;">Access Level</div>
+            <div style="font-size: 0.9rem; color: #ffffff; text-transform: capitalize;">
+              ${escapeHtml(user.role)} Staff Privileges
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+          <a href="#/" class="btn-interactive" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; text-decoration: none;">
+            ← Return to Site
+          </a>
+
+          <button type="button" id="eb-profile-signout-btn" class="btn-interactive" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 0.65rem 1.5rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const signoutBtn = document.getElementById('eb-profile-signout-btn');
+  signoutBtn?.addEventListener('click', async () => {
+    await signOut();
+    renderAdminRoute(null, false);
   });
 }
 
@@ -1704,6 +2004,11 @@ function renderAdminDashboard(container: HTMLElement, user: CurrentUser): void {
         <button type="button" id="admin-tab-teams" class="btn-interactive" style="background: ${adminActiveTab === 'teams' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'teams' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'teams' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
           <span>Teams (${adminTeams.length})</span>
         </button>
+
+        <button type="button" id="admin-tab-allowlist" class="btn-interactive" style="background: ${adminActiveTab === 'allowlist' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'allowlist' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'allowlist' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
+          <span>Team Email List</span>
+          <span style="background: ${adminActiveTab === 'allowlist' ? '#080a1e' : 'rgba(217, 180, 90, 0.25)'}; color: ${adminActiveTab === 'allowlist' ? 'var(--gold)' : '#ffffff'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${adminStaffAllowlist.length}</span>
+        </button>
       </div>
 
       <!-- TAB CONTENT CONTAINER -->
@@ -1713,7 +2018,9 @@ function renderAdminDashboard(container: HTMLElement, user: CurrentUser): void {
             ? renderDelegatesSectionMarkup(regStats)
             : adminActiveTab === 'eb'
               ? renderEbSectionMarkup(ebStats, user)
-              : renderTeamsSectionMarkup()
+              : adminActiveTab === 'teams'
+                ? renderTeamsSectionMarkup()
+                : renderAllowlistSectionMarkup()
         }
       </div>
     </div>
@@ -2375,6 +2682,7 @@ function attachAdminDashboardHandlers(container: HTMLElement, user: CurrentUser)
   const tabDelegates = document.getElementById('admin-tab-delegates');
   const tabEb = document.getElementById('admin-tab-eb');
   const tabTeams = document.getElementById('admin-tab-teams');
+  const tabAllowlist = document.getElementById('admin-tab-allowlist');
   const signoutBtn = document.getElementById('admin-signout-btn');
 
   signoutBtn?.addEventListener('click', async () => {
@@ -2397,12 +2705,19 @@ function attachAdminDashboardHandlers(container: HTMLElement, user: CurrentUser)
     renderAdminDashboard(container, user);
   });
 
+  tabAllowlist?.addEventListener('click', () => {
+    adminActiveTab = 'allowlist';
+    renderAdminDashboard(container, user);
+  });
+
   if (adminActiveTab === 'delegates') {
     attachDelegatesTabHandlers(container, user);
   } else if (adminActiveTab === 'eb') {
     attachEbTabHandlers(container, user);
   } else if (adminActiveTab === 'teams') {
     attachTeamsTabHandlers(container, user);
+  } else if (adminActiveTab === 'allowlist') {
+    attachAllowlistTabHandlers(container, user);
   }
 }
 
@@ -2843,3 +3158,316 @@ function attachTeamsTabHandlers(container: HTMLElement, user: CurrentUser): void
     renderAdminDashboard(container, user);
   });
 }
+
+/**
+ * Render the Team Email List (Allowlist) Section Markup
+ */
+function renderAllowlistSectionMarkup(): string {
+  const claimedCount = adminStaffAllowlist.filter((e) => e.claimed_by !== null).length;
+  const unclaimedCount = adminStaffAllowlist.filter((e) => e.claimed_by === null).length;
+
+  const filteredEntries = adminStaffAllowlist.filter((entry) => {
+    if (adminAllowlistFilter === 'claimed' && entry.claimed_by === null) return false;
+    if (adminAllowlistFilter === 'unclaimed' && entry.claimed_by !== null) return false;
+    if (!adminAllowlistSearchQuery) return true;
+    const q = adminAllowlistSearchQuery.toLowerCase();
+    return (
+      (entry.full_name || '').toLowerCase().includes(q) ||
+      (entry.email || '').toLowerCase().includes(q) ||
+      (entry.position || '').toLowerCase().includes(q)
+    );
+  });
+
+  return `
+    <div>
+      <!-- Section Header -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div>
+          <span class="eyebrow" style="margin-bottom: 0.25rem;">Pre-Approved Team Registry</span>
+          <h2 style="font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; text-transform: uppercase; color: #ffffff;">
+            TEAM EMAIL <em>LIST.</em>
+          </h2>
+          <p style="font-size: 0.9rem; color: rgba(242, 244, 255, 0.75); margin-top: 0.25rem; max-width: 65ch;">
+            Only pre-authorized email addresses can create an Executive Board account. The database matches their email on sign-up and auto-assigns their declared role and position.
+          </p>
+        </div>
+
+        <button type="button" id="admin-refresh-allowlist-btn" class="btn-interactive" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(217, 180, 90, 0.3); color: #ffffff; padding: 0.45rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+          ↺ Refresh List
+        </button>
+      </div>
+
+      <!-- Form to Add Person to Allowlist -->
+      <div class="tilt-card" style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.35); border-radius: 16px; padding: clamp(1.25rem, 3vw, 1.75rem); margin-bottom: 2rem;">
+        <h3 style="font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; text-transform: uppercase; color: #ffffff; margin-bottom: 0.3rem;">
+          + Pre-Authorize Team Member
+        </h3>
+        <p style="font-size: 0.85rem; color: rgba(242, 244, 255, 0.7); margin-bottom: 1.25rem;">
+          Add a team member before they sign up. Email will be saved in lowercase and matched on registration.
+        </p>
+
+        <div id="add-allowlist-feedback" class="status-banner" style="display: none; margin-bottom: 1.25rem;"></div>
+
+        <form id="add-allowlist-form" novalidate>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="new-allowlist-name">Full Name *</label>
+              <input type="text" id="new-allowlist-name" class="form-input" placeholder="e.g. Julia Fadel" required />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="new-allowlist-email">Email Address (saved lowercase) *</label>
+              <input type="email" id="new-allowlist-email" class="form-input" placeholder="e.g. julia@monumentmun.org" required />
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="new-allowlist-position">Position / Assignment *</label>
+              <input type="text" id="new-allowlist-position" class="form-input" placeholder="e.g. Head of Design" required />
+            </div>
+          </div>
+
+          <button type="submit" id="new-allowlist-submit-btn" class="form-submit-btn btn-interactive" style="width: auto; padding: 0.65rem 1.6rem;">
+            + Pre-Authorize Member
+          </button>
+        </form>
+      </div>
+
+      <!-- Search & Filter Controls -->
+      <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
+        <div style="flex: 1; min-width: 240px; position: relative;">
+          <input type="text" id="allowlist-search-input" class="form-input" placeholder="Search by name, email, or position..." value="${escapeHtml(adminAllowlistSearchQuery)}" style="padding-left: 2.25rem;" />
+          <span style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: rgba(242, 244, 255, 0.4); font-size: 0.9rem;">🔍</span>
+        </div>
+
+        <div style="display: flex; background: rgba(255, 255, 255, 0.05); border-radius: 9999px; padding: 4px; border: 1px solid rgba(255, 255, 255, 0.1); flex-wrap: wrap; gap: 2px;">
+          <button type="button" class="allowlist-filter-btn ${adminAllowlistFilter === 'all' ? 'active' : ''}" data-filter="all" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminAllowlistFilter === 'all' ? 'var(--gold)' : 'transparent'}; color: ${adminAllowlistFilter === 'all' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            All (${adminStaffAllowlist.length})
+          </button>
+          <button type="button" class="allowlist-filter-btn ${adminAllowlistFilter === 'claimed' ? 'active' : ''}" data-filter="claimed" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminAllowlistFilter === 'claimed' ? 'var(--gold)' : 'transparent'}; color: ${adminAllowlistFilter === 'claimed' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            Signed up (${claimedCount})
+          </button>
+          <button type="button" class="allowlist-filter-btn ${adminAllowlistFilter === 'unclaimed' ? 'active' : ''}" data-filter="unclaimed" style="padding: 0.4rem 0.9rem; border: none; border-radius: 9999px; background: ${adminAllowlistFilter === 'unclaimed' ? 'var(--gold)' : 'transparent'}; color: ${adminAllowlistFilter === 'unclaimed' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            Not yet (${unclaimedCount})
+          </button>
+        </div>
+      </div>
+
+      <!-- Allowlist Table Container -->
+      <div id="admin-allowlist-container">
+        ${renderAllowlistTableMarkup(filteredEntries)}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Generate markup for the allowlist table
+ */
+function renderAllowlistTableMarkup(entries: StaffAllowlistEntry[]): string {
+  if (entries.length === 0) {
+    return `
+      <div style="text-align: center; padding: 3rem 1rem; background: rgba(255, 255, 255, 0.02); border-radius: 14px; border: 1px dashed rgba(255, 255, 255, 0.12); color: rgba(242, 244, 255, 0.6);">
+        <p style="font-size: 0.95rem; margin-bottom: 0.25rem;">No authorized team emails found matching your filter.</p>
+        <span style="font-size: 0.8rem; color: rgba(242, 244, 255, 0.4);">Pre-authorize a team member using the form above.</span>
+      </div>
+    `;
+  }
+
+  const rows = entries
+    .map((entry) => {
+      const isSignedUp = entry.claimed_by !== null;
+      const statusBadge = isSignedUp
+        ? `<span style="background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #34d399; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;">Signed up</span>`
+        : `<span style="background: rgba(217, 180, 90, 0.15); border: 1px solid var(--gold); color: var(--gold); padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase;">Not yet</span>`;
+
+      const actionButton = !isSignedUp
+        ? `<button type="button" class="btn-interactive allowlist-remove-btn" data-email="${escapeHtml(entry.email)}" data-name="${escapeHtml(entry.full_name)}" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 0.35rem 0.85rem; border-radius: 8px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">Remove</button>`
+        : `<span style="font-size: 0.75rem; color: rgba(242, 244, 255, 0.4); font-style: italic;">Account Active</span>`;
+
+      return `
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.1rem 1.25rem; margin-bottom: 0.75rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto; gap: 1rem; align-items: center;">
+          <div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(242, 244, 255, 0.45); margin-bottom: 0.2rem;">Full Name</div>
+            <div style="font-family: var(--font-display); font-size: 1rem; font-weight: 700; color: #ffffff;">${escapeHtml(entry.full_name)}</div>
+          </div>
+
+          <div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(242, 244, 255, 0.45); margin-bottom: 0.2rem;">Authorized Email</div>
+            <div style="font-size: 0.88rem; color: rgba(242, 244, 255, 0.85); font-family: monospace;">${escapeHtml(entry.email)}</div>
+          </div>
+
+          <div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(242, 244, 255, 0.45); margin-bottom: 0.2rem;">Position</div>
+            <div style="font-size: 0.92rem; font-weight: 700; color: var(--gold);">${escapeHtml(entry.position)}</div>
+          </div>
+
+          <div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(242, 244, 255, 0.45); margin-bottom: 0.2rem;">Status</div>
+            <div>${statusBadge}</div>
+          </div>
+
+          <div style="text-align: right;">
+            ${actionButton}
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
+  return `<div>${rows}</div>`;
+}
+
+/**
+ * Attach event listeners to the Team Email List (Allowlist) tab
+ */
+function attachAllowlistTabHandlers(container: HTMLElement, user: CurrentUser): void {
+  const refreshBtn = document.getElementById('admin-refresh-allowlist-btn');
+  const addForm = document.getElementById('add-allowlist-form') as HTMLFormElement | null;
+  const feedback = document.getElementById('add-allowlist-feedback');
+  const searchInput = document.getElementById('allowlist-search-input') as HTMLInputElement | null;
+  const filterBtns = container.querySelectorAll('.allowlist-filter-btn');
+
+  refreshBtn?.addEventListener('click', async () => {
+    await refreshAdminData();
+    renderAdminDashboard(container, user);
+  });
+
+  // Add person form submit
+  addForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!feedback) return;
+    feedback.style.display = 'none';
+
+    const nameInput = document.getElementById('new-allowlist-name') as HTMLInputElement | null;
+    const emailInput = document.getElementById('new-allowlist-email') as HTMLInputElement | null;
+    const positionInput = document.getElementById('new-allowlist-position') as HTMLInputElement | null;
+    const submitBtn = document.getElementById('new-allowlist-submit-btn') as HTMLButtonElement | null;
+
+    const name = nameInput?.value.trim() || '';
+    const email = emailInput?.value.trim().toLowerCase() || '';
+    const position = positionInput?.value.trim() || '';
+
+    if (!name || !email || !position) {
+      feedback.className = 'status-banner status-error';
+      feedback.textContent = 'Please fill out all fields (name, email, and position).';
+      feedback.style.display = 'block';
+      return;
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Pre-Authorizing...';
+    }
+
+    const res = await addStaffAllowlistEntry(name, email, position);
+
+    if (res.error) {
+      feedback.className = 'status-banner status-error';
+      feedback.textContent = res.error;
+      feedback.style.display = 'block';
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '+ Pre-Authorize Member';
+      }
+      return;
+    }
+
+    feedback.className = 'status-banner status-success';
+    feedback.textContent = `✓ ${name} (${email}) pre-authorized as ${position}!`;
+    feedback.style.display = 'block';
+
+    if (nameInput) nameInput.value = '';
+    if (emailInput) emailInput.value = '';
+    if (positionInput) positionInput.value = '';
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '+ Pre-Authorize Member';
+    }
+
+    await refreshAdminData();
+    renderAdminDashboard(container, user);
+  });
+
+  // Search input
+  searchInput?.addEventListener('input', () => {
+    adminAllowlistSearchQuery = searchInput.value.trim();
+    const allowlistContainer = document.getElementById('admin-allowlist-container');
+    if (!allowlistContainer) return;
+
+    const filtered = adminStaffAllowlist.filter((entry) => {
+      if (adminAllowlistFilter === 'claimed' && entry.claimed_by === null) return false;
+      if (adminAllowlistFilter === 'unclaimed' && entry.claimed_by !== null) return false;
+      if (!adminAllowlistSearchQuery) return true;
+      const q = adminAllowlistSearchQuery.toLowerCase();
+      return (
+        (entry.full_name || '').toLowerCase().includes(q) ||
+        (entry.email || '').toLowerCase().includes(q) ||
+        (entry.position || '').toLowerCase().includes(q)
+      );
+    });
+
+    allowlistContainer.innerHTML = renderAllowlistTableMarkup(filtered);
+    attachAllowlistRowActions(container, user);
+  });
+
+  // Filter buttons
+  filterBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const f = btn.getAttribute('data-filter') as 'all' | 'claimed' | 'unclaimed';
+      if (!f) return;
+      adminAllowlistFilter = f;
+      renderAdminDashboard(container, user);
+    });
+  });
+
+  attachAllowlistRowActions(container, user);
+}
+
+/**
+ * Attach action handlers to remove buttons on allowlist entries (only where claimed_by is null)
+ */
+function attachAllowlistRowActions(container: HTMLElement, user: CurrentUser): void {
+  const feedback = document.getElementById('add-allowlist-feedback');
+  const removeBtns = container.querySelectorAll('.allowlist-remove-btn');
+
+  removeBtns.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const email = btn.getAttribute('data-email') || '';
+      const name = btn.getAttribute('data-name') || email || 'Member';
+
+      if (!email) return;
+
+      const ok = window.confirm(
+        `Are you sure you want to remove ${name} (${email}) from the authorized team list? This person will no longer be permitted to create an account.`
+      );
+      if (!ok) return;
+
+      const button = btn as HTMLButtonElement;
+      button.disabled = true;
+      button.textContent = 'Removing...';
+
+      const res = await removeStaffAllowlistEntry(email);
+
+      if (res.error) {
+        if (feedback) {
+          feedback.className = 'status-banner status-error';
+          feedback.textContent = res.error;
+          feedback.style.display = 'block';
+        }
+        button.disabled = false;
+        button.textContent = 'Remove';
+        return;
+      }
+
+      if (feedback) {
+        feedback.className = 'status-banner status-info';
+        feedback.textContent = `✓ Removed ${name} (${email}) from authorized team list.`;
+        feedback.style.display = 'block';
+      }
+
+      await refreshAdminData();
+      renderAdminDashboard(container, user);
+    });
+  });
+}
+
