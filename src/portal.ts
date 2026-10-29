@@ -45,6 +45,11 @@ import type {
   StaffAllowlistEntry
 } from './types/database';
 import { playWelcomeAnimation } from './welcome';
+import {
+  renderEntryPassCard,
+  setTriggerPassRevealAnimation,
+  openFullScreenPassModal
+} from './ticket';
 
 export function isStaffRoute(): boolean {
   const path = window.location.pathname.toLowerCase();
@@ -105,7 +110,7 @@ let adminStaff: Profile[] = [];
 let adminEbProfiles: Profile[] = [];
 let adminTeams: Team[] = [];
 let adminStaffAllowlist: StaffAllowlistEntry[] = [];
-let adminActiveTab: 'delegates' | 'eb' | 'teams' | 'allowlist' = 'delegates';
+let adminActiveTab: 'delegates' | 'eb' | 'teams' | 'allowlist' | 'pass' = 'delegates';
 let adminFilter: 'all' | 'pending' | 'approved' | 'rejected' = 'all';
 let adminSearchQuery = '';
 let adminEbFilter: 'all' | 'pending' | 'eb' | 'head' | 'admin' | 'security' = 'all';
@@ -1747,6 +1752,8 @@ function renderAdminAuth(container: HTMLElement): void {
         ebPosition: currentUser.profile?.eb_position || 'Administrator'
       });
 
+      setTriggerPassRevealAnimation(true);
+
       if (currentUser.role === 'admin') {
         renderAdminRoute(currentUser, false);
       } else {
@@ -2087,6 +2094,8 @@ function renderStaffAuth(container: HTMLElement): void {
         ebPosition: currentUser.profile?.eb_position || 'Executive Board Member'
       });
 
+      setTriggerPassRevealAnimation(true);
+
       if (currentUser.role === 'admin') {
         window.location.hash = '#/admin';
       } else {
@@ -2142,6 +2151,8 @@ function renderStaffAuth(container: HTMLElement): void {
         role: currentUser.role,
         ebPosition: currentUser.profile?.eb_position || 'Executive Board Member'
       });
+
+      setTriggerPassRevealAnimation(true);
 
       if (currentUser.role === 'admin') {
         window.location.hash = '#/admin';
@@ -2280,6 +2291,9 @@ function renderStaffPanel(container: HTMLElement, user: CurrentUser): void {
       <!-- Action Feedback Banner -->
       <div id="staff-panel-action-feedback" class="status-banner" style="display: none; margin-bottom: 1.5rem;"></div>
 
+      <!-- ENTRY PASS CARD (Prominently at the very top of the /staff panel) -->
+      <div id="staff-entry-pass-mount"></div>
+
       ${isHead ? `
         <!-- Head Sub-navigation Tabs -->
         <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.75rem; flex-wrap: wrap;">
@@ -2382,6 +2396,12 @@ function renderStaffPanel(container: HTMLElement, user: CurrentUser): void {
       renderStaffPanel(container, user);
     });
   });
+
+  // Render Entry Pass Card at the top of the /staff panel
+  const passMount = document.getElementById('staff-entry-pass-mount');
+  if (passMount) {
+    renderEntryPassCard(passMount, user);
+  }
 
   // Render initial table
   renderStaffRegistrationsTable();
@@ -2789,7 +2809,11 @@ function renderAdminDashboard(container: HTMLElement, user: CurrentUser): void {
           </h1>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: nowrap; white-space: nowrap;">
+        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; white-space: nowrap;">
+          <button type="button" id="admin-my-pass-btn" class="btn-interactive" style="background: rgba(217, 180, 90, 0.2); border: 1.5px solid var(--gold); color: var(--gold); padding: 0.45rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 0 12px rgba(217, 180, 90, 0.25);">
+            <span>★</span>
+            <span>My Entry Pass</span>
+          </button>
           <div style="text-align: right;">
             <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; white-space: nowrap;">${escapeHtml(user.fullName)}</div>
             <div style="font-size: 0.72rem; color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em; white-space: nowrap;">Administrator</div>
@@ -2803,7 +2827,7 @@ function renderAdminDashboard(container: HTMLElement, user: CurrentUser): void {
         </div>
       </div>
 
-      <!-- Main Navigation Tabs: Delegate Applications vs EB Members vs Teams -->
+      <!-- Main Navigation Tabs: Delegate Applications vs EB Members vs Teams vs Allowlist vs Entry Pass -->
       <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.75rem; overflow-x: auto;">
         <button type="button" id="admin-tab-delegates" class="btn-interactive" style="background: ${adminActiveTab === 'delegates' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'delegates' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'delegates' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
           <span>Delegate Applications</span>
@@ -2823,18 +2847,24 @@ function renderAdminDashboard(container: HTMLElement, user: CurrentUser): void {
           <span>Team Email List</span>
           <span style="background: ${adminActiveTab === 'allowlist' ? '#080a1e' : 'rgba(217, 180, 90, 0.25)'}; color: ${adminActiveTab === 'allowlist' ? 'var(--gold)' : '#ffffff'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${adminStaffAllowlist.length}</span>
         </button>
+
+        <button type="button" id="admin-tab-pass" class="btn-interactive" style="background: ${adminActiveTab === 'pass' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'pass' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'pass' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
+          <span>★ My Entry Pass</span>
+        </button>
       </div>
 
       <!-- TAB CONTENT CONTAINER -->
       <div id="admin-tab-content">
         ${
-          adminActiveTab === 'delegates'
-            ? renderDelegatesSectionMarkup(regStats)
-            : adminActiveTab === 'eb'
-              ? renderEbSectionMarkup(ebStats, user)
-              : adminActiveTab === 'teams'
-                ? renderTeamsSectionMarkup()
-                : renderAllowlistSectionMarkup()
+          adminActiveTab === 'pass'
+            ? `<div id="admin-entry-pass-mount" style="padding-top: 1rem;"></div>`
+            : adminActiveTab === 'delegates'
+              ? renderDelegatesSectionMarkup(regStats)
+              : adminActiveTab === 'eb'
+                ? renderEbSectionMarkup(ebStats, user)
+                : adminActiveTab === 'teams'
+                  ? renderTeamsSectionMarkup()
+                  : renderAllowlistSectionMarkup()
         }
       </div>
     </div>
@@ -3497,6 +3527,8 @@ function attachAdminDashboardHandlers(container: HTMLElement, user: CurrentUser)
   const tabEb = document.getElementById('admin-tab-eb');
   const tabTeams = document.getElementById('admin-tab-teams');
   const tabAllowlist = document.getElementById('admin-tab-allowlist');
+  const tabPass = document.getElementById('admin-tab-pass');
+  const myPassBtn = document.getElementById('admin-my-pass-btn');
   const signoutBtn = document.getElementById('admin-signout-btn');
 
   signoutBtn?.addEventListener('click', async () => {
@@ -3524,7 +3556,22 @@ function attachAdminDashboardHandlers(container: HTMLElement, user: CurrentUser)
     renderAdminDashboard(container, user);
   });
 
-  if (adminActiveTab === 'delegates') {
+  tabPass?.addEventListener('click', () => {
+    adminActiveTab = 'pass';
+    renderAdminDashboard(container, user);
+  });
+
+  myPassBtn?.addEventListener('click', () => {
+    adminActiveTab = 'pass';
+    renderAdminDashboard(container, user);
+  });
+
+  if (adminActiveTab === 'pass') {
+    const passMount = document.getElementById('admin-entry-pass-mount');
+    if (passMount) {
+      renderEntryPassCard(passMount, user);
+    }
+  } else if (adminActiveTab === 'delegates') {
     attachDelegatesTabHandlers(container, user);
   } else if (adminActiveTab === 'eb') {
     attachEbTabHandlers(container, user);

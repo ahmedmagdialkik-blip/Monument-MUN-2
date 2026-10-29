@@ -1,5 +1,6 @@
 import { supabase } from './lib/supabase';
 import type { Profile, TeamStatus, UserRole } from './types/database';
+import { clearStaffTicketCache } from './ticket';
 
 export interface CurrentUser {
   id: string;
@@ -216,6 +217,7 @@ export async function signInWithEmail(email: string, password: string): Promise<
  */
 export async function signOut(): Promise<{ error?: string }> {
   try {
+    clearStaffTicketCache();
     const { error } = await supabase.auth.signOut();
     if (error) {
       return { error: error.message };
@@ -224,6 +226,7 @@ export async function signOut(): Promise<{ error?: string }> {
     notifyListeners();
     return {};
   } catch (err: unknown) {
+    clearStaffTicketCache();
     const message = err instanceof Error ? err.message : 'Sign out failed.';
     return { error: message };
   }
@@ -236,12 +239,14 @@ export async function signOut(): Promise<{ error?: string }> {
     if (data?.session?.user) {
       await syncUserState(data.session.user);
     } else {
+      clearStaffTicketCache();
       currentUserState = null;
       isAuthLoading = false;
       notifyListeners();
     }
   } catch (e) {
     console.warn('Initial session check error:', e);
+    clearStaffTicketCache();
     currentUserState = null;
     isAuthLoading = false;
     notifyListeners();
@@ -253,6 +258,7 @@ supabase.auth.onAuthStateChange(async (_event: unknown, session: { user?: { id: 
   if (session?.user) {
     await syncUserState(session.user);
   } else {
+    clearStaffTicketCache();
     currentUserState = null;
     isAuthLoading = false;
     notifyListeners();

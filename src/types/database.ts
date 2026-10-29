@@ -56,6 +56,11 @@ export interface StaffAllowlistEntry {
   claimed_at: string | null;
 }
 
+export interface StaffTicket {
+  user_id: string;
+  token: string;
+}
+
 export interface AuthState {
   user: {
     id: string;
@@ -69,3 +74,4 @@ export interface AuthState {
   profile: Profile | null;
   loading: boolean;
 }
+
