@@ -786,24 +786,40 @@
         margin: 0.25rem 0 1.25rem 0;
         width: 100%;
         max-width: 100%;
-        overflow: hidden;
+        overflow: visible;
+        padding-right: 0.15em;
       }
 
       .hero-line {
         display: block;
         font-family: var(--font-display);
         font-weight: 800;
-        letter-spacing: -0.035em;
+        letter-spacing: -0.025em;
         text-transform: uppercase;
         color: var(--text-color);
         white-space: nowrap;
         line-height: 0.88;
+        overflow: visible;
+      }
+
+      .hero-line-1 {
+        padding-right: 0.12em;
+        overflow: visible;
       }
 
       .hero-char {
         display: inline-block;
         opacity: 0;
         animation: heroCharRise 0.5s var(--ease) forwards;
+      }
+
+      .hero-char-last,
+      .hero-char-t {
+        display: inline-block;
+        padding-right: 0.08em;
+        position: relative;
+        z-index: 2;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
       }
 
       @keyframes heroCharRise {
@@ -3840,8 +3856,26 @@
             <!-- Populated via JavaScript -->
           </div>
 
-          <!-- Join a Team Member Portal Mount -->
-          <div id="team-join-mount" style="max-width: 760px; margin: 3rem auto 0 auto;"></div>
+          <!-- Join a Team Member Portal Mount (Status: TBA) -->
+          <div id="team-join-mount" style="max-width: 760px; margin: 3rem auto 0 auto;">
+            <div class="tilt-card" style="background: rgba(8, 10, 30, 0.94); border: 1px solid rgba(217, 180, 90, 0.35); border-radius: 18px; padding: clamp(1.6rem, 4vw, 2.5rem); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.45);">
+              <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(217, 180, 90, 0.12); border: 1px solid rgba(217, 180, 90, 0.4); border-radius: 9999px; padding: 0.35rem 1.05rem; margin-bottom: 0.85rem;">
+                <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); animation: pulseDot 2s infinite ease-in-out;"></span>
+                <span style="font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--gold);">
+                  APPLICATIONS: TO BE ANNOUNCED (TBA)
+                </span>
+              </div>
+              <h3 style="font-family: var(--font-display); font-size: clamp(1.3rem, 3.8vw, 1.8rem); font-weight: 800; text-transform: uppercase; color: #ffffff; margin-bottom: 0.6rem; letter-spacing: -0.01em;">
+                JOIN A <em>CONFERENCE TEAM.</em>
+              </h3>
+              <p style="font-size: 0.96rem; color: rgba(242, 244, 255, 0.82); max-width: 560px; margin: 0 auto 0.75rem; line-height: 1.6;">
+                Department recruitment and team joining for Monument MUN 2027 are currently <strong>To Be Announced</strong>. Open positions across Logistics, Media, PR, Secretariat Operations, and Committee Staff will be published here soon.
+              </p>
+              <div style="display: inline-flex; align-items: center; gap: 0.5rem; color: rgba(242, 244, 255, 0.55); font-size: 0.82rem; margin-top: 0.5rem;">
+                <span>Follow our live announcements for opening dates and department guidelines.</span>
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- 8. LIVE UPDATES & SUGGESTIONS -->
@@ -4078,6 +4112,7 @@
       import { supabase } from '/src/lib/supabase.ts';
       import { initPortal, isAdminRoute, isStaffRoute, renderAdminRoute, renderStaffRoute, renderTeamHeadRoute } from '/src/portal.ts';
       import { getCachedUser, isAuthReady, signUpWithEmail, signInWithEmail, signOut, subscribeAuth } from '/src/auth.ts';
+      import { initBackgroundCat } from '/src/cat.ts';
 
       (function () {
         'use strict';
@@ -4210,7 +4245,10 @@
           const lineMun = document.getElementById('line-mun');
           if (!container || !lineMonument) return;
 
-          const targetWidth = container.clientWidth;
+          // Provide ample safety margin (44px desktop, 24px mobile)
+          // so the final letter 'T' in MONUMENT never clips or hugs the container edge
+          const margin = window.innerWidth < 768 ? 24 : 44;
+          const targetWidth = Math.max(80, container.clientWidth - margin);
           if (!targetWidth || targetWidth <= 0) return;
 
           let low = 16;
@@ -4234,10 +4272,10 @@
           const finalRem = Math.min(15, best / 16);
           const remStr = `${finalRem.toFixed(3)}rem`;
           lineMonument.style.fontSize = remStr;
-          lineMonument.style.lineHeight = '0.85';
+          lineMonument.style.lineHeight = '0.88';
           if (lineMun) {
             lineMun.style.fontSize = remStr;
-            lineMun.style.lineHeight = '0.85';
+            lineMun.style.lineHeight = '0.88';
           }
         }
 
@@ -4380,10 +4418,13 @@
           for (let i = 0; i < text.length; i++) {
             const char = text[i];
             const span = document.createElement('span');
-            span.className = 'hero-char';
+            const isLast = (i === text.length - 1);
+            span.className = 'hero-char' + (isLast ? ' hero-char-last hero-char-t' : '');
             span.textContent = char === ' ' ? '\u00A0' : char;
             if (!prefersReduced) {
               span.style.animationDelay = `${baseDelay + i * 42}ms`;
+            } else {
+              span.style.opacity = '1';
             }
             elem.appendChild(span);
           }
@@ -6579,6 +6620,9 @@
         }
 
         runIntro();
+
+        initPortal();
+        initBackgroundCat();
 
         switchView(window.location.hash || '#/');
       })();

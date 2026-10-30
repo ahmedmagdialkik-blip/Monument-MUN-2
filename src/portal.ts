@@ -762,255 +762,54 @@ export async function renderJoinTeamPanel(user: CurrentUser | null): Promise<voi
 
   if (mounts.length === 0) return;
 
-  // If user is not logged in
-  if (!user) {
-    for (const mount of mounts) {
-      mount.innerHTML = `
-        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.94); border: 1px solid rgba(217, 180, 90, 0.35); border-radius: 18px; padding: clamp(1.4rem, 4vw, 2.2rem); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.45);">
-          <span class="eyebrow" style="margin-bottom: 0.35rem;">Team Application</span>
-          <h3 style="font-family: var(--font-display); font-size: clamp(1.2rem, 3.5vw, 1.6rem); font-weight: 800; text-transform: uppercase; color: #ffffff; margin-bottom: 0.5rem;">
-            JOIN A <em>CONFERENCE TEAM.</em>
-          </h3>
-          <p style="font-size: 0.95rem; color: rgba(242, 244, 255, 0.75); max-width: 520px; margin: 0 auto 1.5rem; line-height: 1.55;">
-            Ready to shape Monument MUN 2027? Please sign in or create an account to submit your department or committee team assignment request.
-          </p>
-          <a href="#/apply" class="apply-pill-btn btn-interactive" style="padding: 0.65rem 1.6rem; font-size: 0.85rem; display: inline-flex;">
-            Sign In to Join a Team
-          </a>
-        </div>
-      `;
+  const currentTeamId = user?.profile?.team_id || user?.teamId || null;
+  const currentTeamStatus = user?.profile?.team_status || user?.teamStatus || null;
+  let statusBadge = '';
+
+  if (user && currentTeamStatus === 'approved') {
+    if (cachedTeamsList.length === 0) {
+      const teamsRes = await fetchAllTeams();
+      cachedTeamsList = teamsRes.data || [];
     }
-    return;
-  }
-
-  // If user is ADMIN
-  if (user.role === 'admin') {
-    for (const mount of mounts) {
-      mount.innerHTML = `
-        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.92); border: 1px solid rgba(217, 180, 90, 0.35); border-radius: 16px; padding: 1.25rem 1.6rem;">
-          <div style="font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase; color: #ffffff;">
-            Secretariat <em>Administration Active</em>
-          </div>
-          <div style="font-size: 0.85rem; color: rgba(242, 244, 255, 0.7); margin-top: 0.2rem;">
-            You have full administrative privileges to manage teams, assign heads, and review memberships.
-          </div>
-        </div>
-      `;
-    }
-    return;
-  }
-
-  // If user is HEAD
-  if (user.role === 'head') {
-    for (const mount of mounts) {
-      mount.innerHTML = `
-        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.92); border: 1px solid rgba(217, 180, 90, 0.45); border-radius: 16px; padding: 1.25rem 1.6rem;">
-          <div style="font-family: var(--font-display); font-size: 1rem; font-weight: 800; text-transform: uppercase; color: #ffffff;">
-            ★ Team Head <em>Leadership Active</em>
-          </div>
-          <div style="font-size: 0.85rem; color: rgba(242, 244, 255, 0.7); margin-top: 0.2rem;">
-            You are the designated Head of your team. You can review committee and department member requests from the staff portal.
-          </div>
-        </div>
-      `;
-    }
-    return;
-  }
-
-  // Standard signed-in member (role is 'user', 'eb', or 'security')
-  if (cachedTeamsList.length === 0) {
-    const teamsRes = await fetchAllTeams();
-    cachedTeamsList = teamsRes.data || [];
-  }
-
-  const currentTeamId = user.profile?.team_id || user.teamId || null;
-  const currentTeamStatus = user.profile?.team_status || user.teamStatus || null;
-  const currentTeam = cachedTeamsList.find((t) => t.id === currentTeamId);
-  const teamName = currentTeam?.name || 'Assigned Team';
-
-  // Group teams for dropdown
-  const deptTeams = cachedTeamsList.filter((t) => t.kind === 'department');
-  const commTeams = cachedTeamsList.filter((t) => t.kind === 'committee');
-
-  const deptOptions = deptTeams
-    .map((t) => `<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)}</option>`)
-    .join('');
-  const commOptions = commTeams
-    .map((t) => `<option value="${escapeHtml(t.id)}">${escapeHtml(t.name)}</option>`)
-    .join('');
-
-  const dropdownMarkup = `
-    <select class="form-select join-team-select" required style="margin-bottom: 1rem; background: rgba(8, 10, 30, 0.95);">
-      <option value="">Select a Department or Committee...</option>
-      <optgroup label="Departments (Logistics, Media, Finance, etc.)">
-        ${deptOptions}
-      </optgroup>
-      <optgroup label="Committees (UNSC, UNESCO, ECOSOC, etc.)">
-        ${commOptions}
-      </optgroup>
-    </select>
-  `;
-
-  for (let i = 0; i < mounts.length; i++) {
-    const mount = mounts[i];
-    const mountId = `join-team-card-${i}`;
-
-    let statusHtml = '';
-
-    if (currentTeamStatus === 'pending') {
-      statusHtml = `
-        <div style="background: rgba(217, 180, 90, 0.1); border: 1.5px solid var(--gold); border-radius: 14px; padding: 1.4rem; margin-bottom: 1.25rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); animation: pulse 1.8s infinite;"></span>
-            <span style="font-family: var(--font-display); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold);">
-              Application In Review
-            </span>
-          </div>
-          <h4 style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: #ffffff; text-transform: uppercase; margin-bottom: 0.4rem;">
-            PENDING APPROVAL BY <em>${escapeHtml(teamName)} HEAD</em>
-          </h4>
-          <p style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.8); line-height: 1.55;">
-            Your request to join <strong>${escapeHtml(teamName)}</strong> has been registered. The department head will review your submission shortly.
-          </p>
-        </div>
-
-        <details style="cursor: pointer; font-size: 0.85rem; color: var(--gold); margin-top: 0.75rem;">
-          <summary style="font-family: var(--font-display); font-weight: 700; text-transform: uppercase;">Request a different team ▾</summary>
-          <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-            <div class="form-group">
-              <label class="form-label">Select Alternate Team:</label>
-              ${dropdownMarkup}
-            </div>
-            <button type="button" class="form-submit-btn btn-interactive submit-team-request-btn" style="width: 100%;">
-              Switch Team Request
-            </button>
-          </div>
-        </details>
-      `;
-    } else if (currentTeamStatus === 'approved') {
-      statusHtml = `
-        <div style="background: rgba(16, 185, 129, 0.12); border: 1.5px solid #10b981; border-radius: 14px; padding: 1.4rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-            <span style="color: #34d399; font-size: 1.1rem;">✓</span>
-            <span style="font-family: var(--font-display); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #34d399;">
-              Confirmed Member
-            </span>
-          </div>
-          <h4 style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: #ffffff; text-transform: uppercase; margin-bottom: 0.4rem;">
-            ACCEPTED INTO <em>${escapeHtml(teamName)}</em>
-          </h4>
-          <p style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.85); line-height: 1.55;">
-            Congratulations! You are officially recognized as an active member of the <strong>${escapeHtml(teamName)}</strong> organizing body for Monument MUN 2027.
-          </p>
-        </div>
-      `;
-    } else if (currentTeamStatus === 'rejected') {
-      statusHtml = `
-        <div style="background: rgba(239, 68, 68, 0.12); border: 1.5px solid #ef4444; border-radius: 14px; padding: 1.4rem; margin-bottom: 1.25rem;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-            <span style="color: #f87171;">✕</span>
-            <span style="font-family: var(--font-display); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: #f87171;">
-              Status Update
-            </span>
-          </div>
-          <h4 style="font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; color: #ffffff; text-transform: uppercase; margin-bottom: 0.4rem;">
-            NOT ACCEPTED THIS TIME
-          </h4>
-          <p style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.8); line-height: 1.55;">
-            Your request for <strong>${escapeHtml(teamName)}</strong> could not be accommodated for this round. You are welcome to submit a request for an alternate department or committee below.
-          </p>
-        </div>
-
-        <div style="margin-top: 1rem;">
-          <label class="form-label">Request Another Team:</label>
-          ${dropdownMarkup}
-          <button type="button" class="form-submit-btn btn-interactive submit-team-request-btn" style="width: 100%;">
-            Submit New Team Request
-          </button>
-        </div>
-      `;
-    } else {
-      // No team requested yet
-      statusHtml = `
-        <p style="font-size: 0.95rem; color: rgba(242, 244, 255, 0.78); margin-bottom: 1.25rem; line-height: 1.55;">
-          Select the organizing department or committee you wish to join for Monument MUN 2027. Your request will be transmitted directly to the department head.
-        </p>
-        <div class="form-group">
-          <label class="form-label">Choose Department or Committee *</label>
-          ${dropdownMarkup}
-        </div>
-        <button type="button" class="form-submit-btn btn-interactive submit-team-request-btn" style="width: 100%;">
-          Request Team Assignment
-        </button>
-      `;
-    }
-
-    mount.innerHTML = `
-      <div id="${mountId}" class="tilt-card" style="background: rgba(8, 10, 30, 0.94); border: 1px solid rgba(217, 180, 90, 0.35); border-radius: 18px; padding: clamp(1.4rem, 4vw, 2.2rem); box-shadow: 0 10px 30px rgba(0,0,0,0.45);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
-          <div>
-            <span class="eyebrow" style="margin-bottom: 0.25rem;">Conference Participation</span>
-            <h3 style="font-family: var(--font-display); font-size: clamp(1.2rem, 3.5vw, 1.55rem); font-weight: 800; text-transform: uppercase; color: #ffffff;">
-              JOIN A <em>CONFERENCE TEAM.</em>
-            </h3>
-          </div>
-          <div style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(217, 180, 90, 0.25); border-radius: 9999px; padding: 0.25rem 0.75rem; font-size: 0.75rem; color: rgba(242, 244, 255, 0.75);">
-            Account: <strong>${escapeHtml(user.email)}</strong>
-          </div>
-        </div>
-
-        <div class="team-feedback-banner status-banner" style="display: none; margin-bottom: 1rem;"></div>
-
-        ${statusHtml}
+    const currentTeam = cachedTeamsList.find((t) => t.id === currentTeamId);
+    const teamName = currentTeam?.name || 'Assigned Department';
+    statusBadge = `
+      <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(16, 185, 129, 0.12); border: 1px solid #10b981; border-radius: 9999px; padding: 0.35rem 0.95rem; font-size: 0.8rem; color: #34d399; margin-bottom: 1rem;">
+        <span>✓ Confirmed Member: <strong>${escapeHtml(teamName)}</strong></span>
       </div>
     `;
+  } else if (user && (user.role === 'admin' || user.role === 'head')) {
+    const roleLabel = user.role === 'admin' ? 'Secretariat Administration' : 'Team Head Leadership';
+    statusBadge = `
+      <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(217, 180, 90, 0.14); border: 1px solid var(--gold); border-radius: 9999px; padding: 0.35rem 0.95rem; font-size: 0.8rem; color: var(--gold); margin-bottom: 1rem;">
+        <span>★ ${escapeHtml(roleLabel)} Active</span>
+      </div>
+    `;
+  }
 
-    // Wire submit button
-    const card = document.getElementById(mountId);
-    if (!card) continue;
+  const tbaHtml = `
+    <div class="tilt-card" style="background: rgba(8, 10, 30, 0.94); border: 1px solid rgba(217, 180, 90, 0.35); border-radius: 18px; padding: clamp(1.6rem, 4vw, 2.5rem); text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.45);">
+      ${statusBadge}
+      <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(217, 180, 90, 0.12); border: 1px solid rgba(217, 180, 90, 0.4); border-radius: 9999px; padding: 0.35rem 1.05rem; margin-bottom: 0.85rem;">
+        <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); animation: pulseDot 2s infinite ease-in-out;"></span>
+        <span style="font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--gold);">
+          APPLICATIONS: TO BE ANNOUNCED (TBA)
+        </span>
+      </div>
+      <h3 style="font-family: var(--font-display); font-size: clamp(1.3rem, 3.8vw, 1.8rem); font-weight: 800; text-transform: uppercase; color: #ffffff; margin-bottom: 0.6rem; letter-spacing: -0.01em;">
+        JOIN A <em>CONFERENCE TEAM.</em>
+      </h3>
+      <p style="font-size: 0.96rem; color: rgba(242, 244, 255, 0.82); max-width: 560px; margin: 0 auto 0.75rem; line-height: 1.6;">
+        Department recruitment and team joining for Monument MUN 2027 are currently <strong>To Be Announced</strong>. Open positions across Logistics, Media, PR, Secretariat Operations, and Committee Staff will be published here soon.
+      </p>
+      <div style="display: inline-flex; align-items: center; gap: 0.5rem; color: rgba(242, 244, 255, 0.55); font-size: 0.82rem; margin-top: 0.5rem;">
+        <span>Follow our live announcements for opening dates and department guidelines.</span>
+      </div>
+    </div>
+  `;
 
-    const feedbackBanner = card.querySelector('.team-feedback-banner') as HTMLElement | null;
-    const submitBtn = card.querySelector('.submit-team-request-btn') as HTMLButtonElement | null;
-    const selectElem = card.querySelector('.join-team-select') as HTMLSelectElement | null;
-
-    submitBtn?.addEventListener('click', async () => {
-      const selectedTeamId = selectElem?.value || '';
-      if (!selectedTeamId) {
-        if (feedbackBanner) {
-          feedbackBanner.className = 'status-banner status-error';
-          feedbackBanner.textContent = 'Please choose a department or committee from the list.';
-          feedbackBanner.style.display = 'block';
-        }
-        selectElem?.focus();
-        return;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting Request...';
-
-      const res = await requestTeamRpc(selectedTeamId);
-
-      if (!res.success) {
-        if (feedbackBanner) {
-          feedbackBanner.className = 'status-banner status-error';
-          feedbackBanner.textContent = res.error || 'Failed to submit request.';
-          feedbackBanner.style.display = 'block';
-        }
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Request Team Assignment';
-        return;
-      }
-
-      if (feedbackBanner) {
-        feedbackBanner.className = 'status-banner status-success';
-        feedbackBanner.textContent = '✓ Your team request was dispatched to the head for review!';
-        feedbackBanner.style.display = 'block';
-      }
-
-      // Refresh profile to reflect pending state
-      await refreshCurrentUserProfile();
-      await renderJoinTeamPanel(getCachedUser());
-    });
+  for (const mount of mounts) {
+    mount.innerHTML = tbaHtml;
   }
 }
 
