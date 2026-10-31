@@ -1,15 +1,8 @@
 import { supabase } from './lib/supabase';
 import type { Registration, RegistrationInput } from './types/database';
+import { COMMITTEE_OPTIONS } from './committees';
 
-export const COMMITTEES = [
-  'Security Council (UNSC) · Great Wall of China',
-  'Economic and Social Council (ECOSOC) · Petra',
-  'UNESCO · The Pyramids of Giza',
-  'UNEP · Eiffel Tower',
-  'Human Rights Council (UNHRC) · Chichén Itzá',
-  'DISEC · Colosseum',
-  'UN Women · Taj Mahal'
-] as const;
+export const COMMITTEES = COMMITTEE_OPTIONS;
 
 /**
  * Fetch registration for a specific user ID
