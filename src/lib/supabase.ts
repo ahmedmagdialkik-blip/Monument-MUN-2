@@ -98,7 +98,7 @@ const DEFAULT_REGISTRATIONS: Registration[] = [
     email: 'sofia.ramirez@example.com',
     phone: '+1 (555) 234-5678',
     school: 'Georgetown University',
-    committee: 'Security Council (UNSC) · Great Wall of China',
+    committee: 'Security Council (UNSC) · Statue of Liberty',
     status: 'approved',
     created_at: new Date(Date.now() - 86400000 * 3).toISOString()
   },

@@ -23,12 +23,12 @@ export const MONUMENT_COMMITTEES: CommitteeItem[] = [
   {
     id: 'Committee 1 (TBA)',
     name: 'Committee 1 (TBA)',
-    monument: 'Great Wall of China',
-    location: 'China',
+    monument: 'Statue of Liberty',
+    location: 'New York, United States',
     agenda: 'To be announced soon',
     description: 'Committee simulation, agenda topic and delegate dossier will be announced soon.',
     layerIndex: 0,
-    label: 'Committee 1 (TBA) · Great Wall'
+    label: 'Committee 1 (TBA) · Statue of Liberty'
   },
   {
     id: 'Committee 2 (TBA)',

@@ -72,11 +72,11 @@
         --med: 0.4s;
         --slow: 0.7s;
 
-        /* Dynamic Interpolated Palette (Stop 0 defaults) */
-        --sky-top: #9fb4c7;
-        --sky-bottom: #e4e0d6;
-        --monument-ink: #3b4a58;
-        --text-color: #1d2a36;
+        /* Dynamic Interpolated Palette (Stop 0 defaults - Statue of Liberty Harbor Dawn) */
+        --sky-top: #1b3456;
+        --sky-bottom: #f5c68b;
+        --monument-ink: #142236;
+        --text-color: #0d1829;
 
         /* Monument MUN Luxury Gold & Glass Tokens */
         --gold: #d9b45a;
@@ -235,6 +235,7 @@
         pointer-events: none;
       }
 
+      /* Monument Stage Layers */
       .monument-layer {
         position: fixed;
         bottom: 0;
@@ -251,6 +252,56 @@
         pointer-events: none;
         z-index: 1;
         transition: opacity 100ms linear, transform 100ms linear;
+      }
+
+      /* Stop 0: Statue of Liberty Vector Panorama is active from initial page load */
+      #layer-0 {
+        opacity: 1;
+        transform: translateY(0) translateZ(0);
+      }
+
+      /* Radiant Golden Sunburst & Shimmer Animations */
+      .sun-core-burst {
+        transform-origin: 680px 115px;
+        animation: sunCorePulse 3.5s ease-in-out infinite alternate;
+      }
+      .sun-corona-wide {
+        transform-origin: 680px 115px;
+        animation: sunCoronaBreathe 6s ease-in-out infinite alternate;
+      }
+      .sun-corona-glow {
+        transform-origin: 680px 115px;
+        animation: sunCoronaGlowPulse 4s ease-in-out infinite alternate;
+      }
+      .sun-rays-group {
+        transform-origin: 680px 115px;
+        animation: sunRaySpin 140s linear infinite;
+      }
+      .sun-rays-sheen {
+        animation: sunRayFlicker 3.2s ease-in-out infinite alternate;
+      }
+      @keyframes sunCorePulse {
+        0% { transform: scale(0.96); filter: drop-shadow(0 0 16px rgba(255, 230, 140, 0.85)); }
+        100% { transform: scale(1.08); filter: drop-shadow(0 0 38px rgba(255, 245, 180, 1)); }
+      }
+      @keyframes sunCoronaBreathe {
+        0% { opacity: 0.7; transform: scale(0.94); }
+        100% { opacity: 1; transform: scale(1.12); }
+      }
+      @keyframes sunCoronaGlowPulse {
+        0% { opacity: 0.65; transform: scale(0.95); }
+        100% { opacity: 0.95; transform: scale(1.06); }
+      }
+      @keyframes sunRaySpin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      @keyframes sunRayFlicker {
+        0% { opacity: 0.65; }
+        100% { opacity: 0.98; }
+      }
+      .skyline-window {
+        shape-rendering: crispEdges;
       }
 
       .monument-svg {
@@ -3218,17 +3269,373 @@
     <div id="fixed-stage" aria-hidden="true">
       <div id="sky-moon"></div>
 
-      <!-- Stop 0: Great Wall of China -->
+      <!-- Stop 0: Statue of Liberty & New York Harbor Vector Panorama -->
       <div class="monument-layer" id="layer-0">
-        <svg class="monument-svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMax meet">
-          <path d="M 0 380 Q 200 370 400 380 T 800 380 L 800 400 L 0 400 Z" />
-          <path d="M 0 320 Q 90 280 180 300 Q 270 320 360 270 Q 450 220 540 260 Q 630 300 720 250 L 800 270 L 800 380 L 0 380 Z" />
-          <rect x="160" y="260" width="40" height="40" rx="2" />
-          <polygon points="155,260 180,240 205,260" />
-          <rect x="520" y="220" width="40" height="40" rx="2" />
-          <polygon points="515,220 540,200 565,220" />
-          <rect x="700" y="210" width="40" height="40" rx="2" />
-          <polygon points="695,210 720,190 745,210" />
+        <svg class="monument-svg" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMax meet">
+          <!-- SVG Definitions for Sun Radiance and Skyline Glow -->
+          <defs>
+            <radialGradient id="sun-core-grad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ffffff" />
+              <stop offset="25%" stop-color="#fff8d6" />
+              <stop offset="55%" stop-color="#f3d88a" />
+              <stop offset="85%" stop-color="#d9b45a" />
+              <stop offset="100%" stop-color="#b88d30" />
+            </radialGradient>
+            <radialGradient id="sun-inner-corona" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#fffdf0" stop-opacity="0.95" />
+              <stop offset="40%" stop-color="#f3d88a" stop-opacity="0.65" />
+              <stop offset="75%" stop-color="#d9b45a" stop-opacity="0.25" />
+              <stop offset="100%" stop-color="#d9b45a" stop-opacity="0" />
+            </radialGradient>
+            <radialGradient id="sun-outer-corona" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ffeaa0" stop-opacity="0.65" />
+              <stop offset="45%" stop-color="#f3d88a" stop-opacity="0.28" />
+              <stop offset="80%" stop-color="#d9b45a" stop-opacity="0.08" />
+              <stop offset="100%" stop-color="#d9b45a" stop-opacity="0" />
+            </radialGradient>
+            <linearGradient id="sun-ray-grad" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stop-color="#fff4b8" stop-opacity="0.95" />
+              <stop offset="40%" stop-color="#f3d88a" stop-opacity="0.7" />
+              <stop offset="75%" stop-color="#d9b45a" stop-opacity="0.25" />
+              <stop offset="100%" stop-color="#d9b45a" stop-opacity="0" />
+            </linearGradient>
+            <linearGradient id="sun-ray-subtle" x1="0%" y1="100%" x2="0%" y2="0%">
+              <stop offset="0%" stop-color="#fffdf0" stop-opacity="0.75" />
+              <stop offset="50%" stop-color="#f3d88a" stop-opacity="0.35" />
+              <stop offset="100%" stop-color="#d9b45a" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+
+          <!-- Radiant Golden Sunburst, Corona Rings, & Animated Sunbeams -->
+          <g id="ny-radiant-sun">
+            <!-- Broad atmospheric golden aura -->
+            <circle class="sun-corona-wide" cx="680" cy="115" r="145" fill="url(#sun-outer-corona)" />
+            <circle class="sun-corona-glow" cx="680" cy="115" r="85" fill="url(#sun-inner-corona)" />
+            <circle cx="680" cy="115" r="54" fill="url(#sun-inner-corona)" />
+
+            <!-- Corona light rings -->
+            <circle cx="680" cy="115" r="42" fill="none" stroke="#ffeaa0" stroke-width="1.5" opacity="0.65" stroke-dasharray="3 3" />
+            <circle cx="680" cy="115" r="64" fill="none" stroke="#f3d88a" stroke-width="1.2" opacity="0.45" />
+            <circle cx="680" cy="115" r="98" fill="none" stroke="#d9b45a" stroke-width="0.8" opacity="0.35" stroke-dasharray="6 4" />
+
+            <!-- Rotating & shimmering sunbeams -->
+            <g class="sun-rays-group sun-rays-sheen">
+              <!-- 12 Primary tapered radiant sunbeams extending across the sky -->
+              <polygon points="677,115 674,10 680,-45 686,10 683,115" fill="url(#sun-ray-grad)" />
+              <polygon points="677,115 674,10 680,-45 686,10 683,115" fill="url(#sun-ray-grad)" transform="rotate(30 680 115)" />
+              <polygon points="677,115 674,10 680,-45 686,10 683,115" fill="url(#sun-ray-grad)" transform="rotate(60 680 115)" />
+              <polygon points="677,115 674,10 680,-45 686,10 683,115" fill="url(#sun-ray-grad)" transform="rotate(90 680 115)" />
+              <polygon points="677,115 674,10 680,-45 686,10 683,115" fill="url(#sun-ray-grad)" transform="rotate(120 680 115)" />
+              <polygon points="677,115 674,10 680,-45 686,10 683,115" fill="url(#sun-ray-grad)" transform="rotate(150 680 115)" />
+              <polygon points="677,115 674,10 680,-45 686,10 683,115" fill="url(#sun-ray-grad)" transform="rotate(180 680 115)" />
+              <polygon points="677,115 674,10 680,-45 686,10 683,115" fill="url(#sun-ray-grad)" transform="rotate(210 680 115)" />
+              <polygon points="677,115 674,10 680,-45 686,10 683,115" fill="url(#sun-ray-grad)" transform="rotate(240 680 115)" />
+              <polygon points="677,115 674,10 680,-45 686,10 683,115" fill="url(#sun-ray-grad)" transform="rotate(270 680 115)" />
+              <polygon points="677,115 674,10 680,-45 686,10 683,115" fill="url(#sun-ray-grad)" transform="rotate(300 680 115)" />
+              <polygon points="677,115 674,10 680,-45 686,10 683,115" fill="url(#sun-ray-grad)" transform="rotate(330 680 115)" />
+
+              <!-- 12 Secondary intermediate sunbeams -->
+              <polygon points="678,115 676,35 680,-10 684,35 682,115" fill="url(#sun-ray-subtle)" transform="rotate(15 680 115)" />
+              <polygon points="678,115 676,35 680,-10 684,35 682,115" fill="url(#sun-ray-subtle)" transform="rotate(45 680 115)" />
+              <polygon points="678,115 676,35 680,-10 684,35 682,115" fill="url(#sun-ray-subtle)" transform="rotate(75 680 115)" />
+              <polygon points="678,115 676,35 680,-10 684,35 682,115" fill="url(#sun-ray-subtle)" transform="rotate(105 680 115)" />
+              <polygon points="678,115 676,35 680,-10 684,35 682,115" fill="url(#sun-ray-subtle)" transform="rotate(135 680 115)" />
+              <polygon points="678,115 676,35 680,-10 684,35 682,115" fill="url(#sun-ray-subtle)" transform="rotate(165 680 115)" />
+              <polygon points="678,115 676,35 680,-10 684,35 682,115" fill="url(#sun-ray-subtle)" transform="rotate(195 680 115)" />
+              <polygon points="678,115 676,35 680,-10 684,35 682,115" fill="url(#sun-ray-subtle)" transform="rotate(225 680 115)" />
+              <polygon points="678,115 676,35 680,-10 684,35 682,115" fill="url(#sun-ray-subtle)" transform="rotate(255 680 115)" />
+              <polygon points="678,115 676,35 680,-10 684,35 682,115" fill="url(#sun-ray-subtle)" transform="rotate(285 680 115)" />
+              <polygon points="678,115 676,35 680,-10 684,35 682,115" fill="url(#sun-ray-subtle)" transform="rotate(315 680 115)" />
+              <polygon points="678,115 676,35 680,-10 684,35 682,115" fill="url(#sun-ray-subtle)" transform="rotate(345 680 115)" />
+            </g>
+
+            <!-- Brilliant, luminous central sun sphere -->
+            <circle class="sun-core-burst" cx="680" cy="115" r="32" fill="url(#sun-core-grad)" />
+            <!-- Specular hot spot at center -->
+            <circle cx="680" cy="115" r="14" fill="#ffffff" opacity="0.95" />
+          </g>
+
+          <!-- Crisp atmospheric horizon cloud accents -->
+          <g opacity="0.2">
+            <path d="M 80 80 Q 110 65 140 80 Q 170 70 195 82 Q 205 92 185 96 L 75 96 Z" fill="var(--sky-bottom)" />
+            <path d="M 480 88 Q 510 74 540 88 Q 570 78 595 90 L 475 90 Z" fill="var(--sky-bottom)" />
+            <path d="M 780 70 Q 810 56 840 70 Q 870 60 895 72 L 775 72 Z" fill="var(--sky-bottom)" />
+          </g>
+
+          <!-- Razor-Sharp Deep Manhattan Skyline with Illuminated Windows -->
+          <g class="skyline-deep" opacity="0.95">
+            <!-- Solid architectural silhouettes with crisp lines -->
+            <rect x="330" y="225" width="32" height="150" />
+            <polygon points="346,185 345,225 347,225" />
+            <rect x="375" y="200" width="42" height="175" />
+            <polygon points="380,200 396,150 412,200" />
+            <rect x="390" y="140" width="12" height="20" />
+            <line x1="396" y1="105" x2="396" y2="140" stroke="var(--monument-ink)" stroke-width="2.5" />
+            <circle cx="396" cy="105" r="2" fill="var(--gold-light)" />
+            <rect x="425" y="185" width="38" height="190" />
+            <rect x="470" y="170" width="46" height="205" />
+            <rect x="525" y="190" width="34" height="185" />
+            <polygon points="570,375 570,150 595,125 615,150 615,375" />
+            <line x1="595" y1="95" x2="595" y2="125" stroke="var(--monument-ink)" stroke-width="2.5" />
+            <circle cx="595" cy="95" r="2" fill="var(--gold-light)" />
+            <rect x="625" y="210" width="36" height="165" />
+            <rect x="670" y="230" width="32" height="145" />
+            <rect x="710" y="245" width="28" height="130" />
+
+            <!-- Crisp Illuminated Window Accents in Deep Skyline -->
+            <g class="skyline-window" fill="var(--gold)" opacity="0.85">
+              <rect x="336" y="235" width="4" height="5" /><rect x="344" y="235" width="4" height="5" /><rect x="352" y="235" width="4" height="5" />
+              <rect x="336" y="250" width="4" height="5" /><rect x="344" y="250" width="4" height="5" /><rect x="352" y="250" width="4" height="5" />
+              <rect x="336" y="265" width="4" height="5" /><rect x="344" y="265" width="4" height="5" /><rect x="352" y="265" width="4" height="5" />
+              <rect x="430" y="200" width="4" height="6" /><rect x="438" y="200" width="4" height="6" /><rect x="446" y="200" width="4" height="6" />
+              <rect x="430" y="218" width="4" height="6" /><rect x="438" y="218" width="4" height="6" /><rect x="446" y="218" width="4" height="6" />
+              <rect x="430" y="236" width="4" height="6" /><rect x="438" y="236" width="4" height="6" /><rect x="446" y="236" width="4" height="6" />
+              <rect x="530" y="205" width="4" height="6" /><rect x="540" y="205" width="4" height="6" /><rect x="550" y="205" width="4" height="6" />
+              <rect x="530" y="222" width="4" height="6" /><rect x="540" y="222" width="4" height="6" /><rect x="550" y="222" width="4" height="6" />
+              <rect x="632" y="220" width="4" height="5" /><rect x="642" y="220" width="4" height="5" /><rect x="650" y="220" width="4" height="5" />
+              <rect x="632" y="238" width="4" height="5" /><rect x="642" y="238" width="4" height="5" /><rect x="650" y="238" width="4" height="5" />
+              <rect x="676" y="240" width="4" height="5" /><rect x="686" y="240" width="4" height="5" /><rect x="694" y="240" width="4" height="5" />
+            </g>
+          </g>
+
+          <!-- Razor-Sharp Foreground Manhattan Skyline with Rich Illuminated Windows -->
+          <g class="skyline-foreground" opacity="1.0">
+            <!-- 1 World Trade Center (Freedom Tower) Crystalline Silhouette -->
+            <polygon points="345,375 345,190 370,115 395,190 395,375" />
+            <line x1="370" y1="115" x2="370" y2="375" stroke="var(--gold-faint)" stroke-width="1.2" />
+            <line x1="370" y1="58" x2="370" y2="115" stroke="var(--monument-ink)" stroke-width="3" />
+            <circle cx="370" cy="58" r="2.5" fill="#ffffff" />
+            <circle cx="370" cy="58" r="5" fill="var(--gold-light)" opacity="0.6" />
+
+            <!-- One WTC Glowing Horizontal Window Bands -->
+            <g class="skyline-window" fill="var(--gold-light)">
+              <rect x="352" y="196" width="14" height="3" /><rect x="374" y="196" width="14" height="3" />
+              <rect x="351" y="210" width="15" height="3" /><rect x="374" y="210" width="15" height="3" />
+              <rect x="350" y="224" width="16" height="3.2" /><rect x="374" y="224" width="16" height="3.2" />
+              <rect x="349" y="238" width="17" height="3.2" /><rect x="374" y="238" width="17" height="3.2" />
+              <rect x="349" y="254" width="18" height="3.5" /><rect x="373" y="254" width="18" height="3.5" />
+              <rect x="348" y="272" width="19" height="3.5" /><rect x="373" y="272" width="19" height="3.5" />
+              <rect x="348" y="292" width="19" height="3.5" /><rect x="373" y="292" width="19" height="3.5" />
+              <rect x="348" y="312" width="19" height="3.5" /><rect x="373" y="312" width="19" height="3.5" />
+              <rect x="348" y="332" width="19" height="3.5" /><rect x="373" y="332" width="19" height="3.5" />
+            </g>
+
+            <!-- 40 Wall Street / Financial District Steeple Tower -->
+            <rect x="405" y="225" width="46" height="150" />
+            <rect x="414" y="190" width="28" height="35" />
+            <rect x="420" y="165" width="16" height="25" />
+            <line x1="428" y1="110" x2="428" y2="165" stroke="var(--monument-ink)" stroke-width="2.5" />
+            <circle cx="428" cy="110" r="2" fill="var(--gold-light)" />
+            <g class="skyline-window" fill="var(--gold)">
+              <rect x="410" y="235" width="4" height="6" /><rect x="419" y="235" width="4" height="6" /><rect x="428" y="235" width="4" height="6" /><rect x="437" y="235" width="4" height="6" />
+              <rect x="410" y="250" width="4" height="6" /><rect x="419" y="250" width="4" height="6" /><rect x="428" y="250" width="4" height="6" /><rect x="437" y="250" width="4" height="6" />
+              <rect x="410" y="265" width="4" height="6" /><rect x="419" y="265" width="4" height="6" /><rect x="428" y="265" width="4" height="6" /><rect x="437" y="265" width="4" height="6" />
+              <rect x="410" y="280" width="4" height="6" /><rect x="419" y="280" width="4" height="6" /><rect x="428" y="280" width="4" height="6" /><rect x="437" y="280" width="4" height="6" />
+              <rect x="410" y="295" width="4" height="6" /><rect x="419" y="295" width="4" height="6" /><rect x="428" y="295" width="4" height="6" /><rect x="437" y="295" width="4" height="6" />
+              <rect x="418" y="196" width="3" height="5" /><rect x="425" y="196" width="3" height="5" /><rect x="432" y="196" width="3" height="5" />
+              <rect x="418" y="208" width="3" height="5" /><rect x="425" y="208" width="3" height="5" /><rect x="432" y="208" width="3" height="5" />
+            </g>
+
+            <!-- Empire State Building (Stepped Art Deco Masterpiece) -->
+            <rect x="460" y="240" width="60" height="135" />
+            <rect x="468" y="195" width="44" height="45" />
+            <rect x="476" y="160" width="28" height="35" />
+            <rect x="483" y="135" width="14" height="25" />
+            <rect x="487" y="115" width="6" height="20" />
+            <line x1="490" y1="65" x2="490" y2="115" stroke="var(--monument-ink)" stroke-width="3" />
+            <circle cx="490" cy="65" r="2.5" fill="#ffffff" />
+            <circle cx="490" cy="65" r="6" fill="var(--gold-light)" opacity="0.75" />
+            <!-- Empire State Lit Windows -->
+            <g class="skyline-window" fill="var(--gold-light)">
+              <rect x="472" y="202" width="3.5" height="5" /><rect x="480" y="202" width="3.5" height="5" /><rect x="488" y="202" width="3.5" height="5" /><rect x="496" y="202" width="3.5" height="5" /><rect x="504" y="202" width="3.5" height="5" />
+              <rect x="472" y="215" width="3.5" height="5" /><rect x="480" y="215" width="3.5" height="5" /><rect x="488" y="215" width="3.5" height="5" /><rect x="496" y="215" width="3.5" height="5" /><rect x="504" y="215" width="3.5" height="5" />
+              <rect x="472" y="228" width="3.5" height="5" /><rect x="480" y="228" width="3.5" height="5" /><rect x="488" y="228" width="3.5" height="5" /><rect x="496" y="228" width="3.5" height="5" /><rect x="504" y="228" width="3.5" height="5" />
+              <rect x="466" y="248" width="4" height="6" /><rect x="476" y="248" width="4" height="6" /><rect x="486" y="248" width="4" height="6" /><rect x="496" y="248" width="4" height="6" /><rect x="506" y="248" width="4" height="6" /><rect x="514" y="248" width="4" height="6" />
+              <rect x="466" y="264" width="4" height="6" /><rect x="476" y="264" width="4" height="6" /><rect x="486" y="264" width="4" height="6" /><rect x="496" y="264" width="4" height="6" /><rect x="506" y="264" width="4" height="6" /><rect x="514" y="264" width="4" height="6" />
+              <rect x="466" y="280" width="4" height="6" /><rect x="476" y="280" width="4" height="6" /><rect x="486" y="280" width="4" height="6" /><rect x="496" y="280" width="4" height="6" /><rect x="506" y="280" width="4" height="6" /><rect x="514" y="280" width="4" height="6" />
+              <rect x="466" y="296" width="4" height="6" /><rect x="476" y="296" width="4" height="6" /><rect x="486" y="296" width="4" height="6" /><rect x="496" y="296" width="4" height="6" /><rect x="506" y="296" width="4" height="6" /><rect x="514" y="296" width="4" height="6" />
+            </g>
+
+            <!-- 30 Rockefeller Plaza / Midtown Commercial Tower -->
+            <rect x="528" y="205" width="48" height="170" />
+            <rect x="536" y="175" width="32" height="30" />
+            <rect x="544" y="152" width="16" height="23" />
+            <line x1="552" y1="112" x2="552" y2="152" stroke="var(--monument-ink)" stroke-width="2.5" />
+            <circle cx="552" cy="112" r="2" fill="var(--gold-light)" />
+            <g class="skyline-window" fill="var(--gold)">
+              <rect x="534" y="215" width="4.5" height="7" /><rect x="544" y="215" width="4.5" height="7" /><rect x="554" y="215" width="4.5" height="7" /><rect x="564" y="215" width="4.5" height="7" />
+              <rect x="534" y="232" width="4.5" height="7" /><rect x="544" y="232" width="4.5" height="7" /><rect x="554" y="232" width="4.5" height="7" /><rect x="564" y="232" width="4.5" height="7" />
+              <rect x="534" y="249" width="4.5" height="7" /><rect x="544" y="249" width="4.5" height="7" /><rect x="554" y="249" width="4.5" height="7" /><rect x="564" y="249" width="4.5" height="7" />
+              <rect x="534" y="266" width="4.5" height="7" /><rect x="544" y="266" width="4.5" height="7" /><rect x="554" y="266" width="4.5" height="7" /><rect x="564" y="266" width="4.5" height="7" />
+              <rect x="534" y="283" width="4.5" height="7" /><rect x="544" y="283" width="4.5" height="7" /><rect x="554" y="283" width="4.5" height="7" /><rect x="564" y="283" width="4.5" height="7" />
+            </g>
+
+            <!-- Chrysler Building Iconic Art Deco Sunburst Spire -->
+            <rect x="585" y="180" width="44" height="195" />
+            <polygon points="585,180 607,135 629,180" />
+            <line x1="607" y1="80" x2="607" y2="135" stroke="var(--monument-ink)" stroke-width="2.5" />
+            <circle cx="607" cy="80" r="2.5" fill="#ffffff" />
+            <circle cx="607" cy="80" r="5" fill="var(--gold-light)" opacity="0.75" />
+            <g class="skyline-window">
+              <!-- Triangular Sunburst Windows in Chrysler Crown -->
+              <polygon points="603,155 607,144 611,155" fill="var(--gold-light)" />
+              <polygon points="597,168 607,152 617,168" fill="var(--gold)" />
+              <!-- Windows along the shaft -->
+              <g fill="var(--gold)">
+                <rect x="591" y="195" width="4.5" height="7" /><rect x="600" y="195" width="4.5" height="7" /><rect x="609" y="195" width="4.5" height="7" /><rect x="618" y="195" width="4.5" height="7" />
+                <rect x="591" y="215" width="4.5" height="7" /><rect x="600" y="215" width="4.5" height="7" /><rect x="609" y="215" width="4.5" height="7" /><rect x="618" y="215" width="4.5" height="7" />
+                <rect x="591" y="235" width="4.5" height="7" /><rect x="600" y="235" width="4.5" height="7" /><rect x="609" y="235" width="4.5" height="7" /><rect x="618" y="235" width="4.5" height="7" />
+                <rect x="591" y="255" width="4.5" height="7" /><rect x="600" y="255" width="4.5" height="7" /><rect x="609" y="255" width="4.5" height="7" /><rect x="618" y="255" width="4.5" height="7" />
+              </g>
+            </g>
+
+            <!-- Downtown Towers & Waterfront Buildings -->
+            <rect x="635" y="255" width="46" height="120" />
+            <polygon points="635,255 658,235 681,255" />
+            <g class="skyline-window" fill="var(--gold)">
+              <rect x="641" y="265" width="4" height="6" /><rect x="650" y="265" width="4" height="6" /><rect x="659" y="265" width="4" height="6" /><rect x="668" y="265" width="4" height="6" />
+              <rect x="641" y="280" width="4" height="6" /><rect x="650" y="280" width="4" height="6" /><rect x="659" y="280" width="4" height="6" /><rect x="668" y="280" width="4" height="6" />
+            </g>
+
+            <rect x="688" y="270" width="44" height="105" />
+            <g class="skyline-window" fill="var(--gold)">
+              <rect x="694" y="282" width="4" height="6" /><rect x="704" y="282" width="4" height="6" /><rect x="714" y="282" width="4" height="6" /><rect x="722" y="282" width="4" height="6" />
+            </g>
+          </g>
+
+          <!-- Brooklyn Bridge (Solid, Sharp Gothic Architecture & Suspension Cables) -->
+          <g class="ny-bridge" opacity="1.0">
+            <!-- Gothic Stone Tower -->
+            <path d="M 830 375 L 834 205 L 840 205 L 842 165 L 868 165 L 870 205 L 876 205 L 880 375 Z" />
+            <rect x="836" y="160" width="38" height="6" />
+            <polygon points="840,160 843,150 846,160" />
+            <polygon points="852,160 855,148 858,160" />
+            <polygon points="864,160 867,150 870,160" />
+
+            <!-- Illuminated Dual Gothic Arches -->
+            <g fill="var(--gold-light)" opacity="0.9">
+              <path d="M 843 335 L 843 245 Q 848 230 850 220 Q 852 230 857 245 L 857 335 Z" />
+              <path d="M 853 335 L 853 245 Q 858 230 860 220 Q 862 230 867 245 L 867 335 Z" />
+            </g>
+
+            <!-- Suspension Cables & Deck -->
+            <path d="M 740 338 Q 785 285 855 165 Q 920 285 990 338" fill="none" stroke="var(--monument-ink)" stroke-width="3" />
+            <path d="M 740 342 Q 785 292 855 172 Q 920 292 990 342" fill="none" stroke="var(--monument-ink)" stroke-width="1.8" opacity="0.85" />
+            <g stroke="var(--monument-ink)" stroke-width="1.2" opacity="0.85">
+              <line x1="765" y1="316" x2="765" y2="338" /><line x1="785" y1="292" x2="785" y2="338" />
+              <line x1="805" y1="262" x2="805" y2="338" /><line x1="825" y1="222" x2="825" y2="338" />
+              <line x1="885" y1="222" x2="885" y2="338" /><line x1="905" y1="262" x2="905" y2="338" />
+              <line x1="925" y1="292" x2="925" y2="338" /><line x1="945" y1="316" x2="945" y2="338" />
+              <line x1="965" y1="330" x2="965" y2="338" />
+            </g>
+            <rect x="735" y="336" width="260" height="9" />
+            <rect x="765" y="345" width="10" height="30" />
+            <rect x="945" y="345" width="10" height="30" />
+            <!-- Deck Traffic Lights Accent -->
+            <line x1="740" y1="339" x2="990" y2="339" stroke="var(--gold-light)" stroke-width="1.2" stroke-dasharray="8 6" opacity="0.9" />
+          </g>
+
+          <!-- Statue of Liberty on Liberty Island -->
+          <g class="ny-liberty-island">
+            <!-- Liberty Island Fort Base -->
+            <path d="M 40 376 Q 110 366 180 368 Q 250 366 315 376 L 315 388 Q 180 384 40 388 Z" />
+            <g opacity="0.85">
+              <circle cx="68" cy="366" r="10" /><circle cx="82" cy="364" r="8" /><circle cx="95" cy="367" r="9" />
+              <circle cx="262" cy="367" r="9" /><circle cx="276" cy="364" r="8" /><circle cx="290" cy="366" r="10" />
+              <rect x="66" y="372" width="4" height="6" /><rect x="80" y="370" width="4" height="6" />
+              <rect x="260" y="372" width="4" height="6" /><rect x="274" y="370" width="4" height="6" />
+            </g>
+            <!-- 11-Pointed Star Fort Wood -->
+            <polygon points="105,372 125,348 150,354 180,340 210,354 235,348 255,372 180,375" />
+            <polygon points="125,348 150,354 180,340 180,375 105,372" opacity="0.25" fill="var(--sky-bottom)" />
+
+            <!-- Pedestal -->
+            <rect x="135" y="318" width="90" height="24" rx="2" />
+            <rect x="142" y="302" width="76" height="18" rx="1" />
+            <rect x="148" y="240" width="64" height="64" rx="2" />
+            <rect x="144" y="234" width="72" height="8" rx="1" />
+            <rect x="146" y="224" width="68" height="10" rx="1" />
+
+            <!-- Pedestal Colonnade Cutouts -->
+            <g fill="var(--gold-light)" opacity="0.75">
+              <rect x="156" y="254" width="10" height="26" rx="5" />
+              <rect x="175" y="254" width="10" height="26" rx="5" />
+              <rect x="194" y="254" width="10" height="26" rx="5" />
+            </g>
+
+            <!-- Lady Liberty Base & Robe -->
+            <rect x="158" y="217" width="44" height="8" rx="2" />
+            <path d="M 166 217 L 164 168 Q 168 142 174 136 L 186 136 Q 192 142 196 168 L 198 217 Q 182 220 166 217 Z" />
+
+            <!-- Robe Drapery Accent Lines -->
+            <path d="M 172 148 Q 168 175 168 217 M 180 145 Q 182 180 184 217 M 188 148 Q 192 178 194 217" fill="none" stroke="var(--sky-bottom)" stroke-width="1.3" opacity="0.35" />
+
+            <!-- Left Arm holding Tablet of Law (JULY IV MDCCLXXVI) -->
+            <path d="M 186 140 Q 194 144 198 154 L 195 164 Q 189 154 184 148 Z" />
+            <polygon points="192,143 203,139 207,165 196,169" />
+
+            <!-- Head, Neck, & 7-Ray Radiate Crown -->
+            <circle cx="178" cy="118" r="8" />
+            <path d="M 173 118 Q 171 126 175 130 Q 181 126 183 118 Z" />
+            <rect x="171" y="114" width="14" height="4" rx="1" />
+            <!-- 7 Rays representing seven seas and continents -->
+            <polygon points="169,115 158,105 171,113" /><polygon points="171,114 163,100 174,112" />
+            <polygon points="174,113 170,95 177,112" /><polygon points="177,112 178,92 180,112" />
+            <polygon points="180,112 187,95 183,113" /><polygon points="183,112 194,100 186,114" />
+            <polygon points="186,113 199,105 188,115" />
+
+            <!-- Right Arm Reaching Upward With Torch -->
+            <path d="M 170 138 Q 158 126 152 108 Q 146 88 150 70 L 157 70 Q 154 88 159 106 Q 164 122 174 134 Z" />
+            <rect x="150" y="60" width="8" height="12" rx="1" />
+            <polygon points="146,60 162,60 158,54 150,54" />
+            <!-- Torch Flame -->
+            <path d="M 154 54 Q 149 46 152 40 Q 156 34 154 26 Q 161 34 160 42 Q 162 48 154 54 Z" fill="var(--gold-light)" />
+            <!-- Torch Radiant Luminous Glow -->
+            <circle cx="154" cy="40" r="22" fill="url(#sun-outer-corona)" />
+            <circle cx="154" cy="40" r="10" fill="url(#sun-inner-corona)" />
+            <circle cx="154" cy="40" r="4" fill="#ffffff" />
+          </g>
+
+          <!-- Water and Boats -->
+          <g class="ny-harbor-water">
+            <path d="M 0 376 Q 250 370 500 374 T 1000 376 L 1000 400 L 0 400 Z" opacity="0.95" />
+            <g fill="none" stroke="var(--sky-bottom)" stroke-width="1.4" opacity="0.45">
+              <path d="M 20 382 Q 70 380 120 382 M 160 384 Q 220 382 280 384 M 320 382 Q 380 380 440 382" />
+              <path d="M 520 382 Q 580 380 640 382 M 680 384 Q 740 382 800 384 M 840 382 Q 910 380 980 382" />
+              <path d="M 60 391 Q 140 389 220 391 M 360 392 Q 440 390 520 392 M 660 391 Q 740 389 820 391 M 880 392 Q 940 390 990 392" />
+            </g>
+
+            <!-- Staten Island Ferry -->
+            <g class="ny-ferry">
+              <path d="M 455 372 L 460 365 L 530 365 L 535 372 Z" />
+              <rect x="462" y="357" width="66" height="8" rx="1" />
+              <rect x="470" y="351" width="50" height="6" rx="1" />
+              <rect x="488" y="346" width="14" height="5" rx="1" /><rect x="492" y="340" width="5" height="6" />
+              <circle cx="495" cy="336" r="3" fill="var(--sky-bottom)" opacity="0.5" />
+              <g fill="var(--sky-bottom)" opacity="0.65">
+                <rect x="466" y="359" width="4" height="4" /><rect x="473" y="359" width="4" height="4" /><rect x="480" y="359" width="4" height="4" />
+                <rect x="487" y="359" width="4" height="4" /><rect x="494" y="359" width="4" height="4" /><rect x="501" y="359" width="4" height="4" />
+                <rect x="508" y="359" width="4" height="4" /><rect x="515" y="359" width="4" height="4" /><rect x="522" y="359" width="4" height="4" />
+              </g>
+              <line x1="445" y1="373" x2="455" y2="373" stroke="var(--sky-bottom)" stroke-width="1.5" opacity="0.6" />
+              <line x1="535" y1="373" x2="548" y2="373" stroke="var(--sky-bottom)" stroke-width="1.5" opacity="0.6" />
+            </g>
+
+            <!-- Sailboats -->
+            <g class="ny-sailboat-1">
+              <path d="M 302 372 L 306 368 L 324 368 L 328 372 Z" />
+              <line x1="316" y1="344" x2="316" y2="368" stroke="var(--monument-ink)" stroke-width="1.5" />
+              <polygon points="316,346 325,366 316,366" fill="var(--sky-bottom)" opacity="0.85" />
+              <polygon points="315,350 306,366 315,366" fill="var(--sky-bottom)" opacity="0.65" />
+              <line x1="298" y1="373" x2="332" y2="373" stroke="var(--sky-bottom)" stroke-width="1" opacity="0.4" />
+            </g>
+            <g class="ny-sailboat-2" opacity="0.75">
+              <path d="M 718 373 L 721 370 L 736 370 L 739 373 Z" />
+              <line x1="729" y1="350" x2="729" y2="370" stroke="var(--monument-ink)" stroke-width="1.2" />
+              <polygon points="729,352 737,369 729,369" fill="var(--sky-bottom)" opacity="0.8" />
+              <polygon points="728,355 721,369 728,369" fill="var(--sky-bottom)" opacity="0.6" />
+            </g>
+          </g>
         </svg>
       </div>
 
@@ -3428,8 +3835,8 @@
          ---------------------------------------------------- -->
     <nav id="dot-nav" aria-label="Committee Stops Navigation">
       <div class="dot-nav-item">
-        <button class="dot-nav-btn active" data-stop="0" aria-label="Stop 1: Committee 1 (TBA), Great Wall of China"></button>
-        <span class="dot-tooltip">01. Great Wall · Committee 1 (TBA)</span>
+        <button class="dot-nav-btn active" data-stop="0" aria-label="Stop 1: Committee 1 (TBA), Statue of Liberty"></button>
+        <span class="dot-tooltip">01. Statue of Liberty · Committee 1 (TBA)</span>
       </div>
       <div class="dot-nav-item">
         <button class="dot-nav-btn" data-stop="1" aria-label="Stop 2: Committee 2 (TBA), Petra"></button>
@@ -3531,14 +3938,14 @@
 
       <!-- 4. THE COMMITTEES JOURNEY (SEVEN FULL-HEIGHT STOPS) -->
       <div id="committee-stops-container">
-        <!-- STOP 0: Great Wall of China -->
+        <!-- STOP 0: Statue of Liberty -->
         <section class="committee-stop" id="stop-0" data-index="0">
           <div class="stop-content-wrapper reveal-item">
             <span class="stop-badge">Stop 01 · 07</span>
-            <h2 class="monument-heading word-reveal-heading">GREAT WALL OF <em>CHINA.</em></h2>
-            <p class="monument-location">China</p>
+            <h2 class="monument-heading word-reveal-heading">STATUE OF <em>LIBERTY.</em></h2>
+            <p class="monument-location">New York, United States</p>
             <p class="monument-atmosphere">
-              Centuries of fortified ramparts and watchtowers follow mountain ridges, marking sovereign boundaries through history.
+              A colossal neoclassical beacon raised above New York Harbor, bearing the torch of freedom, enlightenment, and enduring civilizational dialogue.
             </p>
 
             <div class="committee-block tilt-card">
@@ -3716,9 +4123,9 @@
 
           <div class="globe-chips-wrapper reveal-item" role="region" aria-label="Earth monument stops">
             <div class="globe-chips-scroll" id="globeChipsContainer">
-              <button type="button" class="monument-chip active" data-index="0" aria-label="Rotate globe to Great Wall of China">
+              <button type="button" class="monument-chip active" data-index="0" aria-label="Rotate globe to Statue of Liberty">
                 <span class="chip-dot"></span>
-                <span class="chip-name">Great Wall</span>
+                <span class="chip-name">Statue of Liberty</span>
                 <span class="chip-comm">Committee 1 (TBA)</span>
               </button>
               <button type="button" class="monument-chip" data-index="1" aria-label="Rotate globe to Petra">
@@ -4865,7 +5272,7 @@
 
         // 11. BACKGROUND PALETTES & CONTINUOUS SCROLL INTERPOLATION
         const PALETTES = [
-          { skyTop: '#9fb4c7', skyBottom: '#e4e0d6', ink: '#3b4a58', text: '#1d2a36' },
+          { skyTop: '#1b3456', skyBottom: '#f5c68b', ink: '#142236', text: '#0d1829' },
           { skyTop: '#c9866a', skyBottom: '#f0c29a', ink: '#5a2a22', text: '#3a1712' },
           { skyTop: '#f2b45a', skyBottom: '#fbe3a6', ink: '#7a4a14', text: '#3a2208' },
           { skyTop: '#4a5b8c', skyBottom: '#e8b4b8', ink: '#262b4a', text: '#fdf8f5' },
@@ -5042,8 +5449,19 @@
           for (let i = 0; i < 7; i++) {
             const layer = monumentLayers[i];
             if (!layer) continue;
-            const dist = Math.abs(lerpedContinuousPos - i);
-            const opacity = Math.max(0, Math.min(1, 1 - dist));
+            let opacity = 0;
+            if (i === 0) {
+              // Lady Liberty vector panorama is active from initial page load through Stop 0, dissolving into Petra
+              if (lerpedContinuousPos <= 0.05) {
+                opacity = 1;
+              } else {
+                const dissolveProgress = Math.min(1, (lerpedContinuousPos - 0.05) / 0.95);
+                opacity = Math.max(0, 1 - Math.pow(dissolveProgress, 1.15));
+              }
+            } else {
+              const dist = Math.abs(lerpedContinuousPos - i);
+              opacity = Math.max(0, Math.min(1, 1 - dist));
+            }
             const translateY = (lerpedContinuousPos - i) * 32;
 
             layer.style.opacity = opacity.toFixed(3);
@@ -5303,7 +5721,7 @@
 
           // 2. The Seven Monument Pings (Committees TBA)
           const monuments = [
-            { name: 'Great Wall of China', committee: 'Committee 1 (TBA)', lat: 40.43, lon: 116.57, stopIndex: 0 },
+            { name: 'Statue of Liberty', committee: 'Committee 1 (TBA)', lat: 40.6892, lon: -74.0445, stopIndex: 0 },
             { name: 'Petra', committee: 'Committee 2 (TBA)', lat: 30.33, lon: 35.44, stopIndex: 1 },
             { name: 'Pyramids of Giza', committee: 'Committee 3 (TBA)', lat: 29.98, lon: 31.13, stopIndex: 2 },
             { name: 'Eiffel Tower', committee: 'Committee 4 (TBA)', lat: 48.86, lon: 2.29, stopIndex: 3 },
