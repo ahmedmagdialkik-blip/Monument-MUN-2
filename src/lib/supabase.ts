@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { Profile, Registration, Team, TeamDecision, UserRole } from '../types/database';
+import type { Profile, Registration, Team, TeamDecision, UserRole, TeamApplication } from '../types/database';
 
 const rawUrl = import.meta.env.VITE_SUPABASE_URL;
 const rawAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -126,12 +126,76 @@ const DEFAULT_REGISTRATIONS: Registration[] = [
   }
 ];
 
+const DEFAULT_TEAM_APPLICATIONS: TeamApplication[] = [
+  {
+    id: 'tapp-vol-01',
+    team: 'volunteer',
+    full_name: 'Farida El-Sayed',
+    email: 'farida.elsayed@example.com',
+    phone: '+20 122 345 6789',
+    status: 'pending',
+    answers: {
+      'q_why': 'I want to support Monument MUN 2027 and ensure visiting international delegates experience world-class hospitality.',
+      'q_department_interest': 'Delegate Reception and Logistics & Venue Support',
+      'q_experience': 'Volunteered as logistics usher at Cairo Model Arab League 2025 and led school cultural days.',
+      'q_availability': 'Yes, fully available for all training days and all conference debate dates.',
+      'q_languages_skills': 'Fluent in Arabic, English, and conversational French. Certified in First Aid.'
+    },
+    created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
+    email_sent: false
+  },
+  {
+    id: 'tapp-sec-01',
+    team: 'security',
+    full_name: 'Omar Sherif',
+    email: 'omar.sherif@example.com',
+    phone: '+20 101 987 6543',
+    status: 'pending',
+    answers: {
+      'q_why': 'I have a strong background in event coordination and want to maintain strict venue safety and order for all committees.',
+      'q_experience': 'Served as Chief of Security for university student union elections and managed entrance security checkpoints.',
+      'q_scenario_unauthorized': 'I would politely block entrance, ask to inspect their attendee QR badge, verify their credential against the staff portal, and escort them to the registration desk if unregistered.',
+      'q_composure': 'Yes, I stay composed, disciplined, and polite under intense pressure and high foot-traffic.',
+      'q_availability': 'Full availability confirmed for security walkthroughs and every conference session.'
+    },
+    created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
+    email_sent: false
+  },
+  {
+    id: 'tapp-vol-02',
+    team: 'volunteer',
+    full_name: 'Youssef Nabil',
+    email: 'youssef.nabil@example.com',
+    phone: '+20 114 555 4321',
+    status: 'accepted',
+    reviewed_by: 'user-admin-03',
+    reviewed_at: new Date(Date.now() - 86400000 * 0.5).toISOString(),
+    email_sent: true,
+    email_sent_at: new Date(Date.now() - 86400000 * 0.5).toISOString(),
+    answers: {
+      'q_why': 'Passionate about diplomacy and international youth conferences.',
+      'q_department_interest': 'Ceremonies & Stage Management',
+      'q_experience': 'Audio-visual coordinator at school MUN.',
+      'q_availability': '100% available.',
+      'q_languages_skills': 'English, Arabic, Spanish.'
+    },
+    created_at: new Date(Date.now() - 86400000 * 3).toISOString()
+  }
+];
+
 // Initialize mock store if empty
-if (!getStorage('mock_initialized_v2', false)) {
+if (!getStorage('mock_initialized_v3', false)) {
   setStorage('profiles', DEFAULT_PROFILES);
   setStorage('registrations', DEFAULT_REGISTRATIONS);
   setStorage('teams', DEFAULT_TEAMS);
-  setStorage('mock_initialized_v2', true);
+  setStorage('team_applications', DEFAULT_TEAM_APPLICATIONS);
+  setStorage('mock_initialized_v3', true);
+} else {
+  // Ensure team_applications exists even if v2 was previously initialized
+  const existingApps = getStorage<TeamApplication[]>('team_applications', []);
+  if (existingApps.length === 0) {
+    setStorage('team_applications', DEFAULT_TEAM_APPLICATIONS);
+  }
 }
 
 type GenericRecord = Record<string, unknown>;
@@ -276,6 +340,12 @@ interface MockSupabaseClientContract {
     fnName: string,
     args?: Record<string, unknown>
   ) => Promise<{ data: unknown; error: { message: string } | null }>;
+  functions: {
+    invoke: (
+      fnName: string,
+      options?: { body?: Record<string, unknown> }
+    ) => Promise<{ data: unknown; error: { message: string } | null }>;
+  };
   auth: {
     getSession: () => Promise<{ data: { session: MockSession | null }; error: null }>;
     onAuthStateChange: (callback: AuthListener) => {
@@ -304,6 +374,12 @@ interface MockSupabaseClientContract {
 
 function createMockSupabaseClient(): MockSupabaseClientContract {
   return {
+    functions: {
+      async invoke(fnName: string, options?: { body?: Record<string, unknown> }) {
+        console.info(`[Mock Supabase Functions] Invoked: ${fnName}`, options?.body);
+        return { data: { success: true, message: 'Simulated email queued via Resend' }, error: null };
+      }
+    },
     from<T extends GenericRecord = GenericRecord>(table: string) {
       return new MockQueryBuilder<T>(table);
     },

@@ -42,8 +42,19 @@ import type {
   UserRole,
   Team,
   TeamKind,
-  StaffAllowlistEntry
+  StaffAllowlistEntry,
+  TeamApplication,
+  TeamAppRole,
+  TeamAppStatus
 } from './types/database';
+import {
+  fetchTeamApplications,
+  reviewTeamApplication,
+  sendAcceptanceEmail,
+  VOLUNTEER_QUESTIONS,
+  SECURITY_QUESTIONS
+} from './team_applications';
+import { renderTeamApplyPage } from './team_apply_ui';
 import { playWelcomeAnimation } from './welcome';
 import {
   renderEntryPassCard,
@@ -73,6 +84,19 @@ export function isTeamHeadRoute(): boolean {
     hash === 'my-team'
   );
 }
+
+export function isTeamApplyRoute(): boolean {
+  const path = window.location.pathname.toLowerCase();
+  const hash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
+  return (
+    path.endsWith('/team-apply') ||
+    path.endsWith('/team-apply/') ||
+    hash === 'team-apply' ||
+    hash === 'join-team'
+  );
+}
+
+export { renderTeamApplyPage };
 
 /**
  * Escapes unsafe characters for safe innerHTML insertion
@@ -110,7 +134,8 @@ let adminStaff: Profile[] = [];
 let adminEbProfiles: Profile[] = [];
 let adminTeams: Team[] = [];
 let adminStaffAllowlist: StaffAllowlistEntry[] = [];
-let adminActiveTab: 'delegates' | 'eb' | 'teams' | 'allowlist' | 'pass' = 'delegates';
+let adminTeamApplications: TeamApplication[] = [];
+let adminActiveTab: 'delegates' | 'team-apps' | 'eb' | 'teams' | 'allowlist' | 'pass' = 'delegates';
 let adminFilter: 'all' | 'pending' | 'approved' | 'rejected' = 'all';
 let adminSearchQuery = '';
 let adminEbFilter: 'all' | 'pending' | 'eb' | 'head' | 'admin' | 'security' = 'all';
@@ -134,7 +159,9 @@ export function initPortal(): void {
     await renderApplyPortal(user, loading);
     await renderJoinTeamPanel(user);
 
-    if (isAdminRoute()) {
+    if (isTeamApplyRoute()) {
+      renderTeamApplyPage(document.getElementById('view-team-apply'));
+    } else if (isAdminRoute()) {
       renderAdminRoute(user, loading);
     } else if (isStaffRoute()) {
       renderStaffRoute(user, loading);
@@ -146,7 +173,9 @@ export function initPortal(): void {
   // Listen to hash changes and popstate
   window.addEventListener('hashchange', () => {
     const user = getCachedUser();
-    if (isAdminRoute()) {
+    if (isTeamApplyRoute()) {
+      renderTeamApplyPage(document.getElementById('view-team-apply'));
+    } else if (isAdminRoute()) {
       renderAdminRoute(user, false);
     } else if (isStaffRoute()) {
       renderStaffRoute(user, false);
@@ -159,7 +188,9 @@ export function initPortal(): void {
 
   window.addEventListener('popstate', () => {
     const user = getCachedUser();
-    if (isAdminRoute()) {
+    if (isTeamApplyRoute()) {
+      renderTeamApplyPage(document.getElementById('view-team-apply'));
+    } else if (isAdminRoute()) {
       renderAdminRoute(user, false);
     } else if (isStaffRoute()) {
       renderStaffRoute(user, false);
@@ -1360,12 +1391,13 @@ export async function renderAdminRoute(user: CurrentUser | null, loading: boolea
  * Fetch registrations, staff profiles, EB profiles, teams, and allowlist for the admin board
  */
 async function refreshAdminData(): Promise<void> {
-  const [regRes, staffRes, ebRes, teamsRes, allowlistRes] = await Promise.all([
+  const [regRes, staffRes, ebRes, teamsRes, allowlistRes, teamAppsRes] = await Promise.all([
     fetchAllRegistrations(),
     fetchStaffProfiles(),
     fetchEbProfiles(),
     fetchAllTeams(),
-    fetchStaffAllowlist()
+    fetchStaffAllowlist(),
+    fetchTeamApplications()
   ]);
 
   if (regRes.data) {
@@ -1383,6 +1415,9 @@ async function refreshAdminData(): Promise<void> {
   if (allowlistRes.data) {
     adminStaffAllowlist = allowlistRes.data;
   }
+  if (teamAppsRes.data) {
+    adminTeamApplications = teamAppsRes.data;
+  }
 }
 
 let adminAuthTab: 'signin' | 'reset' = 'signin';
@@ -1392,17 +1427,27 @@ let staffAuthTab: 'signup' | 'signin' | 'reset' = 'signup';
 let staffRegistrations: Registration[] = [];
 let staffFilter: 'all' | 'pending' | 'approved' | 'rejected' = 'all';
 let staffSearchQuery = '';
-let staffActiveTab: 'delegates' | 'team' = 'delegates';
+let staffTeamApplications: TeamApplication[] = [];
+let staffTeamFilterStatus: 'all' | 'pending' | 'accepted' | 'denied' = 'pending';
+let staffTeamFilterRole: 'all' | 'volunteer' | 'security' = 'all';
+let staffTeamSearchQuery = '';
+let staffActiveTab: 'team-applications' | 'delegates' | 'team' = 'team-applications';
 let staffHeadTeam: Team | null = null;
 let staffHeadTeamMembers: Profile[] = [];
 
 /**
- * Fetch registrations and head team data for staff panel
+ * Fetch registrations, team applications, and head team data for staff panel
  */
 async function refreshStaffPanelData(user: CurrentUser): Promise<void> {
-  const regRes = await fetchAllRegistrations();
+  const [regRes, teamAppRes] = await Promise.all([
+    fetchAllRegistrations(),
+    fetchTeamApplications()
+  ]);
   if (regRes.data) {
     staffRegistrations = regRes.data;
+  }
+  if (teamAppRes.data) {
+    staffTeamApplications = teamAppRes.data;
   }
 
   if (user.role === 'head' && user.teamId) {
@@ -2062,13 +2107,14 @@ function renderStaffPanel(container: HTMLElement, user: CurrentUser): void {
   const isHead = user.role === 'head';
 
   const regStats = computeAdminStats(staffRegistrations);
+  const pendingTeamApps = staffTeamApplications.filter((a) => a.status === 'pending').length;
 
   container.innerHTML = `
     <div style="max-width: 1200px; margin: 0 auto; padding: 2rem 0 5rem;">
       <!-- Staff Top Bar: User Identity & Sign Out -->
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(217, 180, 90, 0.25); padding-bottom: 1.5rem;">
         <div>
-          <span class="eyebrow">Monument MUN 2027 · Executive Board Panel</span>
+          <span class="eyebrow">Monument MUN 2027 · Staff &amp; Leadership Panel</span>
           <h1 style="font-family: var(--font-display); font-size: clamp(1.8rem, 4.5vw, 2.5rem); font-weight: 800; text-transform: uppercase; color: #ffffff; line-height: 1.1; margin-bottom: 0.35rem;">
             STAFF <em>CONTROL PANEL.</em>
           </h1>
@@ -2090,23 +2136,44 @@ function renderStaffPanel(container: HTMLElement, user: CurrentUser): void {
       <!-- Action Feedback Banner -->
       <div id="staff-panel-action-feedback" class="status-banner" style="display: none; margin-bottom: 1.5rem;"></div>
 
-      <!-- ENTRY PASS CARD (Prominently at the very top of the /staff panel) -->
+      <!-- ENTRY PASS CARD (Prominently at the top of the /staff panel) -->
       <div id="staff-entry-pass-mount"></div>
 
-      ${isHead ? `
-        <!-- Head Sub-navigation Tabs -->
-        <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.75rem; flex-wrap: wrap;">
-          <button type="button" id="staff-tab-delegates-btn" class="btn-interactive" style="padding: 0.65rem 1.4rem; border-radius: 9999px; border: 1px solid ${staffActiveTab === 'delegates' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.15)'}; background: ${staffActiveTab === 'delegates' ? 'rgba(217, 180, 90, 0.18)' : 'transparent'}; color: ${staffActiveTab === 'delegates' ? 'var(--gold)' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer;">
-            Delegate Applications (${regStats.total})
-          </button>
-          <button type="button" id="staff-tab-team-btn" class="btn-interactive" style="padding: 0.65rem 1.4rem; border-radius: 9999px; border: 1px solid ${staffActiveTab === 'team' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.15)'}; background: ${staffActiveTab === 'team' ? 'rgba(217, 180, 90, 0.18)' : 'transparent'}; color: ${staffActiveTab === 'team' ? 'var(--gold)' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer;">
-            ★ My Team: ${escapeHtml(staffHeadTeam?.name || 'Assigned Team')} (${staffHeadTeamMembers.length})
-          </button>
-        </div>
-      ` : ''}
+      <!-- Navigation Tabs: Team Applications (Default) vs Delegate Applications (Read-Only) vs My Team (Head Only) -->
+      <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.75rem; flex-wrap: wrap; overflow-x: auto;">
+        <button type="button" id="staff-tab-team-apps-btn" class="btn-interactive" style="padding: 0.65rem 1.4rem; border-radius: 9999px; border: 1px solid ${staffActiveTab === 'team-applications' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.15)'}; background: ${staffActiveTab === 'team-applications' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${staffActiveTab === 'team-applications' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
+          <span>Team Applications</span>
+          <span style="background: ${staffActiveTab === 'team-applications' ? '#080a1e' : 'rgba(217, 180, 90, 0.25)'}; color: ${staffActiveTab === 'team-applications' ? 'var(--gold)' : '#ffffff'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${pendingTeamApps} Pending</span>
+        </button>
 
-      <!-- TAB 1: DELEGATE APPLICATIONS -->
+        <button type="button" id="staff-tab-delegates-btn" class="btn-interactive" style="padding: 0.65rem 1.4rem; border-radius: 9999px; border: 1px solid ${staffActiveTab === 'delegates' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.15)'}; background: ${staffActiveTab === 'delegates' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${staffActiveTab === 'delegates' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
+          <span>Delegates (View Only)</span>
+          <span style="background: ${staffActiveTab === 'delegates' ? '#080a1e' : 'rgba(255, 255, 255, 0.15)'}; color: ${staffActiveTab === 'delegates' ? 'var(--gold)' : '#ffffff'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${regStats.total}</span>
+        </button>
+
+        ${isHead ? `
+          <button type="button" id="staff-tab-team-btn" class="btn-interactive" style="padding: 0.65rem 1.4rem; border-radius: 9999px; border: 1px solid ${staffActiveTab === 'team' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.15)'}; background: ${staffActiveTab === 'team' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${staffActiveTab === 'team' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
+            <span>★ My Team: ${escapeHtml(staffHeadTeam?.name || 'Assigned Team')}</span>
+            <span style="background: ${staffActiveTab === 'team' ? '#080a1e' : 'rgba(52, 211, 153, 0.25)'}; color: ${staffActiveTab === 'team' ? 'var(--gold)' : '#34d399'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${staffHeadTeamMembers.length}</span>
+          </button>
+        ` : ''}
+      </div>
+
+      <!-- TAB 1: TEAM APPLICATIONS (STAFF REVIEW WITH ACCEPT/DENY & AUTOMATED EMAIL) -->
+      <div id="staff-section-team-apps" style="${staffActiveTab === 'team-applications' ? 'display: block;' : 'display: none;'}">
+        ${renderTeamApplicationsSectionMarkup(staffTeamApplications, true)}
+      </div>
+
+      <!-- TAB 2: DELEGATE APPLICATIONS (VIEW ONLY FOR STAFF) -->
       <div id="staff-section-delegates" style="${staffActiveTab === 'delegates' ? 'display: block;' : 'display: none;'}">
+        <!-- Notice banner explaining view-only clearance -->
+        <div style="background: rgba(217, 180, 90, 0.08); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 14px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.85rem;">
+          <span style="color: var(--gold); font-size: 1.3rem; line-height: 1;">ℹ</span>
+          <div style="font-size: 0.88rem; color: rgba(242, 244, 255, 0.85); line-height: 1.5;">
+            <strong style="color: var(--gold);">Staff Clearance Notice:</strong> Delegate committee applications are accepted and rejected exclusively by Conference Administrators. Staff clearance provides view-only access. Staff can review and accept/deny <strong>Team Applications</strong> in the tab above.
+          </div>
+        </div>
+
         <!-- Stats Cards Grid -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2.25rem;">
           <div class="tilt-card" style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 16px; padding: 1.5rem; text-align: center;">
@@ -2154,7 +2221,7 @@ function renderStaffPanel(container: HTMLElement, user: CurrentUser): void {
       </div>
 
       ${isHead ? `
-        <!-- TAB 2: MY TEAM (Head Only) -->
+        <!-- TAB 3: MY TEAM (Head Only) -->
         <div id="staff-section-team" style="${staffActiveTab === 'team' ? 'display: block;' : 'display: none;'}">
           ${renderStaffTeamSection(user)}
         </div>
@@ -2168,33 +2235,23 @@ function renderStaffPanel(container: HTMLElement, user: CurrentUser): void {
     renderStaffRoute(null, false);
   });
 
-  // Attach tab switcher (Head only)
-  if (isHead) {
-    document.getElementById('staff-tab-delegates-btn')?.addEventListener('click', () => {
-      staffActiveTab = 'delegates';
-      renderStaffPanel(container, user);
-    });
+  // Attach tab switcher
+  document.getElementById('staff-tab-team-apps-btn')?.addEventListener('click', () => {
+    staffActiveTab = 'team-applications';
+    renderStaffPanel(container, user);
+  });
 
+  document.getElementById('staff-tab-delegates-btn')?.addEventListener('click', () => {
+    staffActiveTab = 'delegates';
+    renderStaffPanel(container, user);
+  });
+
+  if (isHead) {
     document.getElementById('staff-tab-team-btn')?.addEventListener('click', () => {
       staffActiveTab = 'team';
       renderStaffPanel(container, user);
     });
   }
-
-  // Attach search and filter listeners for delegate applications
-  const searchInput = document.getElementById('staff-search-input') as HTMLInputElement | null;
-  searchInput?.addEventListener('input', (e) => {
-    staffSearchQuery = (e.target as HTMLInputElement).value;
-    renderStaffRegistrationsTable();
-  });
-
-  const filterPills = container.querySelectorAll('.staff-filter-pill');
-  filterPills.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      staffFilter = (btn.getAttribute('data-filter') as 'all' | 'pending' | 'approved' | 'rejected') || 'all';
-      renderStaffPanel(container, user);
-    });
-  });
 
   // Render Entry Pass Card at the top of the /staff panel
   const passMount = document.getElementById('staff-entry-pass-mount');
@@ -2202,17 +2259,33 @@ function renderStaffPanel(container: HTMLElement, user: CurrentUser): void {
     renderEntryPassCard(passMount, user);
   }
 
-  // Render initial table
-  renderStaffRegistrationsTable();
+  // Attach Team Applications handlers if active
+  if (staffActiveTab === 'team-applications') {
+    attachTeamApplicationsHandlers(container, user, true);
+  } else if (staffActiveTab === 'delegates') {
+    // Attach search and filter listeners for delegate applications (view only)
+    const searchInput = document.getElementById('staff-search-input') as HTMLInputElement | null;
+    searchInput?.addEventListener('input', (e) => {
+      staffSearchQuery = (e.target as HTMLInputElement).value;
+      renderStaffRegistrationsTable();
+    });
 
-  // If Head team active, attach review handlers
-  if (isHead && staffActiveTab === 'team') {
+    const filterPills = container.querySelectorAll('.staff-filter-pill');
+    filterPills.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        staffFilter = (btn.getAttribute('data-filter') as 'all' | 'pending' | 'approved' | 'rejected') || 'all';
+        renderStaffPanel(container, user);
+      });
+    });
+
+    renderStaffRegistrationsTable();
+  } else if (isHead && staffActiveTab === 'team') {
     attachStaffTeamReviewHandlers(container, user);
   }
 }
 
 /**
- * Render the filtered delegate applications table
+ * Render the filtered delegate applications table (Strictly Read-Only for Staff)
  */
 function renderStaffRegistrationsTable(): void {
   const mount = document.getElementById('staff-table-mount');
@@ -2259,7 +2332,7 @@ function renderStaffRegistrationsTable(): void {
               <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold);">Institution / Committee</th>
               <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold);">Applied Date</th>
               <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold);">Status</th>
-              <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold); text-align: right;">Review Action</th>
+              <th style="padding: 1rem 1.25rem; font-family: var(--font-display); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold); text-align: right;">Clearance</th>
             </tr>
           </thead>
           <tbody>
@@ -2291,14 +2364,9 @@ function renderStaffRegistrationsTable(): void {
                     </span>
                   </td>
                   <td style="padding: 1rem 1.25rem; text-align: right; white-space: nowrap;">
-                    <div style="display: inline-flex; gap: 0.5rem; justify-content: flex-end;">
-                      <button type="button" class="btn-interactive staff-reg-approve-btn" data-id="${reg.id}" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${reg.status === 'approved' ? '#34d399' : 'rgba(52, 211, 153, 0.4)'}; background: ${reg.status === 'approved' ? '#34d399' : 'rgba(52, 211, 153, 0.15)'}; color: ${reg.status === 'approved' ? '#080a1e' : '#a7f3d0'}; cursor: pointer;">
-                        ${reg.status === 'approved' ? '✓ Approved' : 'Approve'}
-                      </button>
-                      <button type="button" class="btn-interactive staff-reg-reject-btn" data-id="${reg.id}" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${reg.status === 'rejected' ? '#f87171' : 'rgba(248, 113, 113, 0.4)'}; background: ${reg.status === 'rejected' ? '#f87171' : 'rgba(248, 113, 113, 0.15)'}; color: ${reg.status === 'rejected' ? '#ffffff' : '#fecaca'}; cursor: pointer;">
-                        ${reg.status === 'rejected' ? '✕ Rejected' : 'Reject'}
-                      </button>
-                    </div>
+                    <span style="display: inline-block; padding: 0.25rem 0.65rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; color: rgba(242, 244, 255, 0.45); background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.15);">
+                      Admin Managed
+                    </span>
                   </td>
                 </tr>
               `;
@@ -2308,95 +2376,623 @@ function renderStaffRegistrationsTable(): void {
       </div>
     </div>
   `;
+}
 
-  // Attach Approve & Reject button listeners
-  const approveButtons = mount.querySelectorAll('.staff-reg-approve-btn');
-  const rejectButtons = mount.querySelectorAll('.staff-reg-reject-btn');
-  const actionFeedback = document.getElementById('staff-panel-action-feedback');
+/**
+ * Render Team Applications Section Markup (used in Staff Panel & Admin Dashboard)
+ */
+function renderTeamApplicationsSectionMarkup(applications: TeamApplication[], isStaffView: boolean): string {
+  const prefix = isStaffView ? 'staff-team-app' : 'admin-team-app';
+  const roleFilter = isStaffView ? staffTeamFilterRole : 'all';
+  const statusFilter = isStaffView ? staffTeamFilterStatus : 'all';
+  const query = (isStaffView ? staffTeamSearchQuery : '').trim().toLowerCase();
 
-  approveButtons.forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const id = btn.getAttribute('data-id');
-      if (!id) return;
+  const total = applications.length;
+  const pendingCount = applications.filter((a) => a.status === 'pending').length;
+  const acceptedCount = applications.filter((a) => a.status === 'accepted').length;
+  const deniedCount = applications.filter((a) => a.status === 'denied').length;
+  const volunteerCount = applications.filter((a) => a.team === 'volunteer').length;
+  const securityCount = applications.filter((a) => a.team === 'security').length;
 
-      btn.setAttribute('disabled', 'true');
-      btn.textContent = 'Updating...';
+  const filtered = applications.filter((app) => {
+    if (roleFilter !== 'all' && app.team !== roleFilter) return false;
+    if (statusFilter !== 'all' && app.status !== statusFilter) return false;
+    if (!query) return true;
 
-      const res = await updateRegistrationStatus(id, 'approved');
-      if (res.error) {
-        if (actionFeedback) {
-          actionFeedback.className = 'status-banner status-error';
-          actionFeedback.textContent = res.error;
-          actionFeedback.style.display = 'block';
-        }
-        renderStaffRegistrationsTable();
+    const name = (app.full_name || '').toLowerCase();
+    const email = (app.email || '').toLowerCase();
+    const phone = (app.phone || '').toLowerCase();
+
+    return name.includes(query) || email.includes(query) || phone.includes(query);
+  });
+
+  return `
+    <div>
+      <!-- Stats Cards Grid -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.9); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 1.25rem; text-align: center;">
+          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(242, 244, 255, 0.6); margin-bottom: 0.35rem;">Total Applications</div>
+          <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #ffffff;">${total}</div>
+        </div>
+
+        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.9); border: 1px solid rgba(251, 191, 36, 0.35); border-radius: 16px; padding: 1.25rem; text-align: center;">
+          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: #fde68a; margin-bottom: 0.35rem;">Pending Review</div>
+          <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #fbbf24;">${pendingCount}</div>
+        </div>
+
+        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.9); border: 1px solid rgba(52, 211, 153, 0.35); border-radius: 16px; padding: 1.25rem; text-align: center;">
+          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: #a7f3d0; margin-bottom: 0.35rem;">Accepted Staff</div>
+          <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #34d399;">${acceptedCount}</div>
+        </div>
+
+        <div class="tilt-card" style="background: rgba(8, 10, 30, 0.9); border: 1px solid rgba(248, 113, 113, 0.35); border-radius: 16px; padding: 1.25rem; text-align: center;">
+          <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: #fecaca; margin-bottom: 0.35rem;">Denied</div>
+          <div style="font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; color: #f87171;">${deniedCount}</div>
+        </div>
+      </div>
+
+      <!-- Controls & Filter Pills -->
+      <div class="tilt-card" style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.3); border-radius: 16px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+          <div style="flex: 1; min-width: 260px;">
+            <input type="text" id="${prefix}-search" value="${escapeHtml(isStaffView ? staffTeamSearchQuery : '')}" placeholder="Search team applications by applicant name, email, or phone..." class="form-input" style="padding: 0.65rem 1rem; font-size: 0.88rem; width: 100%;" />
+          </div>
+
+          <button type="button" id="${prefix}-refresh-btn" class="btn-interactive" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(217, 180, 90, 0.3); color: #ffffff; padding: 0.5rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
+            ↺ Refresh Applications
+          </button>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 0.85rem;">
+          <!-- Role Filter -->
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(242, 244, 255, 0.5);">Team:</span>
+            <button type="button" class="btn-interactive ${prefix}-role-filter ${roleFilter === 'all' ? 'active' : ''}" data-role="all" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${roleFilter === 'all' ? 'var(--gold)' : 'rgba(255,255,255,0.15)'}; background: ${roleFilter === 'all' ? 'var(--gold)' : 'transparent'}; color: ${roleFilter === 'all' ? '#080a1e' : '#f2f4ff'}; cursor: pointer;">
+              All (${total})
+            </button>
+            <button type="button" class="btn-interactive ${prefix}-role-filter ${roleFilter === 'volunteer' ? 'active' : ''}" data-role="volunteer" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${roleFilter === 'volunteer' ? 'var(--gold)' : 'rgba(255,255,255,0.15)'}; background: ${roleFilter === 'volunteer' ? 'var(--gold)' : 'transparent'}; color: ${roleFilter === 'volunteer' ? '#080a1e' : '#f2f4ff'}; cursor: pointer;">
+              Volunteers (${volunteerCount})
+            </button>
+            <button type="button" class="btn-interactive ${prefix}-role-filter ${roleFilter === 'security' ? 'active' : ''}" data-role="security" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${roleFilter === 'security' ? '#38bdf8' : 'rgba(255,255,255,0.15)'}; background: ${roleFilter === 'security' ? '#38bdf8' : 'transparent'}; color: ${roleFilter === 'security' ? '#080a1e' : '#f2f4ff'}; cursor: pointer;">
+              Security (${securityCount})
+            </button>
+          </div>
+
+          <!-- Status Filter -->
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <span style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(242, 244, 255, 0.5);">Status:</span>
+            <button type="button" class="btn-interactive ${prefix}-status-filter ${statusFilter === 'pending' ? 'active' : ''}" data-status="pending" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${statusFilter === 'pending' ? '#fbbf24' : 'rgba(255,255,255,0.15)'}; background: ${statusFilter === 'pending' ? '#fbbf24' : 'transparent'}; color: ${statusFilter === 'pending' ? '#080a1e' : '#f2f4ff'}; cursor: pointer;">
+              Pending (${pendingCount})
+            </button>
+            <button type="button" class="btn-interactive ${prefix}-status-filter ${statusFilter === 'accepted' ? 'active' : ''}" data-status="accepted" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${statusFilter === 'accepted' ? '#34d399' : 'rgba(255,255,255,0.15)'}; background: ${statusFilter === 'accepted' ? '#34d399' : 'transparent'}; color: ${statusFilter === 'accepted' ? '#080a1e' : '#f2f4ff'}; cursor: pointer;">
+              Accepted (${acceptedCount})
+            </button>
+            <button type="button" class="btn-interactive ${prefix}-status-filter ${statusFilter === 'denied' ? 'active' : ''}" data-status="denied" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${statusFilter === 'denied' ? '#f87171' : 'rgba(255,255,255,0.15)'}; background: ${statusFilter === 'denied' ? '#f87171' : 'transparent'}; color: ${statusFilter === 'denied' ? '#080a1e' : '#f2f4ff'}; cursor: pointer;">
+              Denied (${deniedCount})
+            </button>
+            <button type="button" class="btn-interactive ${prefix}-status-filter ${statusFilter === 'all' ? 'active' : ''}" data-status="all" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid ${statusFilter === 'all' ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.15)'}; background: ${statusFilter === 'all' ? 'rgba(255,255,255,0.15)' : 'transparent'}; color: #ffffff; cursor: pointer;">
+              All (${total})
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Applications Table / Cards -->
+      <div id="${prefix}-list-mount">
+        ${renderTeamApplicationsList(filtered, isStaffView)}
+      </div>
+    </div>
+  `;
+}
+
+/**
+ * Render inner list of team applications
+ */
+function renderTeamApplicationsList(applications: TeamApplication[], isStaffView: boolean): string {
+  if (applications.length === 0) {
+    return `
+      <div style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.25); border-radius: 16px; padding: 3.5rem 1.5rem; text-align: center;">
+        <p style="font-family: var(--font-display); font-size: 1.15rem; color: #ffffff; margin-bottom: 0.5rem;">No team applications found.</p>
+        <p style="font-size: 0.88rem; color: rgba(242, 244, 255, 0.6); max-width: 500px; margin: 0 auto;">
+          There are currently no team applications matching your selected filters. New submissions for Volunteer and Security roles will appear here.
+        </p>
+      </div>
+    `;
+  }
+
+  const items = applications.map((app) => {
+    const isVolunteer = app.team === 'volunteer';
+    const teamBadgeColor = isVolunteer ? 'var(--gold)' : '#38bdf8';
+    const teamBadgeBg = isVolunteer ? 'rgba(217, 180, 90, 0.15)' : 'rgba(56, 189, 248, 0.15)';
+    const teamTitle = isVolunteer ? 'Volunteer Team' : 'Security Team';
+
+    const statusColor =
+      app.status === 'accepted' ? '#34d399' :
+      app.status === 'denied' ? '#f87171' : '#fbbf24';
+    const statusBg =
+      app.status === 'accepted' ? 'rgba(52, 211, 153, 0.14)' :
+      app.status === 'denied' ? 'rgba(248, 113, 113, 0.14)' : 'rgba(251, 191, 36, 0.14)';
+
+    // Acceptance email status pill
+    let emailStatusMarkup = '';
+    if (app.status === 'accepted') {
+      if (app.email_sent) {
+        emailStatusMarkup = `
+          <div style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; color: #34d399; font-weight: 700; background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.3); padding: 0.2rem 0.55rem; border-radius: 9999px;">
+            <span>✓</span>
+            <span>Acceptance Email Sent</span>
+          </div>
+        `;
+      } else if (app.email_error) {
+        emailStatusMarkup = `
+          <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
+            <span style="font-size: 0.72rem; color: #f87171; background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.3); padding: 0.2rem 0.55rem; border-radius: 9999px;">
+              ⚠ Delivery Issue
+            </span>
+            <button type="button" class="btn-interactive team-app-resend-btn" data-id="${app.id}" title="${escapeHtml(app.email_error)}" style="padding: 0.2rem 0.65rem; border-radius: 9999px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fecaca; font-family: var(--font-display); font-size: 0.68rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
+              ↺ Resend
+            </button>
+          </div>
+        `;
       } else {
-        const target = staffRegistrations.find((r) => String(r.id) === String(id));
-        if (target) target.status = 'approved';
+        emailStatusMarkup = `
+          <button type="button" class="btn-interactive team-app-resend-btn" data-id="${app.id}" style="padding: 0.25rem 0.7rem; border-radius: 9999px; background: rgba(217, 180, 90, 0.15); border: 1px solid var(--gold); color: var(--gold); font-family: var(--font-display); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
+            ✉ Send Acceptance Email
+          </button>
+        `;
+      }
+    }
 
-        if (actionFeedback) {
-          actionFeedback.className = 'status-banner status-success';
-          actionFeedback.textContent = `✓ Application for ${target?.full_name || 'delegate'} approved.`;
-          actionFeedback.style.display = 'block';
-        }
+    return `
+      <div class="team-app-card" style="background: rgba(8, 10, 30, 0.95); border: 1px solid rgba(217, 180, 90, 0.28); border-radius: 16px; padding: 1.35rem 1.5rem; margin-bottom: 1rem; box-shadow: 0 8px 25px rgba(0,0,0,0.35); transition: border-color 0.2s ease;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+          <!-- Left: Identity & Contact -->
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; margin-bottom: 0.35rem;">
+              <h3 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; color: #ffffff; margin: 0;">
+                ${escapeHtml(app.full_name)}
+              </h3>
+              <span style="display: inline-block; padding: 0.2rem 0.65rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; background: ${teamBadgeBg}; border: 1px solid ${teamBadgeColor}; color: ${teamBadgeColor};">
+                ${escapeHtml(teamTitle)}
+              </span>
+              <span style="display: inline-block; padding: 0.2rem 0.65rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; background: ${statusBg}; border: 1px solid ${statusColor}; color: ${statusColor};">
+                ${escapeHtml(app.status)}
+              </span>
+            </div>
 
-        // Update stats counters in UI
-        const updatedStats = computeAdminStats(staffRegistrations);
-        const elTotal = document.getElementById('staff-stat-total');
-        const elPending = document.getElementById('staff-stat-pending');
-        const elApproved = document.getElementById('staff-stat-approved');
-        const elRejected = document.getElementById('staff-stat-rejected');
-        if (elTotal) elTotal.textContent = String(updatedStats.total);
-        if (elPending) elPending.textContent = String(updatedStats.pending);
-        if (elApproved) elApproved.textContent = String(updatedStats.approved);
-        if (elRejected) elRejected.textContent = String(updatedStats.rejected);
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem; color: rgba(242, 244, 255, 0.75);">
+              <span>✉ <a href="mailto:${escapeHtml(app.email)}" style="color: rgba(242, 244, 255, 0.9); text-decoration: none; font-family: monospace;">${escapeHtml(app.email)}</a></span>
+              <span>☎ <a href="tel:${escapeHtml(app.phone)}" style="color: rgba(242, 244, 255, 0.9); text-decoration: none;">${escapeHtml(app.phone)}</a></span>
+              <span style="color: rgba(242, 244, 255, 0.5);">Applied: ${formatDate(app.created_at)}</span>
+            </div>
+          </div>
 
-        renderStaffRegistrationsTable();
+          <!-- Right: Email & Review status -->
+          <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem;">
+            ${emailStatusMarkup}
+            ${
+              app.reviewed_by
+                ? `<div style="font-size: 0.75rem; color: rgba(242, 244, 255, 0.55); font-style: italic;">
+                    Reviewed by <strong>${escapeHtml(app.reviewed_by)}</strong> on ${formatDate(app.reviewed_at || undefined)}
+                  </div>`
+                : ''
+            }
+          </div>
+        </div>
+
+        <!-- Card Bottom Bar: View Answers & Accept/Deny Buttons -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 0.85rem;">
+          <button type="button" class="btn-interactive team-app-answers-btn" data-id="${app.id}" style="padding: 0.45rem 1rem; border-radius: 9999px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; font-family: var(--font-display); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+            <span>📄</span>
+            <span>View Full Answers</span>
+          </button>
+
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            ${
+              app.status === 'pending'
+                ? `
+                  <button type="button" class="btn-interactive team-app-accept-btn" data-id="${app.id}" data-name="${escapeHtml(app.full_name)}" data-team="${escapeHtml(app.team)}" style="padding: 0.45rem 1.15rem; border-radius: 9999px; background: rgba(52, 211, 153, 0.18); border: 1.5px solid #10b981; color: #34d399; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
+                    ✓ Accept into Team
+                  </button>
+                  <button type="button" class="btn-interactive team-app-deny-btn" data-id="${app.id}" data-name="${escapeHtml(app.full_name)}" data-team="${escapeHtml(app.team)}" style="padding: 0.45rem 1.15rem; border-radius: 9999px; background: rgba(239, 68, 68, 0.16); border: 1.5px solid #ef4444; color: #fca5a5; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
+                    ✕ Deny
+                  </button>
+                `
+                : `
+                  <button type="button" class="btn-interactive team-app-change-status-btn" data-id="${app.id}" data-current="${app.status}" data-name="${escapeHtml(app.full_name)}" data-team="${escapeHtml(app.team)}" style="padding: 0.35rem 0.85rem; border-radius: 9999px; background: transparent; border: 1px solid rgba(255, 255, 255, 0.15); color: rgba(242, 244, 255, 0.65); font-family: var(--font-display); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; cursor: pointer;">
+                    Change Status
+                  </button>
+                `
+            }
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  return `<div>${items}</div>`;
+}
+
+/**
+ * Attach listeners to the Team Applications section
+ */
+function attachTeamApplicationsHandlers(container: HTMLElement, currentUser: CurrentUser, isStaffView: boolean): void {
+  const prefix = isStaffView ? 'staff-team-app' : 'admin-team-app';
+  const feedback = document.getElementById(isStaffView ? 'staff-panel-action-feedback' : 'admin-action-feedback');
+
+  const refreshBtn = document.getElementById(`${prefix}-refresh-btn`);
+  refreshBtn?.addEventListener('click', async () => {
+    if (isStaffView) {
+      await refreshStaffPanelData(currentUser);
+      renderStaffPanel(container, currentUser);
+    } else {
+      await refreshAdminData();
+      renderAdminDashboard(container, currentUser);
+    }
+  });
+
+  // Search input
+  const searchInput = document.getElementById(`${prefix}-search`) as HTMLInputElement | null;
+  searchInput?.addEventListener('input', () => {
+    const q = searchInput.value;
+    if (isStaffView) {
+      staffTeamSearchQuery = q;
+      const mount = document.getElementById(`${prefix}-list-mount`);
+      if (mount) {
+        mount.innerHTML = renderTeamApplicationsList(
+          staffTeamApplications.filter((app) => {
+            if (staffTeamFilterRole !== 'all' && app.team !== staffTeamFilterRole) return false;
+            if (staffTeamFilterStatus !== 'all' && app.status !== staffTeamFilterStatus) return false;
+            if (!q.trim()) return true;
+            const term = q.trim().toLowerCase();
+            return (
+              (app.full_name || '').toLowerCase().includes(term) ||
+              (app.email || '').toLowerCase().includes(term) ||
+              (app.phone || '').toLowerCase().includes(term)
+            );
+          }),
+          true
+        );
+        bindTeamCardActions(container, currentUser, isStaffView);
+      }
+    }
+  });
+
+  // Role filter pills
+  const roleBtns = container.querySelectorAll(`.${prefix}-role-filter`);
+  roleBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const role = (btn.getAttribute('data-role') as 'all' | 'volunteer' | 'security') || 'all';
+      if (isStaffView) {
+        staffTeamFilterRole = role;
+        renderStaffPanel(container, currentUser);
       }
     });
   });
 
-  rejectButtons.forEach((btn) => {
+  // Status filter pills
+  const statusBtns = container.querySelectorAll(`.${prefix}-status-filter`);
+  statusBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const status = (btn.getAttribute('data-status') as 'all' | 'pending' | 'accepted' | 'denied') || 'all';
+      if (isStaffView) {
+        staffTeamFilterStatus = status;
+        renderStaffPanel(container, currentUser);
+      }
+    });
+  });
+
+  bindTeamCardActions(container, currentUser, isStaffView);
+}
+
+/**
+ * Bind actions on cards: View Answers, Accept, Deny, Resend Email
+ */
+function bindTeamCardActions(container: HTMLElement, currentUser: CurrentUser, isStaffView: boolean): void {
+  const feedback = document.getElementById(isStaffView ? 'staff-panel-action-feedback' : 'admin-action-feedback');
+  const applications = isStaffView ? staffTeamApplications : adminTeamApplications;
+  const reviewerName = currentUser.fullName || currentUser.email || 'Staff Reviewer';
+
+  // 1. View Answers Modal
+  const answerBtns = container.querySelectorAll('.team-app-answers-btn');
+  answerBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      const target = applications.find((a) => String(a.id) === String(id));
+      if (target) {
+        openTeamAppAnswersModal(target);
+      }
+    });
+  });
+
+  // 2. Accept Button
+  const acceptBtns = container.querySelectorAll('.team-app-accept-btn');
+  acceptBtns.forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
-      if (!id) return;
+      const name = btn.getAttribute('data-name') || 'the applicant';
+      const team = btn.getAttribute('data-team') || 'team';
+      const target = applications.find((a) => String(a.id) === String(id));
+      if (!target || !id) return;
 
-      btn.setAttribute('disabled', 'true');
-      btn.textContent = 'Updating...';
+      const ok = window.confirm(
+        `Confirm Acceptance:\n\nAre you sure you want to ACCEPT ${name} into the ${team.toUpperCase()} team?\n\nThis will record your staff approval and automatically trigger an official acceptance email to ${target.email}.`
+      );
+      if (!ok) return;
 
-      const res = await updateRegistrationStatus(id, 'rejected');
-      if (res.error) {
-        if (actionFeedback) {
-          actionFeedback.className = 'status-banner status-error';
-          actionFeedback.textContent = res.error;
-          actionFeedback.style.display = 'block';
+      const button = btn as HTMLButtonElement;
+      button.disabled = true;
+      button.textContent = 'Accepting...';
+
+      // Save status update in Supabase table & automatically dispatch acceptance email
+      const reviewRes = await reviewTeamApplication(target, 'accepted', currentUser);
+
+      if (reviewRes.error) {
+        if (feedback) {
+          feedback.className = 'status-banner status-error';
+          feedback.textContent = reviewRes.error;
+          feedback.style.display = 'block';
         }
-        renderStaffRegistrationsTable();
+        button.disabled = false;
+        button.textContent = '✓ Accept into Team';
+        return;
+      }
+
+      if (reviewRes.data) {
+        Object.assign(target, reviewRes.data);
+      }
+
+      if (reviewRes.emailStatus?.success) {
+        if (feedback) {
+          feedback.className = 'status-banner status-success';
+          feedback.textContent = `✓ ${name} has been accepted into the ${team} team! Official acceptance email dispatched to ${target.email}.`;
+          feedback.style.display = 'block';
+        }
+      } else if (reviewRes.emailStatus && !reviewRes.emailStatus.success) {
+        if (feedback) {
+          feedback.className = 'status-banner status-error';
+          feedback.innerHTML = `Application accepted, but the acceptance email failed to send: <em>${escapeHtml(reviewRes.emailStatus.error || 'Failed to dispatch email')}</em>. You can retry anytime via the <strong>Resend</strong> button.`;
+          feedback.style.display = 'block';
+        }
+      }
+
+      if (isStaffView) {
+        renderStaffPanel(container, currentUser);
       } else {
-        const target = staffRegistrations.find((r) => String(r.id) === String(id));
-        if (target) target.status = 'rejected';
+        renderAdminDashboard(container, currentUser);
+      }
+    });
+  });
 
-        if (actionFeedback) {
-          actionFeedback.className = 'status-banner status-error';
-          actionFeedback.textContent = `✕ Application for ${target?.full_name || 'delegate'} marked as rejected.`;
-          actionFeedback.style.display = 'block';
+  // 3. Deny Button
+  const denyBtns = container.querySelectorAll('.team-app-deny-btn');
+  denyBtns.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      const name = btn.getAttribute('data-name') || 'the applicant';
+      const team = btn.getAttribute('data-team') || 'team';
+      const target = applications.find((a) => String(a.id) === String(id));
+      if (!target || !id) return;
+
+      const ok = window.confirm(
+        `Confirm Denial:\n\nAre you sure you want to DENY ${name}'s application for the ${team.toUpperCase()} team?\n\nThis will record your decision. No email will be sent to the applicant.`
+      );
+      if (!ok) return;
+
+      const button = btn as HTMLButtonElement;
+      button.disabled = true;
+      button.textContent = 'Denying...';
+
+      const reviewRes = await reviewTeamApplication(target, 'denied', currentUser);
+
+      if (reviewRes.error) {
+        if (feedback) {
+          feedback.className = 'status-banner status-error';
+          feedback.textContent = reviewRes.error;
+          feedback.style.display = 'block';
         }
+        button.disabled = false;
+        button.textContent = '✕ Deny';
+        return;
+      }
 
-        const updatedStats = computeAdminStats(staffRegistrations);
-        const elTotal = document.getElementById('staff-stat-total');
-        const elPending = document.getElementById('staff-stat-pending');
-        const elApproved = document.getElementById('staff-stat-approved');
-        const elRejected = document.getElementById('staff-stat-rejected');
-        if (elTotal) elTotal.textContent = String(updatedStats.total);
-        if (elPending) elPending.textContent = String(updatedStats.pending);
-        if (elApproved) elApproved.textContent = String(updatedStats.approved);
-        if (elRejected) elRejected.textContent = String(updatedStats.rejected);
+      if (reviewRes.data) {
+        Object.assign(target, reviewRes.data);
+      }
 
-        renderStaffRegistrationsTable();
+      if (feedback) {
+        feedback.className = 'status-banner status-error';
+        feedback.textContent = `✕ Application for ${name} has been marked as Denied.`;
+        feedback.style.display = 'block';
+      }
+
+      if (isStaffView) {
+        renderStaffPanel(container, currentUser);
+      } else {
+        renderAdminDashboard(container, currentUser);
+      }
+    });
+  });
+
+  // 4. Change Status Button (Reset to Pending or switch)
+  const changeBtns = container.querySelectorAll('.team-app-change-status-btn');
+  changeBtns.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      const current = btn.getAttribute('data-current');
+      const name = btn.getAttribute('data-name') || 'applicant';
+      const target = applications.find((a) => String(a.id) === String(id));
+      if (!target || !id) return;
+
+      const newStatus = current === 'accepted' ? 'denied' : 'pending';
+      const ok = window.confirm(`Change status of ${name}'s application from ${current} to ${newStatus}?`);
+      if (!ok) return;
+
+      const reviewRes = await reviewTeamApplication(target, newStatus as TeamAppStatus, currentUser);
+      if (reviewRes.data) {
+        Object.assign(target, reviewRes.data);
+      }
+
+      if (isStaffView) {
+        renderStaffPanel(container, currentUser);
+      } else {
+        renderAdminDashboard(container, currentUser);
+      }
+    });
+  });
+
+  // 5. Resend Acceptance Email Button
+  const resendBtns = container.querySelectorAll('.team-app-resend-btn');
+  resendBtns.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      const target = applications.find((a) => String(a.id) === String(id));
+      if (!target) return;
+
+      const button = btn as HTMLButtonElement;
+      button.disabled = true;
+      button.textContent = 'Sending...';
+
+      const emailRes = await sendAcceptanceEmail(target, currentUser);
+
+      if (emailRes.success) {
+        target.email_sent = true;
+        target.email_sent_at = new Date().toISOString();
+        target.email_error = undefined;
+
+        if (feedback) {
+          feedback.className = 'status-banner status-success';
+          feedback.textContent = `✓ Acceptance email successfully delivered to ${target.email}.`;
+          feedback.style.display = 'block';
+        }
+      } else {
+        target.email_sent = false;
+        target.email_error = emailRes.error;
+
+        if (feedback) {
+          feedback.className = 'status-banner status-error';
+          feedback.textContent = `Email delivery attempt failed: ${emailRes.error}`;
+          feedback.style.display = 'block';
+        }
+      }
+
+      if (isStaffView) {
+        renderStaffPanel(container, currentUser);
+      } else {
+        renderAdminDashboard(container, currentUser);
       }
     });
   });
 }
+
+/**
+ * Open Modal Dialog showing Full Application Answers
+ */
+function openTeamAppAnswersModal(app: TeamApplication): void {
+  // Remove any previous modal
+  const existing = document.getElementById('team-app-answers-modal');
+  if (existing) existing.remove();
+
+  const isVolunteer = app.team === 'volunteer';
+  const questions = isVolunteer ? VOLUNTEER_QUESTIONS : SECURITY_QUESTIONS;
+  const teamLabel = isVolunteer ? 'Volunteer Team' : 'Security Team';
+  const teamColor = isVolunteer ? 'var(--gold)' : '#38bdf8';
+
+  const modal = document.createElement('div');
+  modal.id = 'team-app-answers-modal';
+  modal.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 7, 20, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(1rem, 3vw, 2rem);
+  `;
+
+  // Render question-answer items
+  const qaHtml = questions
+    .map((q, idx) => {
+      const rawAns = app.answers?.[q.id];
+      const ansText = rawAns !== undefined && rawAns !== null && String(rawAns).trim() !== ''
+        ? escapeHtml(String(rawAns))
+        : '<span style="color: rgba(242, 244, 255, 0.4); font-style: italic;">No answer provided</span>';
+
+      return `
+        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.15rem 1.25rem; margin-bottom: 1rem;">
+          <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: ${teamColor}; margin-bottom: 0.35rem; font-weight: 700;">
+            Question ${idx + 1}
+          </div>
+          <div style="font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; color: #ffffff; margin-bottom: 0.65rem; line-height: 1.4;">
+            ${escapeHtml(q.label)}
+          </div>
+          <div style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.9); line-height: 1.6; white-space: pre-wrap; background: rgba(0, 0, 0, 0.25); padding: 0.75rem 1rem; border-radius: 8px; border-left: 3px solid ${teamColor};">
+            ${ansText}
+          </div>
+        </div>
+      `;
+    })
+    .join('');
+
+  modal.innerHTML = `
+    <div style="max-width: 680px; width: 100%; max-height: 88vh; background: rgba(8, 10, 30, 0.98); border: 1.5px solid var(--gold); border-radius: 20px; box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85); display: flex; flex-direction: column; overflow: hidden;">
+      <!-- Header -->
+      <div style="padding: 1.5rem 1.75rem; border-bottom: 1px solid rgba(217, 180, 90, 0.25); display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; background: rgba(217, 180, 90, 0.04);">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.3rem;">
+            <span class="eyebrow" style="margin: 0;">Monument MUN 2027 · Candidate Dossier</span>
+            <span style="font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: 9999px; background: rgba(217, 180, 90, 0.2); border: 1px solid var(--gold); color: var(--gold); font-weight: 800; text-transform: uppercase;">
+              ${escapeHtml(teamLabel)}
+            </span>
+          </div>
+          <h2 style="font-family: var(--font-display); font-size: 1.45rem; font-weight: 800; text-transform: uppercase; color: #ffffff; margin: 0;">
+            ${escapeHtml(app.full_name)}
+          </h2>
+          <div style="font-size: 0.82rem; color: rgba(242, 244, 255, 0.7); margin-top: 0.35rem; display: flex; gap: 0.85rem; flex-wrap: wrap;">
+            <span>✉ <span style="font-family: monospace;">${escapeHtml(app.email)}</span></span>
+            <span>☎ ${escapeHtml(app.phone)}</span>
+            <span>Applied: ${formatDate(app.created_at)}</span>
+          </div>
+        </div>
+
+        <button type="button" id="close-team-answers-btn" class="btn-interactive" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; flex-shrink: 0;" aria-label="Close modal">
+          ✕
+        </button>
+      </div>
+
+      <!-- Answers Scrollable Body -->
+      <div style="padding: 1.5rem 1.75rem; overflow-y: auto; flex: 1;">
+        <div style="margin-bottom: 1.25rem;">
+          <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(242, 244, 255, 0.5);">Applicant Responses (${questions.length} questions answered)</span>
+        </div>
+        ${qaHtml}
+      </div>
+
+      <!-- Footer Bar -->
+      <div style="padding: 1rem 1.75rem; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.25);">
+        <div style="font-size: 0.78rem; color: rgba(242, 244, 255, 0.6);">
+          Status: <strong style="color: #ffffff; text-transform: uppercase;">${escapeHtml(app.status)}</strong>
+        </div>
+        <button type="button" id="close-team-answers-btn-bottom" class="btn-interactive" style="padding: 0.45rem 1.25rem; border-radius: 9999px; background: rgba(217, 180, 90, 0.2); border: 1px solid var(--gold); color: var(--gold); font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
+          Done Viewing
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const close = () => modal.remove();
+  document.getElementById('close-team-answers-btn')?.addEventListener('click', close);
+  document.getElementById('close-team-answers-btn-bottom')?.addEventListener('click', close);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) close();
+  });
+}
+
 
 /**
  * Render My Team section for role 'head'
@@ -2626,11 +3222,16 @@ function renderAdminDashboard(container: HTMLElement, user: CurrentUser): void {
         </div>
       </div>
 
-      <!-- Main Navigation Tabs: Delegate Applications vs EB Members vs Teams vs Allowlist vs Entry Pass -->
+      <!-- Main Navigation Tabs: Delegate Applications vs Team Applications vs EB Members vs Teams vs Allowlist vs Entry Pass -->
       <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.75rem; overflow-x: auto;">
         <button type="button" id="admin-tab-delegates" class="btn-interactive" style="background: ${adminActiveTab === 'delegates' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'delegates' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'delegates' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
           <span>Delegate Applications</span>
           <span style="background: ${adminActiveTab === 'delegates' ? '#080a1e' : 'rgba(217, 180, 90, 0.25)'}; color: ${adminActiveTab === 'delegates' ? 'var(--gold)' : '#ffffff'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${regStats.total}</span>
+        </button>
+
+        <button type="button" id="admin-tab-team-apps" class="btn-interactive" style="background: ${adminActiveTab === 'team-apps' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'team-apps' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'team-apps' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
+          <span>Team Applications</span>
+          <span style="background: ${adminActiveTab === 'team-apps' ? '#080a1e' : 'rgba(217, 180, 90, 0.25)'}; color: ${adminActiveTab === 'team-apps' ? 'var(--gold)' : '#ffffff'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${adminTeamApplications.filter((a) => a.status === 'pending').length}</span>
         </button>
 
         <button type="button" id="admin-tab-eb" class="btn-interactive" style="background: ${adminActiveTab === 'eb' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'eb' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'eb' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
@@ -2657,13 +3258,15 @@ function renderAdminDashboard(container: HTMLElement, user: CurrentUser): void {
         ${
           adminActiveTab === 'pass'
             ? `<div id="admin-entry-pass-mount" style="padding-top: 1rem;"></div>`
-            : adminActiveTab === 'delegates'
-              ? renderDelegatesSectionMarkup(regStats)
-              : adminActiveTab === 'eb'
-                ? renderEbSectionMarkup(ebStats, user)
-                : adminActiveTab === 'teams'
-                  ? renderTeamsSectionMarkup()
-                  : renderAllowlistSectionMarkup()
+            : adminActiveTab === 'team-apps'
+              ? renderTeamApplicationsSectionMarkup(adminTeamApplications, false)
+              : adminActiveTab === 'delegates'
+                ? renderDelegatesSectionMarkup(regStats)
+                : adminActiveTab === 'eb'
+                  ? renderEbSectionMarkup(ebStats, user)
+                  : adminActiveTab === 'teams'
+                    ? renderTeamsSectionMarkup()
+                    : renderAllowlistSectionMarkup()
         }
       </div>
     </div>
@@ -3323,6 +3926,7 @@ function renderStaffTableMarkup(staff: Profile[]): string {
 function attachAdminDashboardHandlers(container: HTMLElement, user: CurrentUser): void {
   // Main Navigation Tabs
   const tabDelegates = document.getElementById('admin-tab-delegates');
+  const tabTeamApps = document.getElementById('admin-tab-team-apps');
   const tabEb = document.getElementById('admin-tab-eb');
   const tabTeams = document.getElementById('admin-tab-teams');
   const tabAllowlist = document.getElementById('admin-tab-allowlist');
@@ -3337,6 +3941,11 @@ function attachAdminDashboardHandlers(container: HTMLElement, user: CurrentUser)
 
   tabDelegates?.addEventListener('click', () => {
     adminActiveTab = 'delegates';
+    renderAdminDashboard(container, user);
+  });
+
+  tabTeamApps?.addEventListener('click', () => {
+    adminActiveTab = 'team-apps';
     renderAdminDashboard(container, user);
   });
 
@@ -3370,6 +3979,8 @@ function attachAdminDashboardHandlers(container: HTMLElement, user: CurrentUser)
     if (passMount) {
       renderEntryPassCard(passMount, user);
     }
+  } else if (adminActiveTab === 'team-apps') {
+    attachTeamApplicationsHandlers(container, user, false);
   } else if (adminActiveTab === 'delegates') {
     attachDelegatesTabHandlers(container, user);
   } else if (adminActiveTab === 'eb') {

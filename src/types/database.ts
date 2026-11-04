@@ -75,3 +75,22 @@ export interface AuthState {
   loading: boolean;
 }
 
+export type TeamAppRole = 'volunteer' | 'security';
+export type TeamAppStatus = 'pending' | 'accepted' | 'denied';
+
+export interface TeamApplication {
+  id: string;
+  team: TeamAppRole;
+  full_name: string;
+  email: string;
+  phone: string;
+  answers: Record<string, string>;
+  status: TeamAppStatus;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  created_at?: string;
+  email_sent?: boolean;
+  email_sent_at?: string | null;
+  email_error?: string | null;
+}
+
