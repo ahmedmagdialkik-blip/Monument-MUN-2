@@ -55,6 +55,7 @@ import {
   SECURITY_QUESTIONS
 } from './team_applications';
 import { renderTeamApplyPage } from './team_apply_ui';
+import { initAllCustomSelects } from './custom_select';
 import { playWelcomeAnimation } from './welcome';
 import {
   renderEntryPassCard,
@@ -96,7 +97,7 @@ export function isTeamApplyRoute(): boolean {
   );
 }
 
-export { renderTeamApplyPage };
+export { renderTeamApplyPage, initAllCustomSelects };
 
 /**
  * Escapes unsafe characters for safe innerHTML insertion
@@ -591,6 +592,9 @@ function renderRegistrationFormView(mount: HTMLElement, user: CurrentUser): void
       </form>
     </div>
   `;
+
+  // Initialize custom accessible dark & gold dropdowns
+  initAllCustomSelects(mount);
 
   const form = document.getElementById('delegate-registration-form') as HTMLFormElement | null;
   const feedback = document.getElementById('reg-form-feedback');
@@ -2558,6 +2562,13 @@ function renderTeamApplicationsList(applications: TeamApplication[], isStaffView
               <span style="display: inline-block; padding: 0.2rem 0.65rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; background: ${statusBg}; border: 1px solid ${statusColor}; color: ${statusColor};">
                 ${escapeHtml(app.status)}
               </span>
+              ${
+                Array.isArray(app.answers?.additional_experiences) && app.answers.additional_experiences.length > 0
+                  ? `<span style="display: inline-block; padding: 0.2rem 0.65rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; background: rgba(217, 180, 90, 0.12); border: 1px solid rgba(217, 180, 90, 0.3); color: var(--gold);">
+                      +${app.answers.additional_experiences.length} Extra Exp
+                    </span>`
+                  : ''
+              }
             </div>
 
             <div style="display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.85rem; color: rgba(242, 244, 255, 0.75);">
@@ -2578,6 +2589,33 @@ function renderTeamApplicationsList(applications: TeamApplication[], isStaffView
                 : ''
             }
           </div>
+        </div>
+
+        <!-- Proof of Experience row on card -->
+        <div style="margin: 0.85rem 0; padding: 0.6rem 0.85rem; background: rgba(0, 0, 0, 0.22); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.06); display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap;">
+          <span style="font-size: 0.72rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; color: rgba(242, 244, 255, 0.5); flex-shrink: 0;">Proof of Experience:</span>
+          ${
+            app.proof_files && app.proof_files.length > 0
+              ? app.proof_files.map((p) => {
+                  const cleanName = p.replace(/^uploads\/[a-zA-Z0-9_-]+-/, '');
+                  const isPdf = cleanName.toLowerCase().endsWith('.pdf');
+                  const icon = isPdf ? '📄' : '🖼️';
+                  return `
+                    <button
+                      type="button"
+                      class="btn-interactive card-proof-file-btn"
+                      data-path="${escapeHtml(p)}"
+                      style="padding: 0.25rem 0.65rem; border-radius: 6px; background: rgba(217, 180, 90, 0.12); border: 1px solid rgba(217, 180, 90, 0.3); color: #ffffff; font-size: 0.75rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                      title="Click to view ${escapeHtml(cleanName)}"
+                    >
+                      <span>${icon}</span>
+                      <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(cleanName)}</span>
+                      <span style="color: var(--gold); font-size: 0.68rem;">↗</span>
+                    </button>
+                  `;
+                }).join('')
+              : `<span style="color: rgba(242, 244, 255, 0.45); font-style: italic; font-size: 0.76rem;">No proof uploaded</span>`
+          }
         </div>
 
         <!-- Card Bottom Bar: View Answers & Accept/Deny Buttons -->
@@ -2701,6 +2739,30 @@ function bindTeamCardActions(container: HTMLElement, currentUser: CurrentUser, i
       const target = applications.find((a) => String(a.id) === String(id));
       if (target) {
         openTeamAppAnswersModal(target);
+      }
+    });
+  });
+
+  // Proof files on card click -> generate signed URL and open in new tab
+  const cardProofBtns = container.querySelectorAll('.card-proof-file-btn');
+  cardProofBtns.forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const path = btn.getAttribute('data-path');
+      if (!path) return;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<span>⏳</span><span>Opening...</span>';
+      try {
+        const { data, error } = await supabase.storage.from('application-proofs').createSignedUrl(path, 300);
+        btn.innerHTML = originalText;
+        if (error || !data?.signedUrl) {
+          alert(`Could not generate secure view link: ${error?.message || 'Storage error'}`);
+          return;
+        }
+        window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+      } catch (err: any) {
+        btn.innerHTML = originalText;
+        alert(`Error opening file: ${err?.message || 'Unknown error'}`);
       }
     });
   });
@@ -2921,6 +2983,37 @@ function openTeamAppAnswersModal(app: TeamApplication): void {
         ? escapeHtml(String(rawAns))
         : '<span style="color: rgba(242, 244, 255, 0.4); font-style: italic;">No answer provided</span>';
 
+      let extraExpMarkup = '';
+      if (isVolunteer && q.id === 'q_experience') {
+        const extraExps = Array.isArray(app.answers?.additional_experiences)
+          ? (app.answers.additional_experiences as Array<{ event?: string; role?: string; when?: string; description?: string }>)
+          : [];
+
+        if (extraExps.length > 0) {
+          extraExpMarkup = `
+            <div style="margin-top: 1rem; border-top: 1px dashed rgba(217, 180, 90, 0.35); padding-top: 0.85rem;">
+              <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); font-weight: 700; margin-bottom: 0.65rem;">
+                Additional Experiences (${extraExps.length})
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                ${extraExps.map((exp, expIdx) => `
+                  <div style="background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 0.75rem 0.95rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.35rem;">
+                      <span style="font-family: var(--font-display); font-weight: 700; color: #ffffff; font-size: 0.9rem;">
+                        ${expIdx + 2}. ${escapeHtml(exp.event || 'Unnamed Event')}
+                      </span>
+                      ${exp.when ? `<span style="font-size: 0.72rem; color: var(--gold); background: rgba(217, 180, 90, 0.12); border: 1px solid rgba(217, 180, 90, 0.25); padding: 0.15rem 0.5rem; border-radius: 4px;">${escapeHtml(exp.when)}</span>` : ''}
+                    </div>
+                    ${exp.role ? `<div style="font-size: 0.82rem; color: rgba(242, 244, 255, 0.85); margin-bottom: 0.25rem;"><strong>Role:</strong> ${escapeHtml(exp.role)}</div>` : ''}
+                    ${exp.description ? `<div style="font-size: 0.82rem; color: rgba(242, 244, 255, 0.75); line-height: 1.45; white-space: pre-wrap; margin-top: 0.35rem; padding-top: 0.35rem; border-top: 1px solid rgba(255, 255, 255, 0.05);">${escapeHtml(exp.description)}</div>` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }
+      }
+
       return `
         <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 1.15rem 1.25rem; margin-bottom: 1rem;">
           <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: ${teamColor}; margin-bottom: 0.35rem; font-weight: 700;">
@@ -2931,6 +3024,7 @@ function openTeamAppAnswersModal(app: TeamApplication): void {
           </div>
           <div style="font-size: 0.92rem; color: rgba(242, 244, 255, 0.9); line-height: 1.6; white-space: pre-wrap; background: rgba(0, 0, 0, 0.25); padding: 0.75rem 1rem; border-radius: 8px; border-left: 3px solid ${teamColor};">
             ${ansText}
+            ${extraExpMarkup}
           </div>
         </div>
       `;
@@ -2969,6 +3063,46 @@ function openTeamAppAnswersModal(app: TeamApplication): void {
           <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(242, 244, 255, 0.5);">Applicant Responses (${questions.length} questions answered)</span>
         </div>
         ${qaHtml}
+
+        <!-- Proof of Experience Uploaded Files -->
+        <div style="margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+            <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(242, 244, 255, 0.5); font-weight: 700;">
+              Proof of Experience Files
+            </span>
+            ${app.proof_files && app.proof_files.length > 0 ? `<span style="font-size: 0.72rem; color: var(--gold);">${app.proof_files.length} file(s) attached</span>` : ''}
+          </div>
+
+          ${
+            app.proof_files && app.proof_files.length > 0
+              ? `
+                <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                  ${app.proof_files.map((p) => {
+                    const cleanName = p.replace(/^uploads\/[a-zA-Z0-9_-]+-/, '');
+                    const isPdf = cleanName.toLowerCase().endsWith('.pdf');
+                    const icon = isPdf ? '📄' : '🖼️';
+                    return `
+                      <button
+                        type="button"
+                        class="btn-interactive modal-proof-file-btn"
+                        data-path="${escapeHtml(p)}"
+                        style="display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; background: rgba(217, 180, 90, 0.08); border: 1px solid rgba(217, 180, 90, 0.35); border-radius: 8px; padding: 0.75rem 1rem; color: #ffffff; font-size: 0.88rem; cursor: pointer; text-align: left; transition: background 0.2s ease;"
+                      >
+                        <div style="display: flex; align-items: center; gap: 0.65rem; min-width: 0; overflow: hidden;">
+                          <span style="font-size: 1.15rem; flex-shrink: 0;">${icon}</span>
+                          <span style="color: #ffffff; font-weight: 600; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${escapeHtml(cleanName)}</span>
+                        </div>
+                        <span style="color: var(--gold); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 0.25rem; flex-shrink: 0; background: rgba(217, 180, 90, 0.15); padding: 0.25rem 0.6rem; border-radius: 4px;">
+                          Open Document ↗
+                        </span>
+                      </button>
+                    `;
+                  }).join('')}
+                </div>
+              `
+              : `<div style="color: rgba(242, 244, 255, 0.45); font-style: italic; font-size: 0.88rem; padding: 0.5rem 0;">No proof uploaded</div>`
+          }
+        </div>
       </div>
 
       <!-- Footer Bar -->
@@ -2984,6 +3118,28 @@ function openTeamAppAnswersModal(app: TeamApplication): void {
   `;
 
   document.body.appendChild(modal);
+
+  // Bind click handlers for proof files in modal
+  modal.querySelectorAll('.modal-proof-file-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const path = btn.getAttribute('data-path');
+      if (!path) return;
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<span>⏳ Generating secure view link...</span>';
+      try {
+        const { data, error } = await supabase.storage.from('application-proofs').createSignedUrl(path, 300);
+        btn.innerHTML = originalText;
+        if (error || !data?.signedUrl) {
+          alert(`Could not generate secure view link: ${error?.message || 'Storage error'}`);
+          return;
+        }
+        window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+      } catch (err: any) {
+        btn.innerHTML = originalText;
+        alert(`Error opening file: ${err?.message || 'Unknown error'}`);
+      }
+    });
+  });
 
   const close = () => modal.remove();
   document.getElementById('close-team-answers-btn')?.addEventListener('click', close);

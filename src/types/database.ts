@@ -84,7 +84,7 @@ export interface TeamApplication {
   full_name: string;
   email: string;
   phone: string;
-  answers: Record<string, string>;
+  answers: Record<string, any>;
   status: TeamAppStatus;
   reviewed_by?: string | null;
   reviewed_at?: string | null;
@@ -92,5 +92,6 @@ export interface TeamApplication {
   email_sent?: boolean;
   email_sent_at?: string | null;
   email_error?: string | null;
+  proof_files?: string[];
 }
 

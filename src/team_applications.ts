@@ -25,20 +25,6 @@ export const VOLUNTEER_QUESTIONS: QuestionDef[] = [
     required: true
   },
   {
-    id: 'q_department_interest',
-    label: 'Preferred Volunteer Area',
-    sublabel: 'Select the operational area where your strengths lie.',
-    type: 'select',
-    options: [
-      'Delegate Reception & Hospitality',
-      'Logistics & Venue Coordination',
-      'Ceremonies & Stage Management',
-      'Media, Photography & Social Coverage',
-      'General Conference Support'
-    ],
-    required: true
-  },
-  {
     id: 'q_experience',
     label: 'Past Experience in MUN or Large Events',
     sublabel: 'List any MUN conferences, school events, or community volunteering.',
@@ -163,7 +149,8 @@ export interface SubmitTeamAppInput {
   full_name: string;
   email: string;
   phone: string;
-  answers: Record<string, string>;
+  answers: Record<string, any>;
+  proof_files?: string[];
 }
 
 export function isValidEmail(email: string): boolean {
@@ -236,6 +223,7 @@ export async function submitTeamApplication(
       email: cleanEmail,
       phone,
       answers: input.answers || {},
+      proof_files: input.proof_files || [],
       status: 'pending' as TeamAppStatus,
       created_at: new Date().toISOString(),
       email_sent: false

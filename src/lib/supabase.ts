@@ -136,11 +136,19 @@ const DEFAULT_TEAM_APPLICATIONS: TeamApplication[] = [
     status: 'pending',
     answers: {
       'q_why': 'I want to support Monument MUN 2027 and ensure visiting international delegates experience world-class hospitality.',
-      'q_department_interest': 'Delegate Reception and Logistics & Venue Support',
       'q_experience': 'Volunteered as logistics usher at Cairo Model Arab League 2025 and led school cultural days.',
       'q_availability': 'Yes, fully available for all training days and all conference debate dates.',
-      'q_languages_skills': 'Fluent in Arabic, English, and conversational French. Certified in First Aid.'
+      'q_languages_skills': 'Fluent in Arabic, English, and conversational French. Certified in First Aid.',
+      'additional_experiences': [
+        {
+          event: 'Cairo Model Arab League 2025',
+          role: 'Logistics Usher',
+          when: 'November 2025',
+          description: 'Coordinated room setup, microphone circulation, and delegate badges for 150 participants.'
+        }
+      ]
     },
+    proof_files: ['uploads/cert_cairo_arab_league_2025.pdf'],
     created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
     email_sent: false
   },
@@ -158,6 +166,7 @@ const DEFAULT_TEAM_APPLICATIONS: TeamApplication[] = [
       'q_composure': 'Yes, I stay composed, disciplined, and polite under intense pressure and high foot-traffic.',
       'q_availability': 'Full availability confirmed for security walkthroughs and every conference session.'
     },
+    proof_files: [],
     created_at: new Date(Date.now() - 86400000 * 1).toISOString(),
     email_sent: false
   },
@@ -174,11 +183,11 @@ const DEFAULT_TEAM_APPLICATIONS: TeamApplication[] = [
     email_sent_at: new Date(Date.now() - 86400000 * 0.5).toISOString(),
     answers: {
       'q_why': 'Passionate about diplomacy and international youth conferences.',
-      'q_department_interest': 'Ceremonies & Stage Management',
       'q_experience': 'Audio-visual coordinator at school MUN.',
       'q_availability': '100% available.',
       'q_languages_skills': 'English, Arabic, Spanish.'
     },
+    proof_files: [],
     created_at: new Date(Date.now() - 86400000 * 3).toISOString()
   }
 ];
@@ -370,10 +379,51 @@ interface MockSupabaseClientContract {
       options?: Record<string, unknown>
     ) => Promise<{ data: Record<string, unknown>; error: null }>;
   };
+  storage: {
+    from: (bucket: string) => {
+      upload: (
+        path: string,
+        file: File | Blob,
+        options?: Record<string, unknown>
+      ) => Promise<{ data: { path: string } | null; error: { message: string } | null }>;
+      createSignedUrl: (
+        path: string,
+        expiresIn: number
+      ) => Promise<{ data: { signedUrl: string } | null; error: { message: string } | null }>;
+    };
+  };
 }
 
 function createMockSupabaseClient(): MockSupabaseClientContract {
   return {
+    storage: {
+      from(bucket: string) {
+        return {
+          async upload(path: string, file: File | Blob, _options?: Record<string, unknown>) {
+            try {
+              const mockStorage = getStorage<Record<string, { name?: string; size?: number; type?: string; mockUrl?: string }>>('mock_storage_' + bucket, {});
+              const mockUrl = typeof URL !== 'undefined' && URL.createObjectURL ? URL.createObjectURL(file) : '';
+              mockStorage[path] = {
+                name: file instanceof File ? file.name : path,
+                size: file.size,
+                type: file.type,
+                mockUrl
+              };
+              setStorage('mock_storage_' + bucket, mockStorage);
+              return { data: { path }, error: null };
+            } catch (err: any) {
+              return { data: null, error: { message: err?.message || 'Storage upload error' } };
+            }
+          },
+          async createSignedUrl(path: string, _expiresIn: number) {
+            const mockStorage = getStorage<Record<string, { mockUrl?: string }>>('mock_storage_' + bucket, {});
+            const item = mockStorage[path];
+            const signedUrl = item?.mockUrl || `https://storage.supabase.co/mock/${bucket}/${path}`;
+            return { data: { signedUrl }, error: null };
+          }
+        };
+      }
+    },
     functions: {
       async invoke(fnName: string, options?: { body?: Record<string, unknown> }) {
         console.info(`[Mock Supabase Functions] Invoked: ${fnName}`, options?.body);

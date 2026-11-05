@@ -61,6 +61,7 @@
          TOKENS & THEME
          ---------------------------------------------------- */
       :root {
+        color-scheme: dark;
         --font-display: 'Cinzel', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         --font-serif: 'Cormorant Garamond', Georgia, Cambria, 'Times New Roman', Times, serif;
         --font-sans: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -84,7 +85,15 @@
         --gold-faint: rgba(217, 180, 90, 0.15);
         --border-gold: rgba(217, 180, 90, 0.28);
         --bg-navy: #080a1e;
+        --navy-surface: #0b0f2a;
         --bg-card: rgba(15, 20, 48, 0.75);
+
+        /* Off-white warm limestone palette for legible text on dark surfaces */
+        --limestone: #f5f1e6;
+        --limestone-muted: rgba(245, 241, 230, 0.7);
+        --limestone-faint: rgba(245, 241, 230, 0.4);
+        --border-subtle: rgba(217, 180, 90, 0.28);
+        --radius-ui: 8px;
       }
 
       /* ----------------------------------------------------
@@ -682,8 +691,16 @@
         margin-bottom: 0.4rem;
       }
 
-      .form-input,
+      /* Form controls & color schemes */
+      form,
+      select,
       .form-select,
+      option,
+      optgroup {
+        color-scheme: dark;
+      }
+
+      .form-input,
       .form-textarea {
         width: 100%;
         min-height: 48px;
@@ -706,16 +723,234 @@
       }
 
       .form-input:focus,
-      .form-select:focus,
       .form-textarea:focus {
         border-color: var(--gold);
         outline: 2px solid var(--gold);
         outline-offset: 1px;
       }
 
-      .form-select option {
-        background: var(--navy-surface);
-        color: var(--limestone);
+      /* ====================================================
+         NATIVE SELECT DROPDOWN STYLING
+         - color-scheme: dark on select & :root
+         - select: background-color: #0b0f2a; color: #f5f1e6; border: 1px solid rgba(217,180,90,0.45)
+         - select option/optgroup: background-color: #0b0f2a; color: #f5f1e6
+         - highlighted/hovered: background: #d9b45a; color: #080a1e
+         - placeholder option: color: #a9a58f
+         ==================================================== */
+      select,
+      .form-select {
+        color-scheme: dark;
+        width: 100%;
+        min-height: 48px;
+        height: 48px;
+        background-color: #0b0f2a !important;
+        background: #0b0f2a !important;
+        color: #f5f1e6 !important;
+        border: 1px solid rgba(217, 180, 90, 0.45) !important;
+        border-radius: var(--radius-ui);
+        padding: 0 40px 0 14px;
+        font-family: var(--font-serif);
+        font-size: 16px; /* 16px prevents iOS zoom */
+        outline: none;
+        cursor: pointer;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23d9b45a' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        background-size: 16px 16px;
+        transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+      }
+
+      select:focus,
+      .form-select:focus {
+        border-color: #d9b45a !important;
+        outline: 2px solid #d9b45a !important;
+        outline-offset: 1px;
+        box-shadow: 0 0 12px rgba(217, 180, 90, 0.35);
+      }
+
+      select option,
+      select optgroup,
+      .form-select option,
+      .form-select optgroup {
+        color-scheme: dark;
+        background-color: #0b0f2a !important;
+        background: #0b0f2a !important;
+        color: #f5f1e6 !important;
+        font-family: var(--font-serif);
+        font-size: 15px;
+        padding: 10px 14px;
+      }
+
+      select option:checked,
+      select option:hover,
+      select option:focus,
+      .form-select option:checked,
+      .form-select option:hover,
+      .form-select option:focus {
+        background-color: #d9b45a !important;
+        background: #d9b45a !important;
+        color: #080a1e !important;
+      }
+
+      select option[value=""],
+      .form-select option[value=""] {
+        color: #a9a58f !important;
+      }
+
+      /* ====================================================
+         ACCESSIBLE CUSTOM DROPDOWN (Button + Navy Listbox)
+         Guarantees 100% dark navy (#0b0f2a) and gold (#d9b45a)
+         appearance across all browsers including mobile Safari / iPhone
+         ==================================================== */
+      .custom-select-hidden-native {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+
+      .custom-select-wrapper {
+        position: relative;
+        width: 100%;
+        display: block;
+        font-family: var(--font-serif);
+      }
+
+      .custom-select-trigger {
+        width: 100%;
+        min-height: 48px;
+        height: 48px;
+        background-color: #0b0f2a;
+        color: #f5f1e6;
+        border: 1px solid rgba(217, 180, 90, 0.45);
+        border-radius: var(--radius-ui);
+        padding: 0 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 16px;
+        text-align: left;
+        outline: none;
+        transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      .custom-select-trigger:focus,
+      .custom-select-wrapper.is-open .custom-select-trigger {
+        border-color: #d9b45a;
+        outline: 2px solid #d9b45a;
+        outline-offset: 1px;
+        box-shadow: 0 0 14px rgba(217, 180, 90, 0.35);
+      }
+
+      .custom-select-value {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #f5f1e6;
+      }
+
+      .custom-select-value.placeholder {
+        color: #a9a58f;
+      }
+
+      .custom-select-arrow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #d9b45a;
+        flex-shrink: 0;
+        transition: transform 0.22s var(--ease);
+      }
+
+      .custom-select-wrapper.is-open .custom-select-arrow {
+        transform: rotate(180deg);
+      }
+
+      .custom-select-dropdown {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        background-color: #0b0f2a;
+        color: #f5f1e6;
+        border: 1px solid rgba(217, 180, 90, 0.45);
+        border-radius: var(--radius-ui);
+        box-shadow: 0 14px 38px rgba(0, 0, 0, 0.85), 0 0 20px rgba(217, 180, 90, 0.25);
+        list-style: none;
+        padding: 6px 0;
+        margin: 0;
+        max-height: 280px;
+        overflow-y: auto;
+        z-index: 999;
+        display: none;
+        outline: none;
+        scrollbar-width: thin;
+        scrollbar-color: var(--gold) #0b0f2a;
+      }
+
+      .custom-select-wrapper.is-open .custom-select-dropdown {
+        display: block;
+        animation: customSelectFadeIn 0.16s var(--ease);
+      }
+
+      @keyframes customSelectFadeIn {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .custom-select-option {
+        padding: 12px 16px;
+        min-height: 44px; /* Touch-friendly tap target */
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: #0b0f2a;
+        color: #f5f1e6;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 15px;
+        line-height: 1.4;
+        transition: background-color 0.12s ease, color 0.12s ease;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      .custom-select-option.placeholder {
+        color: #a9a58f;
+      }
+
+      .custom-select-option:hover,
+      .custom-select-option.highlighted {
+        background-color: #d9b45a !important;
+        background: #d9b45a !important;
+        color: #080a1e !important;
+        font-weight: 700;
+      }
+
+      .custom-select-option.selected {
+        color: #d9b45a;
+        font-weight: 700;
+      }
+
+      .custom-select-option.selected:hover,
+      .custom-select-option.selected.highlighted {
+        color: #080a1e !important;
       }
 
       .status-banner {
@@ -2942,6 +3177,8 @@
 
       /* ----------------------------------------------------
          INTRO OVERLAY: "The Laurel to Liberty Torch Landing" (~7.0s)
+      /* ----------------------------------------------------
+         INTRO OVERLAY: "The Laurel to Liberty Torch Landing"
          ---------------------------------------------------- */
       #intro-overlay {
         position: fixed;
@@ -2949,7 +3186,7 @@
         width: 100%;
         height: 100vh;
         height: 100lvh;
-        z-index: 9999;
+        z-index: 10000;
         display: block;
         overflow: hidden;
         pointer-events: auto;
@@ -2964,7 +3201,7 @@
         pointer-events: none !important;
       }
 
-      /* Dark Navy Backdrop (0.0s - 3.6s: solid #080a1e; 3.6s - 6.0s: fades out to reveal homepage hero) */
+      /* Dark Navy Backdrop (0.0s - 5.0s: solid #080a1e; 5.0s - 6.5s: fades out smoothly over 1.5s revealing homepage hero) */
       #intro-backdrop {
         position: absolute;
         inset: 0;
@@ -2973,13 +3210,14 @@
         background-color: #080a1e;
         z-index: 1;
         opacity: 1;
-        transition: opacity 2.2s cubic-bezier(0.22, 1, 0.36, 1);
+        transition: opacity 1.5s cubic-bezier(0.33, 1, 0.68, 1);
         will-change: opacity;
         pointer-events: none;
       }
 
-      #intro-overlay.stage-move #intro-backdrop,
-      #intro-overlay.stage-land #intro-backdrop {
+      /* Gradual fade only starts at 5.0s when stage-travel is added */
+      #intro-overlay.stage-travel #intro-backdrop,
+      #intro-overlay.stage-ignite #intro-backdrop {
         opacity: 0;
       }
 
@@ -2991,37 +3229,320 @@
         height: 100%;
         z-index: 2;
         pointer-events: none;
-        transition: opacity 0.8s ease;
+        transition: opacity 1.2s ease;
       }
 
-      /* 0.0s - 0.8s: Single gold point of light / spark at center */
+      #intro-overlay.stage-travel #intro-dust-canvas,
+      #intro-overlay.stage-ignite #intro-dust-canvas {
+        opacity: 0;
+      }
+
+      /* 0.0s - 0.6s: Very faint ambient gold point of light at center */
       #intro-spark {
         position: absolute;
         top: 50%;
         left: 50%;
-        width: 12px;
-        height: 12px;
-        margin-top: -6px;
-        margin-left: -6px;
+        width: 14px;
+        height: 14px;
+        margin-top: -7px;
+        margin-left: -7px;
         border-radius: 50%;
-        background: #ffffff;
-        box-shadow: 0 0 24px 8px #d9b45a, 0 0 60px 24px rgba(217, 180, 90, 0.65);
-        opacity: 0;
-        transform: scale(0);
-        transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-        z-index: 12;
+        background: radial-gradient(circle, #ffffff 0%, #ffd966 50%, rgba(217, 180, 90, 0) 100%);
+        box-shadow: 0 0 20px 6px rgba(217, 180, 90, 0.5);
+        opacity: 0.35;
+        transform: scale(1);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+        z-index: 5;
         pointer-events: none;
       }
 
-      #intro-overlay.stage-spark #intro-spark {
-        opacity: 1;
-        transform: scale(1.2);
-      }
-
+      #intro-overlay.stage-hands-enter #intro-spark,
+      #intro-overlay.stage-hands-gather #intro-spark,
+      #intro-overlay.stage-hands-touch #intro-spark,
       #intro-overlay.stage-reveal #intro-spark {
         opacity: 0;
-        transform: scale(3.5);
-        transition: opacity 0.4s ease-out, transform 0.6s ease-out;
+      }
+
+      /* ====================================================
+         STATUE HANDS OPENING ANIMATION (0.0s – 4.5s)
+         Two sculpted gold statue hands reaching from edges,
+         touching index fingertips at center, bursting into logo
+         ==================================================== */
+      #intro-hands-scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 8;
+        overflow: hidden;
+      }
+
+      .intro-hand-wrapper {
+        position: absolute;
+        top: 50%;
+        width: min(580px, 44vw);
+        max-width: 600px;
+        height: auto;
+        pointer-events: none;
+        will-change: transform, opacity, filter;
+      }
+
+      .intro-hand-svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+      }
+
+      /* Left Hand: Statue of Liberty's raised hand (with torch base) reaching right */
+      .intro-hand-left {
+        right: 50%;
+        transform: translate3d(-115%, -50%, 0);
+        transform-origin: right center;
+        opacity: 0;
+        filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 20px rgba(217, 180, 90, 0.25));
+        transition: transform 1.8s cubic-bezier(0.22, 1, 0.36, 1),
+                    opacity 0.7s ease,
+                    filter 0.8s ease;
+      }
+
+      /* Right Hand: Statue of Liberty's hand (with tablet) reaching left */
+      .intro-hand-right {
+        left: 50%;
+        transform: translate3d(115%, -50%, 0);
+        transform-origin: left center;
+        opacity: 0;
+        filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 20px rgba(217, 180, 90, 0.25));
+        transition: transform 1.8s cubic-bezier(0.22, 1, 0.36, 1),
+                    opacity 0.7s ease,
+                    filter 0.8s ease;
+      }
+
+      /* 0.6s – 2.4s: Hands slide in slowly with slight upward float & soft gold shimmer */
+      #intro-overlay.stage-hands-enter .intro-hand-left {
+        transform: translate3d(-18px, calc(-50% - 6px), 0);
+        opacity: 1;
+        filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 35px rgba(217, 180, 90, 0.45));
+      }
+
+      #intro-overlay.stage-hands-enter .intro-hand-right {
+        transform: translate3d(18px, calc(-50% - 6px), 0);
+        opacity: 1;
+        filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 35px rgba(217, 180, 90, 0.45));
+      }
+
+      /* 2.4s – 3.0s: Fingertips come close and hover with a small gap (~14px) */
+      #intro-overlay.stage-hands-gather .intro-hand-left {
+        transform: translate3d(-7px, -50%, 0);
+        opacity: 1;
+        transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 45px rgba(217, 180, 90, 0.65));
+      }
+
+      #intro-overlay.stage-hands-gather .intro-hand-right {
+        transform: translate3d(7px, -50%, 0);
+        opacity: 1;
+        transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 45px rgba(217, 180, 90, 0.65));
+      }
+
+      /* 3.0s – 3.4s: Fingertips touch, white-gold flash bursts from contact point */
+      #intro-overlay.stage-hands-touch .intro-hand-left {
+        transform: translate3d(0, -50%, 0);
+        opacity: 1;
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        filter: drop-shadow(0 0 50px rgba(255, 240, 180, 0.9)) brightness(1.25);
+      }
+
+      #intro-overlay.stage-hands-touch .intro-hand-right {
+        transform: translate3d(0, -50%, 0);
+        opacity: 1;
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        filter: drop-shadow(0 0 50px rgba(255, 240, 180, 0.9)) brightness(1.25);
+      }
+
+      /* 3.4s – 4.5s: Hands slide slightly apart and fade out into gold dust */
+      #intro-overlay.stage-reveal .intro-hand-left {
+        transform: translate3d(-65px, calc(-50% - 15px), 0) scale(0.94);
+        opacity: 0;
+        filter: blur(5px) drop-shadow(0 0 30px rgba(217, 180, 90, 0.4));
+        transition: transform 1.1s cubic-bezier(0.22, 1, 0.36, 1),
+                    opacity 0.9s cubic-bezier(0.4, 0, 0.2, 1),
+                    filter 0.9s ease;
+      }
+
+      #intro-overlay.stage-reveal .intro-hand-right {
+        transform: translate3d(65px, calc(-50% - 15px), 0) scale(0.94);
+        opacity: 0;
+        filter: blur(5px) drop-shadow(0 0 30px rgba(217, 180, 90, 0.4));
+        transition: transform 1.1s cubic-bezier(0.22, 1, 0.36, 1),
+                    opacity 0.9s cubic-bezier(0.4, 0, 0.2, 1),
+                    filter 0.9s ease;
+      }
+
+      #intro-overlay.stage-sweep #intro-hands-scene,
+      #intro-overlay.stage-condense #intro-hands-scene,
+      #intro-overlay.stage-travel #intro-hands-scene,
+      #intro-overlay.stage-ignite #intro-hands-scene,
+      #intro-overlay.stage-reduced #intro-hands-scene {
+        display: none !important;
+      }
+
+      /* Touch Point Energy, Shockwave & Bursts */
+      .intro-touch-energy {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 0;
+        height: 0;
+        pointer-events: none;
+        z-index: 9;
+      }
+
+      /* Pre-touch ambient gold glow between fingertips (2.4s - 3.0s) */
+      .intro-pre-touch-glow {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 70px;
+        height: 70px;
+        margin-top: -35px;
+        margin-left: -35px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255, 248, 220, 0.95) 0%, rgba(217, 180, 90, 0.6) 45%, rgba(217, 180, 90, 0) 75%);
+        opacity: 0;
+        transform: scale(0.3);
+        transition: opacity 0.5s ease, transform 0.6s ease;
+      }
+
+      #intro-overlay.stage-hands-gather .intro-pre-touch-glow {
+        opacity: 0.95;
+        transform: scale(1.15);
+        animation: touchEnergyPulse 0.55s ease-in-out infinite alternate;
+      }
+
+      #intro-overlay.stage-hands-touch .intro-pre-touch-glow {
+        opacity: 0;
+      }
+
+      @keyframes touchEnergyPulse {
+        0% { transform: scale(0.9); opacity: 0.75; }
+        100% { transform: scale(1.3); opacity: 1; }
+      }
+
+      /* Bright touch burst flash (3.0s - 3.4s) */
+      .intro-touch-burst {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 160px;
+        height: 160px;
+        margin-top: -80px;
+        margin-left: -80px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #ffffff 0%, #fff7db 24%, #ffd966 50%, rgba(217, 180, 90, 0.5) 70%, rgba(217, 180, 90, 0) 85%);
+        box-shadow: 0 0 50px 25px #ffffff,
+                    0 0 100px 50px #ecd07a,
+                    0 0 150px 75px rgba(217, 180, 90, 0.75);
+        opacity: 0;
+        transform: scale(0.05);
+        pointer-events: none;
+      }
+
+      #intro-overlay.stage-hands-touch .intro-touch-burst {
+        animation: touchFlashBloom 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      @keyframes touchFlashBloom {
+        0% {
+          opacity: 0;
+          transform: scale(0.1);
+        }
+        35% {
+          opacity: 1;
+          transform: scale(1.35);
+          filter: brightness(2.2);
+        }
+        100% {
+          opacity: 0.85;
+          transform: scale(1.1);
+          filter: brightness(1.3);
+        }
+      }
+
+      /* Expanding shockwave ring (3.0s - 3.6s) */
+      .intro-shockwave-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 140px;
+        height: 140px;
+        margin-top: -70px;
+        margin-left: -70px;
+        border-radius: 50%;
+        border: 2.5px solid rgba(255, 250, 225, 0.95);
+        box-shadow: 0 0 25px 6px #ffd966, inset 0 0 15px 3px #ffffff;
+        opacity: 0;
+        transform: scale(0.1);
+        pointer-events: none;
+      }
+
+      #intro-overlay.stage-hands-touch .intro-shockwave-ring {
+        animation: shockwaveExpand 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      @keyframes shockwaveExpand {
+        0% {
+          transform: scale(0.1);
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.85;
+        }
+        100% {
+          transform: scale(4.2);
+          opacity: 0;
+        }
+      }
+
+      /* Contact needle sparks */
+      .intro-touch-sparks {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 240px;
+        height: 240px;
+        margin-top: -120px;
+        margin-left: -120px;
+        opacity: 0;
+        transform: scale(0.2) rotate(0deg);
+        pointer-events: none;
+      }
+
+      #intro-overlay.stage-hands-touch .intro-touch-sparks {
+        animation: touchSparksFly 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      @keyframes touchSparksFly {
+        0% {
+          opacity: 1;
+          transform: scale(0.2) rotate(0deg);
+        }
+        60% {
+          opacity: 0.9;
+        }
+        100% {
+          opacity: 0;
+          transform: scale(2.4) rotate(45deg);
+        }
+      }
+
+      @media (max-width: 640px) {
+        .intro-hand-wrapper {
+          width: min(480px, 48vw);
+        }
       }
 
       /* ====================================================
@@ -3038,28 +3559,29 @@
         border-radius: 50%;
         overflow: hidden;
         display: block;
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%) scale(1);
         transform-origin: center center;
         border: 1.5px solid rgba(217, 180, 90, 0.75);
         box-shadow: 0 0 35px rgba(217, 180, 90, 0.45), 0 0 70px rgba(217, 180, 90, 0.2), inset 0 0 20px rgba(217, 180, 90, 0.2);
         opacity: 0;
         clip-path: circle(0% at 50% 50%);
-        transition: clip-path 1.6s cubic-bezier(0.22, 1, 0.36, 1),
+        transition: clip-path 1.1s cubic-bezier(0.22, 1, 0.36, 1),
                     opacity 0.35s ease,
                     box-shadow 0.8s cubic-bezier(0.22, 1, 0.36, 1),
-                    border-color 0.8s ease;
+                    border-color 0.8s ease,
+                    transform 1.4s cubic-bezier(0.25, 1, 0.5, 1);
         will-change: clip-path, opacity, transform, box-shadow;
         z-index: 10;
         pointer-events: none;
       }
 
-      /* 0.8s - 2.4s: Point expands into circle revealing full logo from center outward */
+      /* 3.4s - 4.5s: Point expands into circle revealing full logo from contact flash */
       #intro-overlay.stage-reveal #intro-circle-frame {
         opacity: 1;
         clip-path: circle(50% at 50% 50%);
       }
 
-      /* Soft expanding gold glow along reveal rim (0.8s - 2.4s) */
+      /* Soft expanding gold glow along reveal rim (3.4s - 4.5s) */
       #intro-reveal-glow {
         position: absolute;
         top: 50%;
@@ -3072,8 +3594,8 @@
         pointer-events: none;
         z-index: 7;
         opacity: 0;
-        transition: width 1.6s cubic-bezier(0.22, 1, 0.36, 1),
-                    height 1.6s cubic-bezier(0.22, 1, 0.36, 1),
+        transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1),
+                    height 1.1s cubic-bezier(0.22, 1, 0.36, 1),
                     opacity 0.4s ease;
       }
 
@@ -3084,14 +3606,14 @@
       }
 
       #intro-overlay.stage-sweep #intro-reveal-glow,
-      #intro-overlay.stage-move #intro-reveal-glow,
-      #intro-overlay.stage-land #intro-reveal-glow {
+      #intro-overlay.stage-condense #intro-reveal-glow,
+      #intro-overlay.stage-travel #intro-reveal-glow,
+      #intro-overlay.stage-ignite #intro-reveal-glow {
         opacity: 0;
         transition: opacity 0.5s ease;
       }
 
-      /* The Image inside circle: 100% width and height, object-fit: cover, centered.
-         Zero empty space, zero gaps at bottom or sides! */
+      /* The Image inside circle: 100% width and height, object-fit: cover, centered */
       #intro-circle-img {
         display: block;
         width: 100%;
@@ -3102,6 +3624,7 @@
         user-select: none;
         -webkit-user-select: none;
         pointer-events: none;
+        opacity: 1;
       }
 
       /* 2.4s - 3.6s: Diagonal gold light sweep & ring gentle pulse */
@@ -3155,13 +3678,142 @@
         border-color: rgba(253, 238, 176, 0.9);
       }
 
+      /* ====================================================
+         3.6s - 5.0s: LOGO SHRINKS INTO A SMALL 14px LIGHT
+         Still on dark intro screen; logo image cross-fades out
+         while bright gold-white orb with soft halo fades in.
+         Zero logo disc left over, no hard cut.
+         ==================================================== */
+      #intro-overlay.stage-condense #intro-circle-frame {
+        transform: translate(-50%, -50%) scale(0.028);
+        border-color: #ffffff;
+        box-shadow: 0 0 25px 10px #ffeaa0, 0 0 60px 20px rgba(217, 180, 90, 0.9);
+        transition: transform 1.35s cubic-bezier(0.25, 1, 0.5, 1),
+                    border-color 0.8s ease,
+                    box-shadow 1.35s ease,
+                    opacity 0.4s ease 1.0s;
+      }
+
+      #intro-overlay.stage-condense #intro-circle-img {
+        opacity: 0;
+        transition: opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      #intro-overlay.stage-condense #intro-light-sheen {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      #intro-overlay.stage-travel #intro-circle-frame,
+      #intro-overlay.stage-ignite #intro-circle-frame {
+        display: none !important;
+        opacity: 0 !important;
+      }
+
+      /* ====================================================
+         5.0s - 7.2s: THE TRAVELING LIGHT & GOLD COMET TRAIL
+         Very high z-index (10002) to stay on top of all page elements.
+         Canvas trail (10001) leaves a soft fading gold tail behind.
+         ==================================================== */
+      #intro-trail-canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10001;
+        pointer-events: none;
+      }
+
+      #intro-traveling-light {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 14px;
+        height: 14px;
+        margin-top: -7px;
+        margin-left: -7px;
+        border-radius: 50%;
+        z-index: 10002;
+        pointer-events: none;
+        opacity: 0;
+        transform: translate3d(50vw, 50vh, 0) scale(0.5);
+        will-change: transform, opacity;
+      }
+
+      #intro-overlay.stage-condense #intro-traveling-light {
+        opacity: 1;
+        transform: translate3d(50vw, 50vh, 0) scale(1);
+        transition: opacity 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s,
+                    transform 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
+      }
+
+      #intro-overlay.stage-travel #intro-traveling-light {
+        opacity: 1;
+        transition: none; /* Controlled continuously by JS RAF along curved arc */
+      }
+
+      #intro-traveling-light .traveling-light-core {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 0 10px 4px #ffffff,
+                    0 0 22px 8px #ffeaa0,
+                    0 0 45px 16px #d9b45a,
+                    0 0 75px 28px rgba(217, 180, 90, 0.65);
+      }
+
+      #intro-traveling-light .traveling-light-halo {
+        position: absolute;
+        inset: -14px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255, 248, 220, 0.85) 0%, rgba(217, 180, 90, 0.45) 45%, rgba(217, 180, 90, 0) 75%);
+        animation: orbHaloGlow 1.2s ease-in-out infinite alternate;
+      }
+
+      @keyframes orbHaloGlow {
+        0% { transform: scale(0.88); opacity: 0.75; }
+        100% { transform: scale(1.15); opacity: 1; }
+      }
+
+      /* 7.2s - 8.4s: Torch ignition flare pulse */
+      .traveling-light-flare {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 14px;
+        height: 14px;
+        margin-top: -7px;
+        margin-left: -7px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #ffffff 15%, #ffeaa0 45%, rgba(217, 180, 90, 0.8) 70%, transparent 100%);
+        opacity: 0;
+        pointer-events: none;
+        transform: scale(1);
+      }
+
+      #intro-traveling-light.igniting .traveling-light-flare {
+        animation: torchIgniteFlare 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      @keyframes torchIgniteFlare {
+        0% { transform: scale(1); opacity: 1; }
+        45% { transform: scale(4.5); opacity: 0.95; }
+        100% { transform: scale(7.5); opacity: 0; }
+      }
+
+      #intro-traveling-light.settled {
+        opacity: 0;
+        transition: opacity 0.45s ease-out;
+      }
+
       /* Skip Button (bottom-right corner, appears after 1 second) */
       .intro-skip-pill {
         position: absolute;
         bottom: max(1.5rem, env(safe-area-inset-bottom));
         right: max(1.5rem, env(safe-area-inset-right));
         min-height: 40px;
-        z-index: 20;
+        z-index: 10010;
         background: rgba(8, 10, 30, 0.75);
         border: 1px solid rgba(217, 180, 90, 0.45);
         color: #f2f4ff;
@@ -3195,7 +3847,7 @@
         transform: translateY(-1px);
       }
 
-      /* Hero Torch Anchor & Flame Animations (landing target for circle logo) */
+      /* Hero Torch Anchor & Flame Animations (landing target for traveling light) */
       #hero-torch {
         transform-origin: 154px 40px;
       }
@@ -3208,33 +3860,49 @@
         transition: opacity 0.8s ease, transform 0.8s ease;
       }
 
+      #hero-torch:not(.torch-ignited) .hero-torch-glow-wide {
+        opacity: 0;
+      }
+
+      #hero-torch:not(.torch-ignited) .hero-torch-glow-mid {
+        opacity: 0.15;
+      }
+
+      #hero-torch:not(.torch-ignited) .hero-torch-flame {
+        opacity: 0.35;
+        filter: none;
+      }
+
       #hero-torch.torch-ignited .hero-torch-glow-wide {
+        opacity: 0.95;
         animation: heroTorchPulseWide 2.5s ease-in-out infinite alternate;
       }
 
       #hero-torch.torch-ignited .hero-torch-glow-mid {
+        opacity: 1;
         animation: heroTorchPulseMid 1.8s ease-in-out infinite alternate;
       }
 
       #hero-torch.torch-ignited .hero-torch-flame {
+        opacity: 1;
         animation: heroTorchFlameFlicker 1.4s ease-in-out infinite alternate;
-        filter: drop-shadow(0 0 6px #ffeaa0);
+        filter: drop-shadow(0 0 6px #ffeaa0) drop-shadow(0 0 14px rgba(217, 180, 90, 0.7));
       }
 
       @keyframes heroTorchPulseWide {
         0% { transform: scale(0.92); opacity: 0.7; }
-        100% { transform: scale(1.28); opacity: 1; }
+        100% { transform: scale(1.32); opacity: 1; }
       }
 
       @keyframes heroTorchPulseMid {
         0% { transform: scale(0.95); opacity: 0.8; }
-        100% { transform: scale(1.18); opacity: 1; }
+        100% { transform: scale(1.22); opacity: 1; }
       }
 
       @keyframes heroTorchFlameFlicker {
-        0% { filter: drop-shadow(0 0 4px #ffeaa0); }
-        50% { filter: drop-shadow(0 0 12px #f3d88a) drop-shadow(0 0 20px #d9b45a); }
-        100% { filter: drop-shadow(0 0 8px #ffeaa0) drop-shadow(0 0 16px #d9b45a); }
+        0% { filter: drop-shadow(0 0 4px #ffeaa0) drop-shadow(0 0 8px rgba(217, 180, 90, 0.6)); }
+        50% { filter: drop-shadow(0 0 14px #f3d88a) drop-shadow(0 0 24px #d9b45a); }
+        100% { filter: drop-shadow(0 0 9px #ffeaa0) drop-shadow(0 0 18px #d9b45a); }
       }
 
       /* Reduced motion fallback styling */
@@ -3248,6 +3916,261 @@
         0% { opacity: 0; transform: translate(-50%, -50%) scale(0.96); }
         50% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         100% { opacity: 0; transform: translate(-50%, -50%) scale(1.02); }
+      }
+
+      /* ====================================================
+         HERO TORCH BEACON: Radiant Torch Light Attached to Statue
+         Positioned absolutely relative to #layer-0 at the torch's coordinates.
+         Moves, scales, fades and disappears together with the Statue of Liberty scene.
+         z-index: 2 inside #layer-0 (lower than .app-view z-index: 10), pointer-events: none.
+         ==================================================== */
+      #hero-torch-beacon {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: var(--beacon-size, 76px);
+        height: var(--beacon-size, 76px);
+        transform: translate(-50%, -50%) scale(1);
+        transform-origin: center center;
+        pointer-events: none;
+        z-index: 2;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        will-change: transform, opacity;
+      }
+
+      /* Bloom pulse when light arrives at 7.2s */
+      #hero-torch-beacon.beacon-blooming {
+        opacity: 1;
+        animation: torchArrivalBloom 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      @keyframes torchArrivalBloom {
+        0% {
+          transform: translate(-50%, -50%) scale(0.25);
+          opacity: 0.35;
+          filter: brightness(1.2);
+        }
+        42% {
+          transform: translate(-50%, -50%) scale(1.38);
+          opacity: 1;
+          filter: brightness(2.2);
+        }
+        70% {
+          transform: translate(-50%, -50%) scale(1.12);
+          opacity: 0.96;
+          filter: brightness(1.5);
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(1);
+          opacity: 1;
+          filter: brightness(1.1);
+        }
+      }
+
+      /* Continuous gentle breathing glow & slow flicker staying permanently on the hero */
+      #hero-torch-beacon.beacon-lit {
+        opacity: 1;
+        animation: torchBeaconBreathe 3s ease-in-out infinite alternate;
+      }
+
+      @keyframes torchBeaconBreathe {
+        0% {
+          transform: translate(-50%, -50%) scale(0.92);
+          opacity: 0.92;
+        }
+        50% {
+          transform: translate(-50%, -50%) scale(1.08);
+          opacity: 1.05;
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(0.96);
+          opacity: 0.94;
+        }
+      }
+
+      /* 1. White-hot core */
+      .beacon-core {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: calc(var(--beacon-size, 76px) * 0.22);
+        height: calc(var(--beacon-size, 76px) * 0.22);
+        margin-top: calc(var(--beacon-size, 76px) * -0.11);
+        margin-left: calc(var(--beacon-size, 76px) * -0.11);
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 0 10px 4px #ffffff,
+                    0 0 22px 7px #ffeaa0,
+                    0 0 35px 11px rgba(217, 180, 90, 0.95);
+        pointer-events: none;
+        z-index: 5;
+      }
+
+      /* 2. Gold inner glow (#d9b45a) with soft edge & gentle flicker */
+      .beacon-inner-glow {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: calc(var(--beacon-size, 76px) * 0.68);
+        height: calc(var(--beacon-size, 76px) * 0.68);
+        margin-top: calc(var(--beacon-size, 76px) * -0.34);
+        margin-left: calc(var(--beacon-size, 76px) * -0.34);
+        border-radius: 50%;
+        background: radial-gradient(circle, #fffbe8 0%, #ffeaa0 25%, #f3d88a 50%, #d9b45a 75%, rgba(217, 180, 90, 0) 100%);
+        box-shadow: 0 0 26px 8px rgba(217, 180, 90, 0.85);
+        filter: drop-shadow(0 0 14px #d9b45a);
+        pointer-events: none;
+        z-index: 4;
+        animation: torchInnerFlicker 2.2s ease-in-out infinite alternate;
+      }
+
+      @keyframes torchInnerFlicker {
+        0% {
+          filter: drop-shadow(0 0 10px #d9b45a) drop-shadow(0 0 22px rgba(217, 180, 90, 0.6));
+          opacity: 0.9;
+        }
+        35% {
+          filter: drop-shadow(0 0 16px #f3d88a) drop-shadow(0 0 32px rgba(217, 180, 90, 0.85));
+          opacity: 1;
+        }
+        70% {
+          filter: drop-shadow(0 0 12px #d9b45a) drop-shadow(0 0 26px rgba(217, 180, 90, 0.7));
+          opacity: 0.94;
+        }
+        100% {
+          filter: drop-shadow(0 0 18px #ffeaa0) drop-shadow(0 0 36px rgba(217, 180, 90, 0.9));
+          opacity: 1.05;
+        }
+      }
+
+      /* 3. Large faint warm outer halo (about 4x the core size) fading to transparent */
+      .beacon-outer-halo {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: calc(var(--beacon-size, 76px) * 2.8);
+        height: calc(var(--beacon-size, 76px) * 2.8);
+        margin-top: calc(var(--beacon-size, 76px) * -1.4);
+        margin-left: calc(var(--beacon-size, 76px) * -1.4);
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(255, 235, 170, 0.5) 0%, rgba(217, 180, 90, 0.25) 35%, rgba(217, 180, 90, 0.08) 65%, transparent 80%);
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      /* 4. Ambient light cast on statue's raised arm, crown, and face */
+      .beacon-statue-cast-light {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: calc(var(--beacon-size, 76px) * 3.6);
+        height: calc(var(--beacon-size, 76px) * 3.6);
+        transform: translate(-30%, -24%);
+        border-radius: 50%;
+        background: radial-gradient(circle at 40% 35%, rgba(255, 235, 170, 0.38) 0%, rgba(217, 180, 90, 0.22) 32%, rgba(217, 180, 90, 0.07) 62%, transparent 82%);
+        mix-blend-mode: screen;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      /* 5. Light rays: 10 thin, tapered gold rays slowly rotating in ~30s with low opacity */
+      .beacon-rays-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: calc(var(--beacon-size, 76px) * 2.6);
+        height: calc(var(--beacon-size, 76px) * 2.6);
+        margin-top: calc(var(--beacon-size, 76px) * -1.3);
+        margin-left: calc(var(--beacon-size, 76px) * -1.3);
+        pointer-events: none;
+        z-index: 3;
+        opacity: 0.55;
+      }
+
+      .beacon-rays-svg {
+        width: 100%;
+        height: 100%;
+        animation: beaconRaysSpin 30s linear infinite;
+        transform-origin: center center;
+      }
+
+      @keyframes beaconRaysSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
+      /* 6. Gold sparkles rising from flame and fading out, looping gently */
+      .beacon-sparkles {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        margin-top: -10px;
+        margin-left: -10px;
+        pointer-events: none;
+        z-index: 6;
+      }
+
+      .beacon-sparkle {
+        position: absolute;
+        width: 2.5px;
+        height: 2.5px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 0 5px 2px #ffeaa0, 0 0 9px 3px #d9b45a;
+        opacity: 0;
+        will-change: transform, opacity;
+      }
+
+      .beacon-sparkle.s-1 { left: 4px; animation: torchSparkleRise 2.4s ease-out 0s infinite; }
+      .beacon-sparkle.s-2 { left: 11px; animation: torchSparkleRise 2.9s ease-out 0.55s infinite; }
+      .beacon-sparkle.s-3 { left: 7px; animation: torchSparkleRise 2.6s ease-out 1.15s infinite; }
+      .beacon-sparkle.s-4 { left: 13px; animation: torchSparkleRise 3.2s ease-out 1.75s infinite; }
+      .beacon-sparkle.s-5 { left: 9px; animation: torchSparkleRise 2.7s ease-out 2.35s infinite; }
+
+      @keyframes torchSparkleRise {
+        0% {
+          transform: translate3d(0, 0, 0) scale(0.3);
+          opacity: 0;
+        }
+        20% {
+          opacity: 0.95;
+          transform: translate3d(-3px, -8px, 0) scale(1.1);
+        }
+        60% {
+          opacity: 0.65;
+        }
+        100% {
+          transform: translate3d(-10px, -36px, 0) scale(0.2);
+          opacity: 0;
+        }
+      }
+
+      /* Hidden in admin mode or team apply */
+      body.admin-mode-active #hero-torch-beacon,
+      body.team-apply-active #hero-torch-beacon {
+        display: none !important;
+      }
+
+      /* Reduced motion fallback */
+      @media (prefers-reduced-motion: reduce) {
+        #hero-torch-beacon,
+        #hero-torch-beacon.beacon-lit,
+        #hero-torch-beacon.beacon-blooming {
+          animation: none !important;
+          transform: translate(-50%, -50%) scale(1) !important;
+        }
+        .beacon-rays-container {
+          display: none !important;
+        }
+        .beacon-sparkles {
+          display: none !important;
+        }
+        .beacon-inner-glow {
+          animation: none !important;
+        }
       }
 
       /* ====================================================
@@ -3917,6 +4840,49 @@
             </g>
           </g>
         </svg>
+
+        <!-- Persistent Multi-Layer Radiant Torch Light attached to Statue of Liberty -->
+        <div id="hero-torch-beacon" class="hero-torch-beacon" aria-hidden="true">
+          <!-- Ambient warm lighting overlay on statue's arm, face, and crown -->
+          <div class="beacon-statue-cast-light"></div>
+          <!-- Large faint warm outer halo (about 4x core size) -->
+          <div class="beacon-outer-halo"></div>
+          <!-- 10 thin, tapered gold rotating light rays -->
+          <div class="beacon-rays-container">
+            <svg class="beacon-rays-svg" viewBox="-120 -120 240 240">
+              <defs>
+                <linearGradient id="torch-ray-beam" x1="0%" y1="100%" x2="0%" y2="0%">
+                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+                  <stop offset="25%" stop-color="#ffeaa0" stop-opacity="0.75" />
+                  <stop offset="60%" stop-color="#d9b45a" stop-opacity="0.25" />
+                  <stop offset="100%" stop-color="#d9b45a" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <polygon points="-2.5,0 0,-115 2.5,0" fill="url(#torch-ray-beam)" />
+              <polygon points="-2.5,0 0,-115 2.5,0" fill="url(#torch-ray-beam)" transform="rotate(36)" />
+              <polygon points="-2.5,0 0,-115 2.5,0" fill="url(#torch-ray-beam)" transform="rotate(72)" />
+              <polygon points="-2.5,0 0,-115 2.5,0" fill="url(#torch-ray-beam)" transform="rotate(108)" />
+              <polygon points="-2.5,0 0,-115 2.5,0" fill="url(#torch-ray-beam)" transform="rotate(144)" />
+              <polygon points="-2.5,0 0,-115 2.5,0" fill="url(#torch-ray-beam)" transform="rotate(180)" />
+              <polygon points="-2.5,0 0,-115 2.5,0" fill="url(#torch-ray-beam)" transform="rotate(216)" />
+              <polygon points="-2.5,0 0,-115 2.5,0" fill="url(#torch-ray-beam)" transform="rotate(252)" />
+              <polygon points="-2.5,0 0,-115 2.5,0" fill="url(#torch-ray-beam)" transform="rotate(288)" />
+              <polygon points="-2.5,0 0,-115 2.5,0" fill="url(#torch-ray-beam)" transform="rotate(324)" />
+            </svg>
+          </div>
+          <!-- Gold inner glow with soft edge -->
+          <div class="beacon-inner-glow"></div>
+          <!-- Small white-hot core -->
+          <div class="beacon-core"></div>
+          <!-- Tiny gold sparkles rising from flame and fading out, looping gently -->
+          <div class="beacon-sparkles">
+            <span class="beacon-sparkle s-1"></span>
+            <span class="beacon-sparkle s-2"></span>
+            <span class="beacon-sparkle s-3"></span>
+            <span class="beacon-sparkle s-4"></span>
+            <span class="beacon-sparkle s-5"></span>
+          </div>
+        </div>
       </div>
 
       <!-- Stop 1: Petra -->
@@ -4025,22 +4991,223 @@
     </div>
 
     <!-- ----------------------------------------------------
-         LOGO INTRO OVERLAY
-         ---------------------------------------------------- -->
-    <!-- ----------------------------------------------------
-         LOGO INTRO OVERLAY: "The Laurel to Liberty Torch Landing" (~7.0s)
+         LOGO INTRO OVERLAY: "The Laurel to Liberty Torch Landing"
          ---------------------------------------------------- -->
     <div id="intro-overlay" role="dialog" aria-modal="true" aria-label="Monument Model United Nations introduction">
-      <!-- Dark Navy Backdrop that fades out at 3.6s - 6.0s revealing homepage hero -->
+      <!-- Dark Navy Backdrop that fades out at 5.0s - 6.5s revealing homepage hero -->
       <div id="intro-backdrop" aria-hidden="true"></div>
 
       <!-- Subtle gold particle dust canvas in deep navy void -->
       <canvas id="intro-dust-canvas" aria-hidden="true"></canvas>
 
-      <!-- 0.0s - 0.8s: Point of light / spark at center -->
+      <!-- ====================================================
+           STATUE HANDS SCENE: Two Sculpted Gold Statue Hands
+           Reaching from left and right edges, meeting in center
+           ==================================================== -->
+      <div id="intro-hands-scene" aria-hidden="true">
+        <!-- Left Hand: Statue of Liberty's raised hand (with torch base) reaching right -->
+        <div class="intro-hand-wrapper intro-hand-left">
+          <svg class="intro-hand-svg" viewBox="0 0 520 280" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="g-gold-left" x1="0%" y1="20%" x2="100%" y2="80%">
+                <stop offset="0%" stop-color="#fff5d0" />
+                <stop offset="25%" stop-color="#edd282" />
+                <stop offset="55%" stop-color="#d9b45a" />
+                <stop offset="85%" stop-color="#a6842e" />
+                <stop offset="100%" stop-color="#694e14" />
+              </linearGradient>
+              <linearGradient id="g-gold-shading-left" x1="50%" y1="0%" x2="50%" y2="100%">
+                <stop offset="0%" stop-color="rgba(255,245,210,0.4)" />
+                <stop offset="45%" stop-color="rgba(217,180,90,0)" />
+                <stop offset="85%" stop-color="rgba(35,24,6,0.55)" />
+                <stop offset="100%" stop-color="rgba(18,12,3,0.85)" />
+              </linearGradient>
+              <linearGradient id="g-gold-specular-left" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#d9b45a" stop-opacity="0.2" />
+                <stop offset="50%" stop-color="#ffffff" stop-opacity="0.95" />
+                <stop offset="90%" stop-color="#fff8db" stop-opacity="0.85" />
+                <stop offset="100%" stop-color="#ffeaa0" stop-opacity="0.95" />
+              </linearGradient>
+              <linearGradient id="g-drapery-left" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#8a6b22" />
+                <stop offset="25%" stop-color="#c49e41" />
+                <stop offset="55%" stop-color="#e8cc74" />
+                <stop offset="85%" stop-color="#a8852c" />
+                <stop offset="100%" stop-color="#5a410f" />
+              </linearGradient>
+              <linearGradient id="g-torch-base" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#553d0e" />
+                <stop offset="30%" stop-color="#947424" />
+                <stop offset="60%" stop-color="#d9b45a" />
+                <stop offset="80%" stop-color="#ffeaa0" />
+                <stop offset="100%" stop-color="#8c6c21" />
+              </linearGradient>
+            </defs>
+
+            <!-- Statue of Liberty Torch Base Handle nestled under palm -->
+            <polygon points="65,160 145,235 175,220 95,145" fill="url(#g-torch-base)" />
+            <line x1="85" y1="150" x2="165" y2="225" stroke="#ffeaa0" stroke-width="2.5" opacity="0.75" />
+            <line x1="75" y1="155" x2="155" y2="230" stroke="#3d2a08" stroke-width="2.5" opacity="0.65" />
+            <rect x="70" y="148" width="38" height="12" rx="2" transform="rotate(40 89 154)" fill="url(#g-gold-left)" />
+            <polygon points="98,138 122,120 134,130 110,148" fill="#ffeaa0" opacity="0.85" />
+
+            <!-- Classical Draped Sleeve Folds (Lady Liberty Toga Cuff) -->
+            <path d="M 0,65 Q 60,58 115,70 Q 140,78 145,105 L 145,185 Q 90,195 40,190 Q 15,190 0,182 Z" fill="url(#g-drapery-left)" />
+            <path d="M 0,105 Q 50,95 105,108 Q 130,118 135,155 L 135,210 Q 75,220 0,205 Z" fill="url(#g-drapery-left)" opacity="0.95" />
+            <path d="M 10,110 Q 55,102 110,115 Q 132,125 135,160" stroke="#3d2a08" stroke-width="3.5" fill="none" opacity="0.65" />
+            <path d="M 0,102 Q 50,92 105,105 Q 128,114 133,148" stroke="#fff8db" stroke-width="2.5" fill="none" opacity="0.8" />
+
+            <!-- Sculpted Palm & Heel of Hand -->
+            <path d="M 125,105 Q 150,92 185,96 Q 220,102 248,125 Q 262,138 260,158 Q 248,185 205,195 Q 160,200 130,175 Z" fill="url(#g-gold-left)" />
+            <path d="M 125,140 Q 165,165 210,185 Q 165,198 130,175 Z" fill="url(#g-gold-shading-left)" />
+
+            <!-- Sculpted Thumb -->
+            <path d="M 165,96 Q 190,75 220,68 Q 255,62 278,78 Q 288,88 274,102 Q 242,106 205,112 Z" fill="url(#g-gold-left)" />
+            <path d="M 195,78 Q 225,70 255,66 Q 272,72 276,82" stroke="url(#g-gold-specular-left)" stroke-width="2.5" fill="none" opacity="0.85" />
+            <path d="M 180,102 Q 215,98 250,95" stroke="#4a350c" stroke-width="2" fill="none" opacity="0.6" />
+
+            <!-- Pinky Finger -->
+            <path d="M 235,185 Q 275,192 325,200 Q 365,208 380,212 Q 384,215 376,218 Q 328,218 268,212 Q 222,204 212,195 Z" fill="url(#g-gold-left)" />
+            <path d="M 240,192 Q 285,200 340,208 Q 375,214 378,216" stroke="url(#g-gold-specular-left)" stroke-width="1.8" fill="none" opacity="0.6" />
+
+            <!-- Ring Finger -->
+            <path d="M 248,168 Q 295,172 345,178 Q 395,184 420,188 Q 425,190 418,193 Q 365,196 308,194 Q 242,190 236,185 Z" fill="url(#g-gold-left)" />
+            <path d="M 252,172 Q 305,178 365,184 Q 412,188 418,190" stroke="url(#g-gold-specular-left)" stroke-width="2" fill="none" opacity="0.75" />
+
+            <!-- Middle Finger -->
+            <path d="M 255,148 Q 315,152 375,156 Q 425,160 465,162 Q 470,164 464,167 Q 415,172 355,174 Q 298,174 250,170 Z" fill="url(#g-gold-left)" />
+            <path d="M 260,152 Q 325,156 395,160 Q 455,162 465,164" stroke="url(#g-gold-specular-left)" stroke-width="2.2" fill="none" opacity="0.8" />
+
+            <!-- Index Finger reaching straight forward to fingertip at (520, 140) -->
+            <path d="M 260,125 Q 310,120 370,124 Q 440,130 500,136 Q 518,138 520,140 Q 518,143 500,146 Q 440,154 370,158 Q 310,158 260,152 Z" fill="url(#g-gold-left)" />
+            <path d="M 270,146 Q 340,150 420,148 Q 480,145 515,142 Q 480,152 410,154 Q 330,155 265,150 Z" fill="url(#g-gold-shading-left)" opacity="0.75" />
+            <path d="M 268,126 Q 325,122 390,126 Q 460,132 518,139" stroke="url(#g-gold-specular-left)" stroke-width="2.8" stroke-linecap="round" fill="none" opacity="0.95" />
+            <path d="M 328,124 Q 328,140 326,154" stroke="#4a350c" stroke-width="1.8" fill="none" opacity="0.55" />
+            <path d="M 420,130 Q 420,140 418,150" stroke="#4a350c" stroke-width="1.6" fill="none" opacity="0.5" />
+            <circle cx="518" cy="140" r="4" fill="#ffffff" opacity="0.9" />
+            <circle cx="518" cy="140" r="12" fill="#ffd966" opacity="0.4" />
+          </svg>
+        </div>
+
+        <!-- Right Hand: Statue of Liberty's hand (with tablet) reaching left -->
+        <div class="intro-hand-wrapper intro-hand-right">
+          <svg class="intro-hand-svg" viewBox="0 0 520 280" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="g-gold-right" x1="100%" y1="20%" x2="0%" y2="80%">
+                <stop offset="0%" stop-color="#fff5d0" />
+                <stop offset="25%" stop-color="#edd282" />
+                <stop offset="55%" stop-color="#d9b45a" />
+                <stop offset="85%" stop-color="#a6842e" />
+                <stop offset="100%" stop-color="#694e14" />
+              </linearGradient>
+              <linearGradient id="g-gold-shading-right" x1="50%" y1="0%" x2="50%" y2="100%">
+                <stop offset="0%" stop-color="rgba(255,245,210,0.4)" />
+                <stop offset="45%" stop-color="rgba(217,180,90,0)" />
+                <stop offset="85%" stop-color="rgba(35,24,6,0.55)" />
+                <stop offset="100%" stop-color="rgba(18,12,3,0.85)" />
+              </linearGradient>
+              <linearGradient id="g-gold-specular-right" x1="100%" y1="0%" x2="0%" y2="0%">
+                <stop offset="0%" stop-color="#d9b45a" stop-opacity="0.2" />
+                <stop offset="50%" stop-color="#ffffff" stop-opacity="0.95" />
+                <stop offset="90%" stop-color="#fff8db" stop-opacity="0.85" />
+                <stop offset="100%" stop-color="#ffeaa0" stop-opacity="0.95" />
+              </linearGradient>
+              <linearGradient id="g-drapery-right" x1="100%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#8a6b22" />
+                <stop offset="25%" stop-color="#c49e41" />
+                <stop offset="55%" stop-color="#e8cc74" />
+                <stop offset="85%" stop-color="#a8852c" />
+                <stop offset="100%" stop-color="#5a410f" />
+              </linearGradient>
+              <linearGradient id="g-tablet" x1="100%" y1="100%" x2="0%" y2="0%">
+                <stop offset="0%" stop-color="#4d370d" />
+                <stop offset="35%" stop-color="#8c6c21" />
+                <stop offset="65%" stop-color="#c8a445" />
+                <stop offset="85%" stop-color="#edd282" />
+                <stop offset="100%" stop-color="#8c6c21" />
+              </linearGradient>
+            </defs>
+
+            <!-- Keystone Roman Tablet Corner nestled under palm -->
+            <polygon points="455,160 375,235 345,220 425,145" fill="url(#g-tablet)" />
+            <polygon points="455,160 462,165 382,240 375,235" fill="#3a2707" />
+            <text x="408" y="200" fill="#ffeaa0" opacity="0.65" font-family="serif" font-weight="bold" font-size="14" transform="rotate(-40 408 200)">IV</text>
+            <line x1="425" y1="145" x2="345" y2="220" stroke="#fff8db" stroke-width="2" opacity="0.8" />
+
+            <!-- Classical Draped Sleeve Folds (Lady Liberty Toga Cuff) -->
+            <path d="M 520,65 Q 460,58 405,70 Q 380,78 375,105 L 375,185 Q 430,195 480,190 Q 505,190 520,182 Z" fill="url(#g-drapery-right)" />
+            <path d="M 520,105 Q 470,95 415,108 Q 390,118 385,155 L 385,210 Q 445,220 520,205 Z" fill="url(#g-drapery-right)" opacity="0.95" />
+            <path d="M 510,110 Q 465,102 410,115 Q 388,125 385,160" stroke="#3d2a08" stroke-width="3.5" fill="none" opacity="0.65" />
+            <path d="M 520,102 Q 470,92 415,105 Q 392,114 387,148" stroke="#fff8db" stroke-width="2.5" fill="none" opacity="0.8" />
+
+            <!-- Sculpted Palm & Heel of Hand -->
+            <path d="M 395,105 Q 370,92 335,96 Q 300,102 272,125 Q 258,138 260,158 Q 272,185 315,195 Q 360,200 390,175 Z" fill="url(#g-gold-right)" />
+            <path d="M 395,140 Q 355,165 310,185 Q 355,198 390,175 Z" fill="url(#g-gold-shading-right)" />
+
+            <!-- Sculpted Thumb -->
+            <path d="M 355,96 Q 330,75 300,68 Q 265,62 242,78 Q 232,88 246,102 Q 278,106 315,112 Z" fill="url(#g-gold-right)" />
+            <path d="M 325,78 Q 295,70 265,66 Q 248,72 244,82" stroke="url(#g-gold-specular-right)" stroke-width="2.5" fill="none" opacity="0.85" />
+            <path d="M 340,102 Q 305,98 270,95" stroke="#4a350c" stroke-width="2" fill="none" opacity="0.6" />
+
+            <!-- Pinky Finger -->
+            <path d="M 285,185 Q 245,192 195,200 Q 155,208 140,212 Q 136,215 144,218 Q 192,218 252,212 Q 298,204 308,195 Z" fill="url(#g-gold-right)" />
+            <path d="M 280,192 Q 235,200 180,208 Q 145,214 142,216" stroke="url(#g-gold-specular-right)" stroke-width="1.8" fill="none" opacity="0.6" />
+
+            <!-- Ring Finger -->
+            <path d="M 272,168 Q 225,172 175,178 Q 125,184 100,188 Q 95,190 102,193 Q 155,196 212,194 Q 278,190 284,185 Z" fill="url(#g-gold-right)" />
+            <path d="M 268,172 Q 215,178 155,184 Q 108,188 102,190" stroke="url(#g-gold-specular-right)" stroke-width="2" fill="none" opacity="0.75" />
+
+            <!-- Middle Finger -->
+            <path d="M 265,148 Q 205,152 145,156 Q 95,160 55,162 Q 50,164 56,167 Q 105,172 165,174 Q 222,174 270,170 Z" fill="url(#g-gold-right)" />
+            <path d="M 260,152 Q 195,156 125,160 Q 65,162 55,164" stroke="url(#g-gold-specular-right)" stroke-width="2.2" fill="none" opacity="0.8" />
+
+            <!-- Index Finger reaching straight forward to fingertip at (0, 140) -->
+            <path d="M 260,125 Q 210,120 150,124 Q 80,130 20,136 Q 2,138 0,140 Q 2,143 20,146 Q 80,154 150,158 Q 210,158 260,152 Z" fill="url(#g-gold-right)" />
+            <path d="M 250,146 Q 180,150 100,148 Q 40,145 5,142 Q 40,152 110,154 Q 190,155 255,150 Z" fill="url(#g-gold-shading-right)" opacity="0.75" />
+            <path d="M 252,126 Q 195,122 130,126 Q 60,132 2,139" stroke="url(#g-gold-specular-right)" stroke-width="2.8" stroke-linecap="round" fill="none" opacity="0.95" />
+            <path d="M 192,124 Q 192,140 194,154" stroke="#4a350c" stroke-width="1.8" fill="none" opacity="0.55" />
+            <path d="M 100,130 Q 100,140 102,150" stroke="#4a350c" stroke-width="1.6" fill="none" opacity="0.5" />
+            <circle cx="2" cy="140" r="4" fill="#ffffff" opacity="0.9" />
+            <circle cx="2" cy="140" r="12" fill="#ffd966" opacity="0.4" />
+          </svg>
+        </div>
+
+        <!-- Touch Point Energy, Shockwave & Bursts -->
+        <div class="intro-touch-energy">
+          <!-- Pre-touch ambient gold glow between fingertips (2.4s - 3.0s) -->
+          <div class="intro-pre-touch-glow"></div>
+          <!-- Bright white-gold contact flash (3.0s - 3.4s) -->
+          <div class="intro-touch-burst"></div>
+          <!-- Expanding circular shockwave ring (3.0s - 3.6s) -->
+          <div class="intro-shockwave-ring"></div>
+          <!-- Radiating golden needle sparks -->
+          <div class="intro-touch-sparks">
+            <svg viewBox="-60 -60 120 120" width="100%" height="100%">
+              <defs>
+                <linearGradient id="g-spark-beam" x1="0%" y1="100%" x2="0%" y2="0%">
+                  <stop offset="0%" stop-color="#ffffff" stop-opacity="1" />
+                  <stop offset="40%" stop-color="#ffeaa0" stop-opacity="0.85" />
+                  <stop offset="80%" stop-color="#d9b45a" stop-opacity="0.3" />
+                  <stop offset="100%" stop-color="#d9b45a" stop-opacity="0" />
+                </linearGradient>
+              </defs>
+              <line x1="0" y1="-8" x2="0" y2="-55" stroke="url(#g-spark-beam)" stroke-width="2.4" stroke-linecap="round" />
+              <line x1="0" y1="-8" x2="0" y2="-55" stroke="url(#g-spark-beam)" stroke-width="2.4" stroke-linecap="round" transform="rotate(45)" />
+              <line x1="0" y1="-8" x2="0" y2="-55" stroke="url(#g-spark-beam)" stroke-width="2.4" stroke-linecap="round" transform="rotate(90)" />
+              <line x1="0" y1="-8" x2="0" y2="-55" stroke="url(#g-spark-beam)" stroke-width="2.4" stroke-linecap="round" transform="rotate(135)" />
+              <line x1="0" y1="-8" x2="0" y2="-55" stroke="url(#g-spark-beam)" stroke-width="2.4" stroke-linecap="round" transform="rotate(180)" />
+              <line x1="0" y1="-8" x2="0" y2="-55" stroke="url(#g-spark-beam)" stroke-width="2.4" stroke-linecap="round" transform="rotate(225)" />
+              <line x1="0" y1="-8" x2="0" y2="-55" stroke="url(#g-spark-beam)" stroke-width="2.4" stroke-linecap="round" transform="rotate(270)" />
+              <line x1="0" y1="-8" x2="0" y2="-55" stroke="url(#g-spark-beam)" stroke-width="2.4" stroke-linecap="round" transform="rotate(315)" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Faint central spark for 0.0s - 0.6s ambient opening glow -->
       <div id="intro-spark" aria-hidden="true"></div>
 
-      <!-- PART 1 & 2: The Full Logo Circle (70vmin, border-radius: 50%, no empty space anywhere) -->
+      <!-- PART 1: The Full Logo Circle (70vmin, border-radius: 50%, no empty space anywhere) -->
       <div id="intro-circle-frame" aria-label="Monument Model United Nations emblem">
         <!-- Expanding circular edge glow (0.8s - 2.4s) -->
         <div id="intro-reveal-glow" aria-hidden="true"></div>
@@ -4055,6 +5222,16 @@
 
         <!-- 2.4s - 3.6s: Diagonal polished-gold light sweep sheen across circle -->
         <div id="intro-light-sheen" aria-hidden="true"></div>
+      </div>
+
+      <!-- Canvas for soft fading gold comet trail behind traveling light (5.0s - 7.2s) -->
+      <canvas id="intro-trail-canvas" aria-hidden="true"></canvas>
+
+      <!-- Traveling Light Orb (3.6s - 8.4s): fades in as logo shrinks, flies along curved arc to torch -->
+      <div id="intro-traveling-light" aria-hidden="true">
+        <div class="traveling-light-halo"></div>
+        <div class="traveling-light-core"></div>
+        <div class="traveling-light-flare"></div>
       </div>
 
       <!-- Skip Button (appears after 1.0s in bottom-right corner) -->
@@ -4844,7 +6021,7 @@
          ---------------------------------------------------- -->
     <script type="module">
       import { supabase } from '/src/lib/supabase.ts';
-      import { initPortal, isAdminRoute, isStaffRoute, isTeamApplyRoute, renderAdminRoute, renderStaffRoute, renderTeamHeadRoute, renderTeamApplyPage } from '/src/portal.ts';
+      import { initPortal, isAdminRoute, isStaffRoute, isTeamApplyRoute, renderAdminRoute, renderStaffRoute, renderTeamHeadRoute, renderTeamApplyPage, initAllCustomSelects } from '/src/portal.ts';
       import { getCachedUser, isAuthReady, signUpWithEmail, signInWithEmail, signOut, subscribeAuth } from '/src/auth.ts';
       import { initBackgroundCat } from '/src/cat.ts';
       import { MONUMENT_COMMITTEES } from '/src/committees.ts';
@@ -5129,6 +6306,19 @@
                 setTimeout(() => {
                   anchor.scrollIntoView({ behavior: 'smooth' });
                 }, 100);
+              }
+            }
+          }
+
+          if (typeof isTorchBeaconActive !== 'undefined' && isTorchBeaconActive) {
+            const isHome = !isTargetAdmin && !isTargetStaff && !isTargetTeamHead && !isTargetTeamApply && cleanHash !== 'committees' && cleanHash !== 'apply';
+            const beaconEl = document.getElementById('hero-torch-beacon');
+            if (beaconEl) {
+              if (isHome) {
+                beaconEl.style.display = '';
+                updateTorchBeaconPosition();
+              } else {
+                beaconEl.style.display = 'none';
               }
             }
           }
@@ -5759,6 +6949,12 @@
                 const dissolveProgress = Math.min(1, (lerpedContinuousPos - 0.05) / 0.95);
                 opacity = Math.max(0, 1 - Math.pow(dissolveProgress, 1.15));
               }
+
+              // Lady Liberty torch glow is inside layer-0, ensure it is hidden when layer-0 is dissolved
+              const beaconEl = document.getElementById('hero-torch-beacon');
+              if (beaconEl) {
+                beaconEl.style.display = opacity > 0.005 ? '' : 'none';
+              }
             } else {
               const dist = Math.abs(lerpedContinuousPos - i);
               opacity = Math.max(0, Math.min(1, 1 - dist));
@@ -5766,6 +6962,7 @@
             const translateY = (lerpedContinuousPos - i) * 32;
 
             layer.style.opacity = opacity.toFixed(3);
+            layer.style.display = opacity > 0.005 ? '' : 'none';
             layer.style.transform = `translateY(${translateY.toFixed(1)}px) translateZ(0)`;
           }
 
@@ -7139,87 +8336,332 @@
         });
 
         let onIntroResizeHandler = null;
+        let travelAnimationId = null;
+        let trailCtx = null;
+        let trailPoints = [];
+        let trailSparks = [];
 
-        function computeTorchTarget() {
+        function getTorchCoordinates() {
           const torchEl = document.getElementById('hero-torch');
-          const frame = document.getElementById('intro-circle-frame');
-          if (!frame) return null;
+          if (!torchEl) {
+            const isMobile = window.innerWidth < 768;
+            const isTablet = window.innerWidth < 1100;
+            return {
+              x: window.innerWidth * 0.18,
+              y: window.innerHeight * (isMobile ? 0.78 : (isTablet ? 0.62 : 0.52))
+            };
+          }
+          const coreEl = torchEl.querySelector('.hero-torch-glow-core') || torchEl;
+          const rect = coreEl.getBoundingClientRect();
+          return {
+            x: rect.left + rect.width * 0.5,
+            y: rect.top + rect.height * 0.5
+          };
+        }
+
+        var isTorchBeaconActive = false;
+
+        function getTorchBeaconTargetSize() {
+          const torchEl = document.getElementById('hero-torch');
+          let baseSize = 78;
+          if (torchEl) {
+            const wideGlow = torchEl.querySelector('.hero-torch-glow-wide');
+            if (wideGlow) {
+              const rect = wideGlow.getBoundingClientRect();
+              if (rect.width > 12) {
+                baseSize = rect.width * 1.35;
+              }
+            } else {
+              const rect = torchEl.getBoundingClientRect();
+              if (rect.width > 8) {
+                baseSize = rect.width * 2.2;
+              }
+            }
+          } else {
+            const w = window.innerWidth;
+            if (w < 480) baseSize = 56;
+            else if (w < 768) baseSize = 68;
+            else if (w < 1200) baseSize = 78;
+            else baseSize = 88;
+          }
+          // Scaled with statue, clamped between 40px minimum and 110px maximum (roughly 60 to 90px on desktop)
+          return Math.max(40, Math.min(110, Math.round(baseSize)));
+        }
+
+        function updateTorchBeaconPosition() {
+          const beacon = document.getElementById('hero-torch-beacon');
+          const layer0 = document.getElementById('layer-0');
+          if (!beacon || !layer0) return;
+
+          const wasHidden = layer0.style.display === 'none';
+          if (wasHidden) {
+            layer0.style.display = '';
+          }
+          const coords = getTorchCoordinates();
+          const layerRect = layer0.getBoundingClientRect();
+          if (wasHidden) {
+            layer0.style.display = 'none';
+          }
+
+          const relX = coords.x - layerRect.left;
+          const relY = coords.y - layerRect.top;
+          const size = getTorchBeaconTargetSize();
+          beacon.style.left = relX.toFixed(1) + 'px';
+          beacon.style.top = relY.toFixed(1) + 'px';
+          beacon.style.setProperty('--beacon-size', size + 'px');
+        }
+
+        function activateTorchBeacon() {
+          const beacon = document.getElementById('hero-torch-beacon');
+          if (!beacon) return;
+          isTorchBeaconActive = true;
+          updateTorchBeaconPosition();
+          beacon.classList.remove('beacon-blooming');
+          beacon.classList.add('beacon-lit');
+        }
+
+        window.addEventListener('resize', () => {
+          if (isTorchBeaconActive) {
+            updateTorchBeaconPosition();
+          }
+        });
+        window.addEventListener('orientationchange', () => {
+          if (isTorchBeaconActive) {
+            setTimeout(updateTorchBeaconPosition, 100);
+          }
+        });
+
+        function easeInOutCubic(x) {
+          return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+        }
+
+        function getBezierPoint(t, p0, p1, p2, p3) {
+          const mt = 1 - t;
+          const mt2 = mt * mt;
+          const mt3 = mt2 * mt;
+          const t2 = t * t;
+          const t3 = t2 * t;
+
+          return {
+            x: mt3 * p0.x + 3 * mt2 * t * p1.x + 3 * mt * t2 * p2.x + t3 * p3.x,
+            y: mt3 * p0.y + 3 * mt2 * t * p1.y + 3 * mt * t2 * p2.y + t3 * p3.y
+          };
+        }
+
+        function startLightTravel() {
+          const orb = document.getElementById('intro-traveling-light');
+          const canvas = document.getElementById('intro-trail-canvas');
+          if (!orb) return;
+
+          if (canvas) {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            trailCtx = canvas.getContext('2d');
+          }
+
+          const startTime = performance.now();
+          const duration = 2200; // 5.0s to 7.2s (2200ms)
+          trailPoints = [];
+          trailSparks = [];
 
           const startX = window.innerWidth / 2;
           const startY = window.innerHeight / 2;
-          const startRect = frame.getBoundingClientRect();
-          const startSize = startRect.width || Math.min(Math.min(window.innerWidth, window.innerHeight) * 0.7, 500);
 
-          let targetX, targetY, targetSize;
+          function travelLoop(now) {
+            if (!introActive) return;
 
-          if (torchEl) {
-            const rect = torchEl.getBoundingClientRect();
-            targetX = rect.left + rect.width * 0.5;
-            targetY = rect.top + rect.height * 0.35;
-            targetSize = Math.max(Math.min(rect.width * 1.1, 42), 24);
-          } else {
-            // Coordinate fallback if SVG not yet measured
-            const isMobile = window.innerWidth < 768;
-            const isTablet = window.innerWidth < 1100;
-            targetX = window.innerWidth * 0.18;
-            targetY = window.innerHeight * (isMobile ? 0.78 : (isTablet ? 0.62 : 0.52));
-            targetSize = 28;
+            const elapsed = now - startTime;
+            const rawProgress = Math.min(Math.max(elapsed / duration, 0), 1);
+            const t = easeInOutCubic(rawProgress);
+
+            const target = getTorchCoordinates();
+            const dx = target.x - startX;
+            const dy = target.y - startY;
+
+            // Soaring upward curved arc across the sky
+            const arcLift = Math.max(70, Math.min(180, window.innerHeight * 0.18));
+            const p0 = { x: startX, y: startY };
+            const p1 = {
+              x: startX + dx * 0.28,
+              y: Math.min(startY, target.y) - arcLift * 0.85
+            };
+            const p2 = {
+              x: startX + dx * 0.72,
+              y: Math.min(startY, target.y) - arcLift * 0.5
+            };
+            const p3 = { x: target.x, y: target.y };
+
+            const currentPos = getBezierPoint(t, p0, p1, p2, p3);
+
+            // Update orb position (fixed translation)
+            orb.style.transform = `translate3d(${currentPos.x.toFixed(1)}px, ${currentPos.y.toFixed(1)}px, 0)`;
+
+            // Record trail point for comet effect
+            trailPoints.unshift({
+              x: currentPos.x,
+              y: currentPos.y,
+              time: now
+            });
+
+            // Spawn slight golden comet dust sparks
+            if (rawProgress < 0.98 && Math.random() < 0.65) {
+              trailSparks.push({
+                x: currentPos.x + (Math.random() - 0.5) * 6,
+                y: currentPos.y + (Math.random() - 0.5) * 6,
+                vx: (Math.random() - 0.5) * 0.6 - (dx > 0 ? 0.3 : -0.3),
+                vy: (Math.random() - 0.5) * 0.6 + 0.2,
+                radius: Math.random() * 1.6 + 0.8,
+                alpha: 1,
+                decay: Math.random() * 0.025 + 0.02
+              });
+            }
+
+            // Prune old trail points (> 500ms)
+            const maxAge = 500;
+            while (trailPoints.length > 0 && now - trailPoints[trailPoints.length - 1].time > maxAge) {
+              trailPoints.pop();
+            }
+
+            // Render comet trail on canvas
+            if (trailCtx && canvas) {
+              trailCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+              // 1. Draw glowing fading comet tail segments
+              if (trailPoints.length > 1) {
+                for (let i = 0; i < trailPoints.length - 1; i++) {
+                  const pA = trailPoints[i];
+                  const pB = trailPoints[i + 1];
+                  const age = now - pA.time;
+                  const ratio = Math.max(0, 1 - age / maxAge);
+
+                  // Outer wide gold aura
+                  trailCtx.beginPath();
+                  trailCtx.moveTo(pA.x, pA.y);
+                  trailCtx.lineTo(pB.x, pB.y);
+                  trailCtx.strokeStyle = `rgba(217, 180, 90, ${(ratio * 0.28).toFixed(3)})`;
+                  trailCtx.lineWidth = 18 * ratio;
+                  trailCtx.lineCap = 'round';
+                  trailCtx.lineJoin = 'round';
+                  trailCtx.stroke();
+
+                  // Mid golden streak
+                  trailCtx.beginPath();
+                  trailCtx.moveTo(pA.x, pA.y);
+                  trailCtx.lineTo(pB.x, pB.y);
+                  trailCtx.strokeStyle = `rgba(255, 235, 170, ${(ratio * 0.65).toFixed(3)})`;
+                  trailCtx.lineWidth = 8 * ratio;
+                  trailCtx.lineCap = 'round';
+                  trailCtx.lineJoin = 'round';
+                  trailCtx.stroke();
+
+                  // Inner hot-white core
+                  trailCtx.beginPath();
+                  trailCtx.moveTo(pA.x, pA.y);
+                  trailCtx.lineTo(pB.x, pB.y);
+                  trailCtx.strokeStyle = `rgba(255, 255, 255, ${(ratio * 0.95).toFixed(3)})`;
+                  trailCtx.lineWidth = 3 * ratio;
+                  trailCtx.lineCap = 'round';
+                  trailCtx.lineJoin = 'round';
+                  trailCtx.stroke();
+                }
+              }
+
+              // 2. Draw sparkling comet dust particles
+              for (let i = trailSparks.length - 1; i >= 0; i--) {
+                const s = trailSparks[i];
+                s.x += s.vx;
+                s.y += s.vy;
+                s.alpha -= s.decay;
+
+                if (s.alpha <= 0) {
+                  trailSparks.splice(i, 1);
+                  continue;
+                }
+
+                trailCtx.beginPath();
+                trailCtx.arc(s.x, s.y, s.radius * s.alpha, 0, Math.PI * 2);
+                trailCtx.fillStyle = `rgba(255, 240, 180, ${s.alpha.toFixed(3)})`;
+                trailCtx.fill();
+              }
+            }
+
+            if (rawProgress < 1) {
+              travelAnimationId = requestAnimationFrame(travelLoop);
+            } else {
+              // Reached destination! (7.2s)
+              onLightArrivedAtTorch();
+            }
           }
 
-          const dx = targetX - startX;
-          const dy = targetY - startY;
-          const scale = targetSize / startSize;
-
-          return { dx, dy, scale, targetX, targetY };
+          travelAnimationId = requestAnimationFrame(travelLoop);
         }
 
-        function animateCircleToTorch() {
-          const frame = document.getElementById('intro-circle-frame');
-          if (!frame) return;
+        function onLightArrivedAtTorch() {
+          const orb = document.getElementById('intro-traveling-light');
+          const torchEl = document.getElementById('hero-torch');
+          const beacon = document.getElementById('hero-torch-beacon');
 
-          const coords = computeTorchTarget();
-          if (!coords) return;
-          const { dx, dy, scale } = coords;
-
-          // Gentle outward curved trajectory
-          const midX = dx * 0.44 + (dx < 0 ? -28 : 28);
-          const midY = dy * 0.36;
-          const midScale = 1 - (1 - scale) * 0.42;
-
-          const keyframes = [
-            {
-              transform: 'translate(-50%, -50%) translate(0px, 0px) scale(1)',
-              boxShadow: '0 0 45px rgba(217, 180, 90, 0.6), 0 0 80px rgba(217, 180, 90, 0.25)',
-              borderColor: 'rgba(253, 238, 176, 0.9)',
-              opacity: 1,
-              offset: 0
-            },
-            {
-              transform: `translate(-50%, -50%) translate(${midX.toFixed(1)}px, ${midY.toFixed(1)}px) scale(${midScale.toFixed(3)})`,
-              boxShadow: '0 0 35px rgba(217, 180, 90, 0.7), 0 0 60px rgba(255, 235, 170, 0.4)',
-              borderColor: '#ffeaa0',
-              opacity: 0.98,
-              offset: 0.44
-            },
-            {
-              transform: `translate(-50%, -50%) translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(${scale.toFixed(3)})`,
-              boxShadow: '0 0 30px rgba(255, 235, 170, 0.95), 0 0 55px rgba(217, 180, 90, 0.8)',
-              borderColor: '#ffffff',
-              opacity: 0.95,
-              offset: 1
-            }
-          ];
-
-          try {
-            frame.animate(keyframes, {
-              duration: 2400, // 3.6s to 6.0s (2.4s)
-              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-              fill: 'forwards'
-            });
-          } catch (err) {
-            frame.style.transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px) scale(${scale})`;
-            frame.style.transition = 'transform 2.4s cubic-bezier(0.22, 1, 0.36, 1)';
+          if (introOverlay) {
+            introOverlay.classList.add('stage-ignite');
           }
+
+          if (torchEl) {
+            torchEl.classList.add('torch-ignited');
+          }
+
+          if (beacon) {
+            isTorchBeaconActive = true;
+            updateTorchBeaconPosition();
+            beacon.classList.remove('beacon-lit');
+            beacon.classList.add('beacon-blooming');
+            setTimeout(() => {
+              if (beacon.classList.contains('beacon-blooming')) {
+                beacon.classList.remove('beacon-blooming');
+                beacon.classList.add('beacon-lit');
+              }
+            }, 900);
+          }
+
+          if (orb) {
+            // Pulse on landing, then hand over to statue-attached beacon and remove traveling orb
+            orb.classList.add('igniting');
+            setTimeout(() => {
+              if (orb) {
+                orb.style.transition = 'opacity 0.2s ease';
+                orb.style.opacity = '0';
+                setTimeout(() => {
+                  try { orb.remove(); } catch (e) {}
+                }, 220);
+              }
+            }, 180);
+          }
+
+          // Fade out remaining sparks smoothly
+          let fadeFrames = 0;
+          function fadeOutTrail() {
+            if (!introActive) return;
+            fadeFrames++;
+            const canvas = document.getElementById('intro-trail-canvas');
+            if (canvas && trailCtx && fadeFrames < 35) {
+              trailCtx.clearRect(0, 0, canvas.width, canvas.height);
+              for (let i = trailSparks.length - 1; i >= 0; i--) {
+                const s = trailSparks[i];
+                s.x += s.vx;
+                s.y += s.vy;
+                s.alpha -= s.decay * 1.5;
+                if (s.alpha > 0) {
+                  trailCtx.beginPath();
+                  trailCtx.arc(s.x, s.y, s.radius * s.alpha, 0, Math.PI * 2);
+                  trailCtx.fillStyle = `rgba(255, 240, 180, ${s.alpha.toFixed(3)})`;
+                  trailCtx.fill();
+                } else {
+                  trailSparks.splice(i, 1);
+                }
+              }
+              requestAnimationFrame(fadeOutTrail);
+            }
+          }
+          requestAnimationFrame(fadeOutTrail);
         }
 
         function endIntroSequence(immediate) {
@@ -7231,6 +8673,16 @@
           if (dustAnimationId) {
             cancelAnimationFrame(dustAnimationId);
             dustAnimationId = null;
+          }
+          if (travelAnimationId) {
+            cancelAnimationFrame(travelAnimationId);
+            travelAnimationId = null;
+          }
+
+          // Remove temporary travelling light if still present
+          const orb = document.getElementById('intro-traveling-light');
+          if (orb) {
+            try { orb.remove(); } catch (e) {}
           }
 
           document.body.classList.remove('intro-active');
@@ -7249,6 +8701,9 @@
           if (torchEl) {
             torchEl.classList.add('torch-ignited');
           }
+
+          // Ensure radiant torch beacon is lit and sized
+          activateTorchBeacon();
 
           introActive = false;
 
@@ -7304,10 +8759,20 @@
 
           function loop() {
             ctx.clearRect(0, 0, width, height);
+            const isGathering = introOverlay && introOverlay.classList.contains('stage-hands-gather');
+            const centerX = width / 2;
+            const centerY = height / 2;
+
             for (let i = 0; i < particles.length; i++) {
               const p = particles[i];
-              p.y -= p.speedY;
-              p.x += p.speedX;
+              if (isGathering) {
+                // Pre-touch: dust drawn gently toward center contact point
+                p.x += (centerX - p.x) * 0.035;
+                p.y += (centerY - p.y) * 0.035;
+              } else {
+                p.y -= p.speedY;
+                p.x += p.speedX;
+              }
 
               if (p.y < -10) {
                 p.y = height + 10;
@@ -7344,6 +8809,7 @@
             if (torchEl) {
               torchEl.classList.add('torch-ignited');
             }
+            activateTorchBeacon();
             triggerHeader();
             triggerHeroLetters();
             fitHeroWordmark();
@@ -7381,27 +8847,22 @@
 
           startDustCanvas();
 
-          // Resize listener to recalculate landing coordinates across viewports (390px, 768px, 1440px)
+          // Resize listener to recalculate landing coordinates & trail canvas across viewports (390px, 768px, 1440px)
           onIntroResizeHandler = () => {
             if (!introActive || !introOverlay) return;
-            if (introOverlay.classList.contains('stage-move') && !introOverlay.classList.contains('stage-land')) {
-              animateCircleToTorch();
+            const canvas = document.getElementById('intro-trail-canvas');
+            if (canvas) {
+              canvas.width = window.innerWidth;
+              canvas.height = window.innerHeight;
             }
           };
           window.addEventListener('resize', onIntroResizeHandler);
 
-          // Stage 1: 0.0s – 0.8s: Solid navy (#080a1e) screen with a single gold point of light at center
+          // Stage 1: 0.6s – 2.4s: Hands slide in slowly from left and right with slight upward float & soft gold shimmer
           introTimeouts.push(
             setTimeout(() => {
-              if (introOverlay) introOverlay.classList.add('stage-spark');
-            }, 50)
-          );
-
-          // Stage 2: 0.8s – 2.4s: Point expands into the full circle logo, revealing it from center outward with gold glow
-          introTimeouts.push(
-            setTimeout(() => {
-              if (introOverlay) introOverlay.classList.add('stage-reveal');
-            }, 800)
+              if (introOverlay) introOverlay.classList.add('stage-hands-enter');
+            }, 600)
           );
 
           // Skip button appears after 1.0s
@@ -7411,79 +8872,61 @@
             }, 1000)
           );
 
-          // Stage 3: 2.4s – 3.6s: Logo holds in center, gold light sweep passes across circle
+          // Stage 2: 2.4s – 3.0s: Fingertips come close (~14px gap) and hover. Pre-touch glow builds, dust drawn toward center
           introTimeouts.push(
             setTimeout(() => {
-              if (introOverlay) introOverlay.classList.add('stage-sweep');
+              if (introOverlay) introOverlay.classList.add('stage-hands-gather');
             }, 2400)
           );
 
-          // Stage 4: 3.6s – 6.0s: THE MOVE
-          // Intro navy background fades out gradually, revealing homepage hero behind it (Statue of Liberty)
-          // Circle logo travels along gentle curved path, shrinking as it goes, until it lands on statue's torch
+          // Stage 3: 3.0s – 3.4s: Fingertips touch. Bright gold-white flash bursts with shockwave ring and needle sparks
+          introTimeouts.push(
+            setTimeout(() => {
+              if (introOverlay) introOverlay.classList.add('stage-hands-touch');
+            }, 3000)
+          );
+
+          // Stage 4: 3.4s – 4.5s: Full circular logo expands outward from contact spark, hands slide slightly apart and fade into gold dust
+          introTimeouts.push(
+            setTimeout(() => {
+              if (introOverlay) introOverlay.classList.add('stage-reveal');
+            }, 3400)
+          );
+
+          // Stage 5: 4.5s – 5.7s: Full logo holds in center, gold light sweep passes across circle
+          introTimeouts.push(
+            setTimeout(() => {
+              if (introOverlay) introOverlay.classList.add('stage-sweep');
+            }, 4500)
+          );
+
+          // Stage 6: 5.7s – 7.1s: THE LOGO BECOMES A SMALL LIGHT (still on dark intro screen)
+          // Circle logo shrinks toward center while fading into a glowing 14px gold-white orb with soft halo
           introTimeouts.push(
             setTimeout(() => {
               if (!introOverlay || !introActive) return;
-              introOverlay.classList.add('stage-move');
+              introOverlay.classList.add('stage-condense');
+            }, 5700)
+          );
+
+          // Stage 7: 7.1s – 9.3s: THE LIGHT TRAVELS TO THE STATUE OF LIBERTY
+          // Light travels smoothly along curved arc to torch with comet tail, backdrop fades revealing page
+          introTimeouts.push(
+            setTimeout(() => {
+              if (!introOverlay || !introActive) return;
+              introOverlay.classList.add('stage-travel');
               triggerHeader();
               triggerHeroLetters();
-              animateCircleToTorch();
-            }, 3600)
+              startLightTravel();
+            }, 7100)
           );
 
-          // Stage 5: 6.0s – 7.0s: Landing & Cross-fade into torch's glowing flame with gentle flicker
-          introTimeouts.push(
-            setTimeout(() => {
-              if (!introOverlay || !introActive) return;
-              introOverlay.classList.add('stage-land');
-
-              const torchEl = document.getElementById('hero-torch');
-              if (torchEl) {
-                torchEl.classList.add('torch-ignited');
-              }
-
-              const frame = document.getElementById('intro-circle-frame');
-              if (frame) {
-                const coords = computeTorchTarget();
-                const dx = coords ? coords.dx : 0;
-                const dy = coords ? coords.dy : 0;
-                const scale = coords ? coords.scale * 0.85 : 0.05;
-
-                try {
-                  frame.animate(
-                    [
-                      {
-                        transform: `translate(-50%, -50%) translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(${(coords ? coords.scale : 0.06).toFixed(3)})`,
-                        opacity: 0.95,
-                        filter: 'brightness(1.5)'
-                      },
-                      {
-                        transform: `translate(-50%, -50%) translate(${dx.toFixed(1)}px, ${dy.toFixed(1)}px) scale(${scale.toFixed(3)})`,
-                        opacity: 0,
-                        filter: 'brightness(2)'
-                      }
-                    ],
-                    {
-                      duration: 850,
-                      easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-                      fill: 'forwards'
-                    }
-                  );
-                } catch (err) {
-                  frame.style.opacity = '0';
-                }
-              }
-
-              if (introDustCanvas) introDustCanvas.style.opacity = '0';
-              if (introSkipBtn) introSkipBtn.style.opacity = '0';
-            }, 6000)
-          );
-
-          // Conclude intro at 7.0s: remove overlay from DOM and remove intro-active from body
+          // Stage 8: 9.3s light arrives at torch, beacon ignites (handled in startLightTravel -> onLightArrivedAtTorch)
+          // Stage 9: 10.5s: Conclude intro sequence: remove overlay completely and restore normal body
           introTimeouts.push(
             setTimeout(() => {
               endIntroSequence(false);
-            }, 7000)
+            }, 10500)
           );
         }
 
@@ -7491,6 +8934,7 @@
 
         initPortal();
         initBackgroundCat();
+        initAllCustomSelects();
 
         switchView(window.location.hash || '#/');
       })();
