@@ -81,12 +81,8 @@ function releaseScreenWakeLock(): void {
  * Row-level security restricts read to current user row only.
  */
 export async function fetchStaffTicketToken(
-  userRole: string
+  userRole?: string
 ): Promise<{ token?: string; error?: string; noPass?: boolean }> {
-  // Only roles 'eb', 'head', 'security', and 'admin' are eligible
-  if (!['eb', 'head', 'security', 'admin'].includes(userRole)) {
-    return { noPass: true };
-  }
 
   if (cachedTicketToken) {
     return { token: cachedTicketToken };

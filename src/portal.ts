@@ -62,6 +62,14 @@ import {
   setTriggerPassRevealAnimation,
   openFullScreenPassModal
 } from './ticket';
+import { renderScannerRoute, cleanupScanner } from './scanner';
+import {
+  checkIsSuperAdmin,
+  isSuperAdminUser,
+  renderLoginAsButtonMarkup,
+  bindSuperAdminLoginAsButtons,
+  initSuperAdminReturnBanner
+} from './super_admin';
 
 export function isStaffRoute(): boolean {
   const path = window.location.pathname.toLowerCase();
@@ -73,6 +81,12 @@ export function isAdminRoute(): boolean {
   const path = window.location.pathname.toLowerCase();
   const hash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
   return path.endsWith('/admin') || path.endsWith('/admin/') || hash === 'admin';
+}
+
+export function isScannerRoute(): boolean {
+  const path = window.location.pathname.toLowerCase();
+  const hash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
+  return path.endsWith('/scanner') || path.endsWith('/scanner/') || hash === 'scanner';
 }
 
 export function isTeamHeadRoute(): boolean {
@@ -97,7 +111,7 @@ export function isTeamApplyRoute(): boolean {
   );
 }
 
-export { renderTeamApplyPage, initAllCustomSelects };
+export { renderTeamApplyPage, initAllCustomSelects, renderScannerRoute };
 
 /**
  * Escapes unsafe characters for safe innerHTML insertion
@@ -154,50 +168,78 @@ let cachedHeadTeamName = '';
  * Initialize all auth, apply portal, join team panel, head dashboard, and admin board listeners
  */
 export function initPortal(): void {
+  // Initialize super admin return banner if session is saved
+  initSuperAdminReturnBanner();
+
   // Subscribe to auth state updates
   subscribeAuth(async (user, loading) => {
+    if (user && !loading) {
+      await checkIsSuperAdmin(true);
+    }
     updateHeaderAuthUI(user, loading);
     await renderApplyPortal(user, loading);
     await renderJoinTeamPanel(user);
 
-    if (isTeamApplyRoute()) {
+    if (isScannerRoute()) {
+      renderScannerRoute(user, loading);
+    } else if (isTeamApplyRoute()) {
+      cleanupScanner();
       renderTeamApplyPage(document.getElementById('view-team-apply'));
     } else if (isAdminRoute()) {
+      cleanupScanner();
       renderAdminRoute(user, loading);
     } else if (isStaffRoute()) {
+      cleanupScanner();
       renderStaffRoute(user, loading);
     } else if (isTeamHeadRoute()) {
+      cleanupScanner();
       renderTeamHeadRoute(user, loading);
+    } else {
+      cleanupScanner();
     }
   });
 
   // Listen to hash changes and popstate
   window.addEventListener('hashchange', () => {
     const user = getCachedUser();
-    if (isTeamApplyRoute()) {
+    if (isScannerRoute()) {
+      renderScannerRoute(user, false);
+    } else if (isTeamApplyRoute()) {
+      cleanupScanner();
       renderTeamApplyPage(document.getElementById('view-team-apply'));
     } else if (isAdminRoute()) {
+      cleanupScanner();
       renderAdminRoute(user, false);
     } else if (isStaffRoute()) {
+      cleanupScanner();
       renderStaffRoute(user, false);
     } else if (isTeamHeadRoute()) {
+      cleanupScanner();
       renderTeamHeadRoute(user, false);
     } else {
+      cleanupScanner();
       document.body.classList.remove('admin-mode-active');
     }
   });
 
   window.addEventListener('popstate', () => {
     const user = getCachedUser();
-    if (isTeamApplyRoute()) {
+    if (isScannerRoute()) {
+      renderScannerRoute(user, false);
+    } else if (isTeamApplyRoute()) {
+      cleanupScanner();
       renderTeamApplyPage(document.getElementById('view-team-apply'));
     } else if (isAdminRoute()) {
+      cleanupScanner();
       renderAdminRoute(user, false);
     } else if (isStaffRoute()) {
+      cleanupScanner();
       renderStaffRoute(user, false);
     } else if (isTeamHeadRoute()) {
+      cleanupScanner();
       renderTeamHeadRoute(user, false);
     } else {
+      cleanupScanner();
       document.body.classList.remove('admin-mode-active');
     }
   });
@@ -2131,6 +2173,12 @@ function renderStaffPanel(container: HTMLElement, user: CurrentUser): void {
           <span style="background: rgba(217, 180, 90, 0.2); border: 1.5px solid var(--gold); color: var(--gold); padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;">
             ${escapeHtml(roleDisplay)} ACCESS
           </span>
+          ${(user.role === 'security' || user.role === 'admin') ? `
+            <a href="#/scanner" class="btn-interactive" style="background: rgba(217, 180, 90, 0.2); border: 1.5px solid var(--gold); color: var(--gold); padding: 0.45rem 1.15rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; text-decoration: none; display: inline-flex; align-items: center; gap: 0.45rem; box-shadow: 0 0 12px rgba(217, 180, 90, 0.25);">
+              <span>📷</span>
+              <span>Scanner</span>
+            </a>
+          ` : ''}
           <button type="button" id="staff-panel-signout-btn" class="btn-interactive" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 0.5rem 1.25rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.78rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
             Sign Out
           </button>
@@ -2286,6 +2334,8 @@ function renderStaffPanel(container: HTMLElement, user: CurrentUser): void {
   } else if (isHead && staffActiveTab === 'team') {
     attachStaffTeamReviewHandlers(container, user);
   }
+
+  bindSuperAdminLoginAsButtons(container);
 }
 
 /**
@@ -2368,9 +2418,12 @@ function renderStaffRegistrationsTable(): void {
                     </span>
                   </td>
                   <td style="padding: 1rem 1.25rem; text-align: right; white-space: nowrap;">
-                    <span style="display: inline-block; padding: 0.25rem 0.65rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; color: rgba(242, 244, 255, 0.45); background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.15);">
-                      Admin Managed
-                    </span>
+                    <div style="display: inline-flex; align-items: center; gap: 0.5rem; justify-content: flex-end;">
+                      ${renderLoginAsButtonMarkup(reg.user_id, reg.full_name)}
+                      <span style="display: inline-block; padding: 0.25rem 0.65rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; color: rgba(242, 244, 255, 0.45); background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.15);">
+                        Admin Managed
+                      </span>
+                    </div>
                   </td>
                 </tr>
               `;
@@ -2380,6 +2433,8 @@ function renderStaffRegistrationsTable(): void {
       </div>
     </div>
   `;
+
+  bindSuperAdminLoginAsButtons(mount);
 }
 
 /**
@@ -3225,7 +3280,8 @@ function renderStaffTeamSection(user: CurrentUser): string {
                         <span style="color: var(--gold); font-weight: 600;">${escapeHtml(m.eb_position || m.role)}</span>
                       </td>
                       <td style="padding: 1rem 1.25rem; text-align: right; white-space: nowrap;">
-                        <div style="display: inline-flex; gap: 0.5rem; justify-content: flex-end;">
+                        <div style="display: inline-flex; gap: 0.5rem; justify-content: flex-end; align-items: center;">
+                          ${renderLoginAsButtonMarkup(m.id, m.full_name || m.email)}
                           <button type="button" class="btn-interactive head-review-btn" data-userid="${m.id}" data-decision="approved" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid #34d399; background: rgba(52, 211, 153, 0.15); color: #a7f3d0; cursor: pointer;">
                             Accept
                           </button>
@@ -3282,6 +3338,7 @@ function renderStaffTeamSection(user: CurrentUser): string {
                         </span>
                       </td>
                       <td style="padding: 1rem 1.25rem; text-align: right; white-space: nowrap;">
+                        ${renderLoginAsButtonMarkup(m.id, m.full_name || m.email)}
                         <button type="button" class="btn-interactive head-review-btn" data-userid="${m.id}" data-decision="removed" style="padding: 0.35rem 0.85rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.15); color: #fca5a5; cursor: pointer;">
                           Remove
                         </button>
@@ -3361,6 +3418,10 @@ function renderAdminDashboard(container: HTMLElement, user: CurrentUser): void {
         </div>
 
         <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; white-space: nowrap;">
+          <a href="#/scanner" class="btn-interactive" style="background: rgba(217, 180, 90, 0.2); border: 1.5px solid var(--gold); color: var(--gold); padding: 0.45rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 0 12px rgba(217, 180, 90, 0.25);">
+            <span>📷</span>
+            <span>Scanner</span>
+          </a>
           <button type="button" id="admin-my-pass-btn" class="btn-interactive" style="background: rgba(217, 180, 90, 0.2); border: 1.5px solid var(--gold); color: var(--gold); padding: 0.45rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 0 12px rgba(217, 180, 90, 0.25);">
             <span>★</span>
             <span>My Entry Pass</span>
@@ -3794,9 +3855,10 @@ function renderTeamsCardsList(teams: Team[], ebProfiles: Profile[]): string {
                 ${escapeHtml(team.kind)}
               </span>
             </div>
-            <div style="font-size: 0.85rem;">
+            <div style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
               <span style="color: rgba(242, 244, 255, 0.55); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.1em; margin-right: 0.35rem;">Head:</span>
               ${headMarkup}
+              ${head ? renderLoginAsButtonMarkup(head.id, head.full_name || head.email) : ''}
             </div>
           </div>
 
@@ -3864,7 +3926,8 @@ function renderRegistrationsTableMarkup(registrations: Registration[]): string {
             <span style="font-size: 0.7rem; color: rgba(242, 244, 255, 0.45); white-space: nowrap;">Applied: ${formatDate(reg.created_at)}</span>
           </div>
 
-          <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+          <div style="display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+            ${reg.user_id ? renderLoginAsButtonMarkup(reg.user_id, reg.full_name) : ''}
             ${
               reg.status !== 'approved'
                 ? `<button type="button" class="btn-interactive admin-approve-btn" data-id="${reg.id}" style="background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #34d399; padding: 0.4rem 0.85rem; border-radius: 8px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">Approve</button>`
@@ -3948,6 +4011,7 @@ function renderEbTableMarkup(ebMembers: Profile[], currentUser: CurrentUser, tea
         // HEAD: Show "Remove head" button (confirm first), Heads must NOT show "Approve as EB" button
         actionsMarkup = `
           <div style="display: flex; gap: 0.5rem; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+            ${renderLoginAsButtonMarkup(member.id, name)}
             <button type="button" class="btn-interactive admin-remove-head-btn" data-email="${escapeHtml(email)}" data-name="${escapeHtml(name)}" data-team="${escapeHtml(teamName)}" style="background: rgba(239, 68, 68, 0.18); border: 1px solid #ef4444; color: #f87171; padding: 0.4rem 0.85rem; border-radius: 8px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
               Remove Head
             </button>
@@ -3972,6 +4036,7 @@ function renderEbTableMarkup(ebMembers: Profile[], currentUser: CurrentUser, tea
 
         actionsMarkup = `
           <div style="display: flex; gap: 0.45rem; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+            ${renderLoginAsButtonMarkup(member.id, name)}
             <div style="display: flex; gap: 0.35rem; align-items: center; background: rgba(217, 180, 90, 0.08); padding: 3px; border-radius: 10px; border: 1px solid rgba(217, 180, 90, 0.25);">
               ${teamSelectMarkup}
               <button type="button" class="btn-interactive admin-accept-head-btn" data-email="${escapeHtml(email)}" data-name="${escapeHtml(name)}" style="background: var(--gold); color: #080a1e; border: none; padding: 0.4rem 0.8rem; border-radius: 8px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap;">
@@ -4057,6 +4122,7 @@ function renderStaffTableMarkup(staff: Profile[]): string {
           </div>
 
           <div style="display: flex; align-items: center; gap: 0.75rem;">
+            ${renderLoginAsButtonMarkup(s.id, name)}
             <span style="background: rgba(217, 180, 90, 0.15); border: 1px solid var(--gold); color: var(--gold); padding: 0.2rem 0.7rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; white-space: nowrap;">
               ${escapeHtml(s.role)}
             </span>
@@ -4146,6 +4212,8 @@ function attachAdminDashboardHandlers(container: HTMLElement, user: CurrentUser)
   } else if (adminActiveTab === 'allowlist') {
     attachAllowlistTabHandlers(container, user);
   }
+
+  bindSuperAdminLoginAsButtons(container);
 }
 
 function attachDelegatesTabHandlers(container: HTMLElement, user: CurrentUser): void {
@@ -4255,6 +4323,8 @@ function attachRegistrationActionButtons(container: HTMLElement, user: CurrentUs
       }
     });
   });
+
+  bindSuperAdminLoginAsButtons(container);
 }
 
 function attachEbTabHandlers(container: HTMLElement, user: CurrentUser): void {

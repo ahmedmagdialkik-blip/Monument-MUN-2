@@ -53,7 +53,7 @@
       }
 
       /* Scroll margin for fixed header clearance */
-      [id], section, .committee-stop {
+      [id], section {
         scroll-margin-top: 76px;
       }
 
@@ -100,7 +100,8 @@
          BASE MOBILE STYLES (360px TARGET)
          ---------------------------------------------------- */
       html {
-        scroll-behavior: auto;
+        scroll-behavior: smooth;
+        scroll-snap-type: y proximity;
         background-color: #141a3d;
         color: var(--text-color);
         font-family: var(--font-serif);
@@ -337,6 +338,11 @@
       .committee-stop {
         min-height: 100vh;
         min-height: 100svh;
+      }
+
+      #hero {
+        scroll-snap-align: start;
+        scroll-margin-top: 0;
       }
 
       /* ----------------------------------------------------
@@ -1249,9 +1255,11 @@
       #committee-stops-container {
         position: relative;
         width: 100%;
+        scroll-snap-type: y mandatory;
       }
 
-      .committee-stop {
+      .committee-stop,
+      #committee-stops-container > section {
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -1262,11 +1270,68 @@
         max-width: 1400px;
         margin: 0 auto;
         position: relative;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        scroll-margin-top: 0;
       }
 
-      .stop-content-wrapper {
+      /* Enhanced committee section content snapping fade-in */
+      .committee-stop .stop-content-wrapper {
         max-width: 34rem;
         width: 100%;
+        opacity: 0.2;
+        transform: translateY(16px);
+        filter: blur(0.4px);
+        transition:
+          opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+          transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+          filter 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: opacity, transform, filter;
+      }
+
+      .committee-stop.is-snapped .stop-content-wrapper {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+
+      /* Subtle staggered cascade for content elements */
+      .committee-stop .stop-content-wrapper > * {
+        opacity: 0.25;
+        transform: translateY(8px);
+        transition:
+          opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+          transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: opacity, transform;
+      }
+
+      .committee-stop.is-snapped .stop-content-wrapper > * {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .committee-stop.is-snapped .stop-badge {
+        transition-delay: 0.04s;
+      }
+
+      .committee-stop.is-snapped .monument-heading {
+        transition-delay: 0.1s;
+      }
+
+      .committee-stop.is-snapped .monument-location {
+        transition-delay: 0.15s;
+      }
+
+      .committee-stop.is-snapped .monument-atmosphere {
+        transition-delay: 0.2s;
+      }
+
+      .committee-stop.is-snapped .committee-block {
+        transition-delay: 0.26s;
+      }
+
+      .committee-stop:not(.is-snapped) .stop-content-wrapper > * {
+        transition-delay: 0s !important;
       }
 
       .stop-badge {
@@ -2485,11 +2550,20 @@
       #view-committees,
       #view-apply,
       #view-admin,
-      #view-staff {
+      #view-staff,
+      #view-team-head,
+      #view-scanner {
         padding-top: calc(56px + env(safe-area-inset-top) + 2rem);
         padding-bottom: 110px;
         max-width: 1300px;
         margin: 0 auto;
+      }
+
+      body.has-superadmin-banner {
+        padding-top: 36px !important;
+      }
+      body.has-superadmin-banner #site-header {
+        top: 36px !important;
       }
 
       /* ----------------------------------------------------
@@ -4416,6 +4490,26 @@
          MEDIA QUERY 5: PREFERS REDUCED MOTION
          ==================================================== */
       @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-snap-type: none !important;
+          scroll-behavior: auto !important;
+        }
+        #committee-stops-container {
+          scroll-snap-type: none !important;
+        }
+        .committee-stop,
+        #committee-stops-container > section,
+        #hero {
+          scroll-snap-align: none !important;
+          scroll-snap-stop: normal !important;
+        }
+        .committee-stop .stop-content-wrapper,
+        .committee-stop .stop-content-wrapper > * {
+          opacity: 1 !important;
+          transform: none !important;
+          filter: none !important;
+          transition: none !important;
+        }
         *, *::before, *::after {
           animation-duration: 0.01ms !important;
           animation-iteration-count: 1 !important;
@@ -5403,7 +5497,7 @@
       <div id="committee-stops-container">
         <!-- STOP 0: Statue of Liberty -->
         <section class="committee-stop" id="stop-0" data-index="0">
-          <div class="stop-content-wrapper reveal-item">
+          <div class="stop-content-wrapper">
             <span class="stop-badge">Stop 01 · 07</span>
             <h2 class="monument-heading word-reveal-heading">STATUE OF <em>LIBERTY.</em></h2>
             <p class="monument-location">New York, United States</p>
@@ -5425,7 +5519,7 @@
 
         <!-- STOP 1: Petra -->
         <section class="committee-stop" id="stop-1" data-index="1">
-          <div class="stop-content-wrapper reveal-item">
+          <div class="stop-content-wrapper">
             <span class="stop-badge">Stop 02 · 07</span>
             <h2 class="monument-heading word-reveal-heading"><em>PETRA.</em></h2>
             <p class="monument-location">Jordan</p>
@@ -5447,7 +5541,7 @@
 
         <!-- STOP 2: The Pyramids -->
         <section class="committee-stop" id="stop-2" data-index="2">
-          <div class="stop-content-wrapper reveal-item">
+          <div class="stop-content-wrapper">
             <span class="stop-badge">Stop 03 · 07</span>
             <h2 class="monument-heading word-reveal-heading">THE PYRAMIDS OF <em>GIZA.</em></h2>
             <p class="monument-location">Giza, Egypt</p>
@@ -5469,7 +5563,7 @@
 
         <!-- STOP 3: Eiffel Tower -->
         <section class="committee-stop" id="stop-3" data-index="3">
-          <div class="stop-content-wrapper reveal-item">
+          <div class="stop-content-wrapper">
             <span class="stop-badge">Stop 04 · 07</span>
             <h2 class="monument-heading word-reveal-heading">EIFFEL <em>TOWER.</em></h2>
             <p class="monument-location">Paris, France</p>
@@ -5491,7 +5585,7 @@
 
         <!-- STOP 4: Chichén Itzá -->
         <section class="committee-stop" id="stop-4" data-index="4">
-          <div class="stop-content-wrapper reveal-item">
+          <div class="stop-content-wrapper">
             <span class="stop-badge">Stop 05 · 07</span>
             <h2 class="monument-heading word-reveal-heading">CHICHÉN <em>ITZÁ.</em></h2>
             <p class="monument-location">Mexico</p>
@@ -5513,7 +5607,7 @@
 
         <!-- STOP 5: Colosseum -->
         <section class="committee-stop" id="stop-5" data-index="5">
-          <div class="stop-content-wrapper reveal-item">
+          <div class="stop-content-wrapper">
             <span class="stop-badge">Stop 06 · 07</span>
             <h2 class="monument-heading word-reveal-heading"><em>COLOSSEUM.</em></h2>
             <p class="monument-location">Rome, Italy</p>
@@ -5535,7 +5629,7 @@
 
         <!-- STOP 6: Taj Mahal -->
         <section class="committee-stop" id="stop-6" data-index="6">
-          <div class="stop-content-wrapper reveal-item">
+          <div class="stop-content-wrapper">
             <span class="stop-badge">Stop 07 · 07</span>
             <h2 class="monument-heading word-reveal-heading">TAJ <em>MAHAL.</em></h2>
             <p class="monument-location">Agra, India</p>
@@ -5936,6 +6030,12 @@
          ==================================================== -->
     <div id="view-team-head" class="app-view"></div>
 
+    <!-- ====================================================
+         VIEW 6: ENTRY SCANNER (#/scanner or #scanner)
+         Available to security and admin roles only.
+         ==================================================== -->
+    <div id="view-scanner" class="app-view"></div>
+
     <!-- ----------------------------------------------------
          10. FOOTER
          ---------------------------------------------------- -->
@@ -6021,7 +6121,7 @@
          ---------------------------------------------------- -->
     <script type="module">
       import { supabase } from '/src/lib/supabase.ts';
-      import { initPortal, isAdminRoute, isStaffRoute, isTeamApplyRoute, renderAdminRoute, renderStaffRoute, renderTeamHeadRoute, renderTeamApplyPage, initAllCustomSelects } from '/src/portal.ts';
+      import { initPortal, isAdminRoute, isStaffRoute, isTeamApplyRoute, isScannerRoute, renderAdminRoute, renderStaffRoute, renderTeamHeadRoute, renderTeamApplyPage, renderScannerRoute, initAllCustomSelects } from '/src/portal.ts';
       import { getCachedUser, isAuthReady, signUpWithEmail, signInWithEmail, signOut, subscribeAuth } from '/src/auth.ts';
       import { initBackgroundCat } from '/src/cat.ts';
       import { MONUMENT_COMMITTEES } from '/src/committees.ts';
@@ -6216,6 +6316,7 @@
         const viewAdmin = document.getElementById('view-admin');
         const viewStaff = document.getElementById('view-staff');
         const viewTeamHead = document.getElementById('view-team-head');
+        const viewScanner = document.getElementById('view-scanner');
         const dotNav = document.getElementById('dot-nav');
         const mobileCounter = document.getElementById('mobile-stop-counter');
 
@@ -6226,12 +6327,23 @@
           const isTargetStaff = path.endsWith('/staff') || path.endsWith('/staff/') || cleanHash === 'staff';
           const isTargetTeamHead = path.endsWith('/team-head') || path.endsWith('/team-head/') || cleanHash === 'team-head' || cleanHash === 'my-team';
           const isTargetTeamApply = isTeamApplyRoute() || cleanHash === 'team-apply' || cleanHash === 'join-team';
+          const isTargetScanner = isScannerRoute() || path.endsWith('/scanner') || path.endsWith('/scanner/') || cleanHash === 'scanner';
 
-          [viewHome, viewCommittees, viewApply, viewTeamApply, viewAdmin, viewStaff, viewTeamHead].forEach((view) => {
+          [viewHome, viewCommittees, viewApply, viewTeamApply, viewAdmin, viewStaff, viewTeamHead, viewScanner].forEach((view) => {
             if (view) view.classList.remove('active-view');
           });
 
           window.scrollTo(0, 0);
+
+          if (isTargetScanner) {
+            document.body.classList.remove('team-apply-active');
+            document.body.classList.add('admin-mode-active');
+            if (dotNav) dotNav.classList.add('nav-hidden');
+            if (mobileCounter) mobileCounter.classList.remove('visible');
+            lockBackgroundToStop6();
+            renderScannerRoute(getCachedUser(), !isAuthReady());
+            return;
+          }
 
           if (isTargetAdmin) {
             document.body.classList.remove('team-apply-active');
@@ -6311,7 +6423,7 @@
           }
 
           if (typeof isTorchBeaconActive !== 'undefined' && isTorchBeaconActive) {
-            const isHome = !isTargetAdmin && !isTargetStaff && !isTargetTeamHead && !isTargetTeamApply && cleanHash !== 'committees' && cleanHash !== 'apply';
+            const isHome = !isTargetAdmin && !isTargetStaff && !isTargetTeamHead && !isTargetTeamApply && !isTargetScanner && cleanHash !== 'committees' && cleanHash !== 'apply';
             const beaconEl = document.getElementById('hero-torch-beacon');
             if (beaconEl) {
               if (isHome) {
@@ -6836,6 +6948,24 @@
           });
         });
 
+        // IntersectionObserver for committee stop snap fade-in
+        if ('IntersectionObserver' in window && !prefersReduced) {
+          const stopSnapObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-snapped');
+              } else {
+                entry.target.classList.remove('is-snapped');
+              }
+            });
+          }, {
+            threshold: 0.45
+          });
+          stopElements.forEach((stop) => {
+            if (stop) stopSnapObserver.observe(stop);
+          });
+        }
+
         function updateScrollEngine() {
           if (introActive) {
             targetContinuousPos = 0;
@@ -6904,6 +7034,19 @@
             } else {
               btn.classList.remove('active');
             }
+          });
+
+          // Sync snapped/active state for committee section content fade-in
+          const viewCenter = window.innerHeight * 0.5;
+          const isHome = !window.location.hash || window.location.hash === '#/';
+          stopElements.forEach((stop, idx) => {
+            if (!stop) return;
+            const rect = stop.getBoundingClientRect();
+            const isSnapped = isHome && (
+              (rect.top <= viewCenter && rect.bottom >= viewCenter) ||
+              (idx === activeStop && Math.abs(lerpedContinuousPos - idx) < 0.35 && rect.top < window.innerHeight * 0.75 && rect.bottom > window.innerHeight * 0.25)
+            );
+            stop.classList.toggle('is-snapped', isSnapped);
           });
 
           // Update mobile stop counter
