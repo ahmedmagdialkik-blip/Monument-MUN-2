@@ -253,14 +253,16 @@ export async function signOut(): Promise<{ error?: string }> {
   }
 })();
 
-// Real-time auth listener
-supabase.auth.onAuthStateChange(async (_event: unknown, session: { user?: { id: string; email?: string; user_metadata?: Record<string, unknown> } } | null) => {
-  if (session?.user) {
-    await syncUserState(session.user);
-  } else {
-    clearStaffTicketCache();
-    currentUserState = null;
-    isAuthLoading = false;
-    notifyListeners();
-  }
+// Real-time auth listener (non-async and deferred via setTimeout to prevent supabase-js deadlock)
+supabase.auth.onAuthStateChange((_event: unknown, session: { user?: { id: string; email?: string; user_metadata?: Record<string, unknown> } } | null) => {
+  setTimeout(() => {
+    if (session?.user) {
+      syncUserState(session.user);
+    } else {
+      clearStaffTicketCache();
+      currentUserState = null;
+      isAuthLoading = false;
+      notifyListeners();
+    }
+  }, 0);
 });

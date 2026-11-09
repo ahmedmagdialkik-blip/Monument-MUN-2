@@ -56,25 +56,25 @@ function playAudioFeedback(type: 'ok' | 'checked_out' | 'warning' | 'error'): vo
     const now = ctx.currentTime;
 
     if (type === 'ok') {
-      // Pleasant rising high chord (D5 -> A5 -> D6)
+      // Pleasant, subtle rising harmonic chime (F5 -> A5 -> C6)
       const osc1 = ctx.createOscillator();
       const osc2 = ctx.createOscillator();
       const gain = ctx.createGain();
       osc1.type = 'sine';
-      osc2.type = 'triangle';
-      osc1.frequency.setValueAtTime(587.33, now);
-      osc1.frequency.exponentialRampToValueAtTime(880, now + 0.12);
-      osc2.frequency.setValueAtTime(880, now);
-      osc2.frequency.exponentialRampToValueAtTime(1174.66, now + 0.18);
-      gain.gain.setValueAtTime(0.22, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+      osc2.type = 'sine';
+      osc1.frequency.setValueAtTime(698.46, now); // F5
+      osc1.frequency.exponentialRampToValueAtTime(880, now + 0.1); // A5
+      osc2.frequency.setValueAtTime(880, now); // A5
+      osc2.frequency.exponentialRampToValueAtTime(1046.5, now + 0.15); // C6
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
       osc1.connect(gain);
       osc2.connect(gain);
       gain.connect(ctx.destination);
       osc1.start(now);
       osc2.start(now);
-      osc1.stop(now + 0.45);
-      osc2.stop(now + 0.45);
+      osc1.stop(now + 0.38);
+      osc2.stop(now + 0.38);
     } else if (type === 'checked_out') {
       // Warm golden tone (C5 -> G5)
       const osc = ctx.createOscillator();

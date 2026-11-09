@@ -1,5 +1,6 @@
 import { supabase } from './lib/supabase';
 import { getCachedUser } from './auth';
+import { clearStaffTicketCache } from './ticket';
 
 let isSuperAdminStatus: boolean = false;
 let hasCheckedSuperAdmin: boolean = false;
@@ -143,26 +144,58 @@ export function bindSuperAdminLoginAsButtons(container: HTMLElement): void {
           return;
         }
 
-        // 3. With returned token_hash, call supabase.auth.verifyOtp
-        const { error: otpErr } = await supabase.auth.verifyOtp({
-          token_hash,
-          type: 'magiclink'
+        // 3. With returned token_hash, call supabase.auth.verifyOtp with magiclink, retry once with email, and an 8-second safety net timeout
+        const verifyOtpWithRetry = async () => {
+          let res = await supabase.auth.verifyOtp({
+            token_hash,
+            type: 'magiclink'
+          });
+          if (res.error) {
+            res = await supabase.auth.verifyOtp({
+              token_hash,
+              type: 'email'
+            });
+          }
+          return res;
+        };
+
+        let timerId: ReturnType<typeof setTimeout> | null = null;
+        const timeoutPromise = new Promise<{ timeout: true }>((resolve) => {
+          timerId = setTimeout(() => resolve({ timeout: true }), 8000);
         });
 
-        if (otpErr) {
-          // Revert back to original session
-          await supabase.auth.setSession({
-            access_token: session.access_token,
-            refresh_token: session.refresh_token
-          });
+        const outcome = await Promise.race([
+          verifyOtpWithRetry().then((res) => ({ timeout: false as const, res })),
+          timeoutPromise
+        ]);
+
+        if (timerId) clearTimeout(timerId);
+
+        if (outcome.timeout || outcome.res?.error) {
+          const errMsg = outcome.timeout
+            ? 'Authentication verification timed out after 8 seconds.'
+            : outcome.res?.error?.message || 'Verification failed';
+
+          // Safety net: restore saved admin session with setSession and remove superAdminReturn
+          try {
+            await supabase.auth.setSession({
+              access_token: session.access_token,
+              refresh_token: session.refresh_token
+            });
+          } catch {}
           sessionStorage.removeItem('superAdminReturn');
-          alert(`Authentication verification failed: ${otpErr.message}`);
+
+          alert(`Login as failed: ${errMsg}`);
           btn.disabled = false;
           btn.innerHTML = originalText;
           return;
         }
 
-        // Reload app state
+        // 4. After a successful verifyOtp, clear all cached per-user data from previous account before reloading
+        clearStaffTicketCache();
+        resetSuperAdminCache();
+
+        // 5. Set window.location.hash = '#/staff' and reload so the whole app loads as target person
         window.location.hash = '#/staff';
         window.location.reload();
       } catch (err: unknown) {
@@ -238,11 +271,16 @@ export function initSuperAdminReturnBanner(): void {
       try {
         const stored = sessionStorage.getItem('superAdminReturn');
         if (!stored) {
+          window.location.hash = '#/staff';
           window.location.reload();
           return;
         }
         const parsed = JSON.parse(stored);
         sessionStorage.removeItem('superAdminReturn');
+
+        // Clear cached per-user data before restoring admin account
+        clearStaffTicketCache();
+        resetSuperAdminCache();
 
         const { error } = await supabase.auth.setSession({
           access_token: parsed.access_token,
@@ -251,6 +289,10 @@ export function initSuperAdminReturnBanner(): void {
 
         if (error) {
           alert(`Error restoring original account: ${error.message}`);
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = 'Return to my account';
+          }
           return;
         }
 
@@ -259,6 +301,10 @@ export function initSuperAdminReturnBanner(): void {
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Unknown error';
         alert(`Failed to return to original account: ${msg}`);
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Return to my account';
+        }
       }
     });
   }

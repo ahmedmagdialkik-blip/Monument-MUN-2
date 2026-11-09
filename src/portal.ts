@@ -2145,6 +2145,62 @@ function renderStaffNoAccess(container: HTMLElement, user: CurrentUser): void {
 }
 
 /**
+ * Render count badge for portal tab bar.
+ * Completely hidden when count is 0, empty, or undefined.
+ */
+function renderPortalBadge(count: number | undefined | null): string {
+  if (count === undefined || count === null || count <= 0) {
+    return '';
+  }
+  return `<span class="portal-tab-badge">${count}</span>`;
+}
+
+/**
+ * Configure scroll behavior, mousewheel support, edge fades, and active tab centering
+ */
+function setupPortalTabBar(container: HTMLElement): void {
+  const scroller = container.querySelector('.portal-tab-bar') as HTMLElement | null;
+  if (!scroller) return;
+
+  const updateFades = () => {
+    if (scroller.scrollWidth <= scroller.clientWidth + 2) {
+      scroller.style.webkitMaskImage = 'none';
+      scroller.style.maskImage = 'none';
+      return;
+    }
+    const atStart = scroller.scrollLeft <= 4;
+    const atEnd = scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 4;
+
+    const leftGradient = atStart ? 'black 0px' : 'transparent 0px, black 28px';
+    const rightGradient = atEnd ? 'black 100%' : 'black calc(100% - 28px), transparent 100%';
+    const mask = `linear-gradient(to right, ${leftGradient}, ${rightGradient})`;
+    scroller.style.webkitMaskImage = mask;
+    scroller.style.maskImage = mask;
+  };
+
+  updateFades();
+  scroller.addEventListener('scroll', updateFades, { passive: true });
+
+  // Mouse wheel horizontal scrolling for narrow / mobile viewports
+  scroller.addEventListener('wheel', (e) => {
+    if (scroller.scrollWidth > scroller.clientWidth) {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        scroller.scrollLeft += e.deltaY;
+        updateFades();
+      }
+    }
+  }, { passive: true });
+
+  // Smooth scroll active tab into view
+  const activeTab = scroller.querySelector('.portal-tab-btn.is-active') as HTMLElement | null;
+  if (activeTab) {
+    setTimeout(() => {
+      activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }, 60);
+  }
+}
+
+/**
  * Staff Panel for role 'eb', 'head', and 'security'
  */
 function renderStaffPanel(container: HTMLElement, user: CurrentUser): void {
@@ -2192,23 +2248,25 @@ function renderStaffPanel(container: HTMLElement, user: CurrentUser): void {
       <div id="staff-entry-pass-mount"></div>
 
       <!-- Navigation Tabs: Team Applications (Default) vs Delegate Applications (Read-Only) vs My Team (Head Only) -->
-      <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.75rem; flex-wrap: wrap; overflow-x: auto;">
-        <button type="button" id="staff-tab-team-apps-btn" class="btn-interactive" style="padding: 0.65rem 1.4rem; border-radius: 9999px; border: 1px solid ${staffActiveTab === 'team-applications' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.15)'}; background: ${staffActiveTab === 'team-applications' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${staffActiveTab === 'team-applications' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
-          <span>Team Applications</span>
-          <span style="background: ${staffActiveTab === 'team-applications' ? '#080a1e' : 'rgba(217, 180, 90, 0.25)'}; color: ${staffActiveTab === 'team-applications' ? 'var(--gold)' : '#ffffff'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${pendingTeamApps} Pending</span>
-        </button>
-
-        <button type="button" id="staff-tab-delegates-btn" class="btn-interactive" style="padding: 0.65rem 1.4rem; border-radius: 9999px; border: 1px solid ${staffActiveTab === 'delegates' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.15)'}; background: ${staffActiveTab === 'delegates' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${staffActiveTab === 'delegates' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
-          <span>Delegates (View Only)</span>
-          <span style="background: ${staffActiveTab === 'delegates' ? '#080a1e' : 'rgba(255, 255, 255, 0.15)'}; color: ${staffActiveTab === 'delegates' ? 'var(--gold)' : '#ffffff'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${regStats.total}</span>
-        </button>
-
-        ${isHead ? `
-          <button type="button" id="staff-tab-team-btn" class="btn-interactive" style="padding: 0.65rem 1.4rem; border-radius: 9999px; border: 1px solid ${staffActiveTab === 'team' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.15)'}; background: ${staffActiveTab === 'team' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${staffActiveTab === 'team' ? '#080a1e' : '#f2f4ff'}; font-family: var(--font-display); font-weight: 800; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap;">
-            <span>★ My Team: ${escapeHtml(staffHeadTeam?.name || 'Assigned Team')}</span>
-            <span style="background: ${staffActiveTab === 'team' ? '#080a1e' : 'rgba(52, 211, 153, 0.25)'}; color: ${staffActiveTab === 'team' ? 'var(--gold)' : '#34d399'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${staffHeadTeamMembers.length}</span>
+      <div class="portal-tab-bar-wrapper">
+        <div class="portal-tab-bar" id="staff-tabs-scroller">
+          <button type="button" id="staff-tab-team-apps-btn" class="portal-tab-btn btn-interactive ${staffActiveTab === 'team-applications' ? 'is-active' : ''}">
+            <span class="portal-tab-label">Team Applications</span>
+            ${renderPortalBadge(pendingTeamApps)}
           </button>
-        ` : ''}
+
+          <button type="button" id="staff-tab-delegates-btn" class="portal-tab-btn btn-interactive ${staffActiveTab === 'delegates' ? 'is-active' : ''}">
+            <span class="portal-tab-label">Delegates (View Only)</span>
+            ${renderPortalBadge(regStats.total)}
+          </button>
+
+          ${isHead ? `
+            <button type="button" id="staff-tab-team-btn" class="portal-tab-btn btn-interactive ${staffActiveTab === 'team' ? 'is-active' : ''}">
+              <span class="portal-tab-label">★ My Team: ${escapeHtml(staffHeadTeam?.name || 'Assigned Team')}</span>
+              ${renderPortalBadge(staffHeadTeamMembers.length)}
+            </button>
+          ` : ''}
+        </div>
       </div>
 
       <!-- TAB 1: TEAM APPLICATIONS (STAFF REVIEW WITH ACCEPT/DENY & AUTOMATED EMAIL) -->
@@ -2335,6 +2393,7 @@ function renderStaffPanel(container: HTMLElement, user: CurrentUser): void {
     attachStaffTeamReviewHandlers(container, user);
   }
 
+  setupPortalTabBar(container);
   bindSuperAdminLoginAsButtons(container);
 }
 
@@ -3440,34 +3499,37 @@ function renderAdminDashboard(container: HTMLElement, user: CurrentUser): void {
       </div>
 
       <!-- Main Navigation Tabs: Delegate Applications vs Team Applications vs EB Members vs Teams vs Allowlist vs Entry Pass -->
-      <div style="display: flex; gap: 0.75rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.75rem; overflow-x: auto;">
-        <button type="button" id="admin-tab-delegates" class="btn-interactive" style="background: ${adminActiveTab === 'delegates' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'delegates' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'delegates' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
-          <span>Delegate Applications</span>
-          <span style="background: ${adminActiveTab === 'delegates' ? '#080a1e' : 'rgba(217, 180, 90, 0.25)'}; color: ${adminActiveTab === 'delegates' ? 'var(--gold)' : '#ffffff'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${regStats.total}</span>
-        </button>
+      <div class="portal-tab-bar-wrapper">
+        <div class="portal-tab-bar" id="admin-tabs-scroller">
+          <button type="button" id="admin-tab-delegates" class="portal-tab-btn btn-interactive ${adminActiveTab === 'delegates' ? 'is-active' : ''}">
+            <span class="portal-tab-label">Delegate Applications</span>
+            ${renderPortalBadge(regStats.total)}
+          </button>
 
-        <button type="button" id="admin-tab-team-apps" class="btn-interactive" style="background: ${adminActiveTab === 'team-apps' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'team-apps' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'team-apps' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
-          <span>Team Applications</span>
-          <span style="background: ${adminActiveTab === 'team-apps' ? '#080a1e' : 'rgba(217, 180, 90, 0.25)'}; color: ${adminActiveTab === 'team-apps' ? 'var(--gold)' : '#ffffff'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${adminTeamApplications.filter((a) => a.status === 'pending').length}</span>
-        </button>
+          <button type="button" id="admin-tab-team-apps" class="portal-tab-btn btn-interactive ${adminActiveTab === 'team-apps' ? 'is-active' : ''}">
+            <span class="portal-tab-label">Team Applications</span>
+            ${renderPortalBadge(adminTeamApplications.filter((a) => a.status === 'pending').length)}
+          </button>
 
-        <button type="button" id="admin-tab-eb" class="btn-interactive" style="background: ${adminActiveTab === 'eb' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'eb' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'eb' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
-          <span>EB Members & Heads</span>
-          <span style="background: ${adminActiveTab === 'eb' ? '#080a1e' : 'rgba(217, 180, 90, 0.25)'}; color: ${adminActiveTab === 'eb' ? 'var(--gold)' : '#ffffff'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${ebStats.total}</span>
-        </button>
+          <button type="button" id="admin-tab-eb" class="portal-tab-btn btn-interactive ${adminActiveTab === 'eb' ? 'is-active' : ''}">
+            <span class="portal-tab-label">EB Members & Heads</span>
+            ${renderPortalBadge(ebStats.total)}
+          </button>
 
-        <button type="button" id="admin-tab-teams" class="btn-interactive" style="background: ${adminActiveTab === 'teams' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'teams' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'teams' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
-          <span>Teams (${adminTeams.length})</span>
-        </button>
+          <button type="button" id="admin-tab-teams" class="portal-tab-btn btn-interactive ${adminActiveTab === 'teams' ? 'is-active' : ''}">
+            <span class="portal-tab-label">Teams</span>
+            ${renderPortalBadge(adminTeams.length)}
+          </button>
 
-        <button type="button" id="admin-tab-allowlist" class="btn-interactive" style="background: ${adminActiveTab === 'allowlist' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'allowlist' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'allowlist' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
-          <span>Team Email List</span>
-          <span style="background: ${adminActiveTab === 'allowlist' ? '#080a1e' : 'rgba(217, 180, 90, 0.25)'}; color: ${adminActiveTab === 'allowlist' ? 'var(--gold)' : '#ffffff'}; padding: 0.1rem 0.5rem; border-radius: 9999px; font-size: 0.72rem;">${adminStaffAllowlist.length}</span>
-        </button>
+          <button type="button" id="admin-tab-allowlist" class="portal-tab-btn btn-interactive ${adminActiveTab === 'allowlist' ? 'is-active' : ''}">
+            <span class="portal-tab-label">Team Email List</span>
+            ${renderPortalBadge(adminStaffAllowlist.length)}
+          </button>
 
-        <button type="button" id="admin-tab-pass" class="btn-interactive" style="background: ${adminActiveTab === 'pass' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.05)'}; color: ${adminActiveTab === 'pass' ? '#080a1e' : '#f2f4ff'}; border: 1px solid ${adminActiveTab === 'pass' ? 'var(--gold)' : 'rgba(255, 255, 255, 0.12)'}; padding: 0.65rem 1.4rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
-          <span>★ My Entry Pass</span>
-        </button>
+          <button type="button" id="admin-tab-pass" class="portal-tab-btn btn-interactive ${adminActiveTab === 'pass' ? 'is-active' : ''}">
+            <span class="portal-tab-label">★ My Entry Pass</span>
+          </button>
+        </div>
       </div>
 
       <!-- TAB CONTENT CONTAINER -->
@@ -4213,6 +4275,7 @@ function attachAdminDashboardHandlers(container: HTMLElement, user: CurrentUser)
     attachAllowlistTabHandlers(container, user);
   }
 
+  setupPortalTabBar(container);
   bindSuperAdminLoginAsButtons(container);
 }
 

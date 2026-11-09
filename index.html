@@ -2567,6 +2567,139 @@
       }
 
       /* ----------------------------------------------------
+         STAFF & ADMIN PORTAL TAB BAR SYSTEM
+         ---------------------------------------------------- */
+      .portal-tab-bar-wrapper {
+        position: relative;
+        width: 100%;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding-bottom: 0.75rem;
+      }
+
+      .portal-tab-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+        padding: 4px 20px 6px 20px;
+        -webkit-mask-image: linear-gradient(to right, transparent, black 28px, black calc(100% - 28px), transparent);
+        mask-image: linear-gradient(to right, transparent, black 28px, black calc(100% - 28px), transparent);
+      }
+
+      .portal-tab-bar::-webkit-scrollbar {
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+      }
+
+      .portal-tab-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 10px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        scroll-snap-align: center;
+        height: 44px !important;
+        min-height: 44px !important;
+        padding: 12px 22px !important;
+        border-radius: 9999px !important;
+        font-family: var(--font-display) !important;
+        font-size: 0.82rem !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.08em !important;
+        cursor: pointer !important;
+        transition: background var(--fast) var(--ease), border-color var(--fast) var(--ease), color var(--fast) var(--ease), box-shadow var(--fast) var(--ease) !important;
+        box-sizing: border-box !important;
+        position: static !important;
+        margin: 0 !important;
+      }
+
+      /* Inactive Tab Pill */
+      .portal-tab-btn:not(.is-active) {
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: #f2f4ff !important;
+        border: 1px solid rgba(217, 180, 90, 0.22) !important;
+      }
+
+      .portal-tab-btn:not(.is-active):hover {
+        background: rgba(217, 180, 90, 0.12) !important;
+        border-color: rgba(217, 180, 90, 0.45) !important;
+        color: #ffffff !important;
+      }
+
+      /* Active Tab Pill */
+      .portal-tab-btn.is-active {
+        background: #d9b45a !important;
+        color: #080a1e !important;
+        border: 1px solid #d9b45a !important;
+        box-shadow: 0 0 16px rgba(217, 180, 90, 0.25) !important;
+      }
+
+      /* Normal-flow Label - Never overlapped */
+      .portal-tab-label {
+        display: inline-block !important;
+        position: static !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+        font-family: inherit !important;
+      }
+
+      /* Normal-flow Badge Pill */
+      .portal-tab-badge {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        position: static !important;
+        margin: 0 !important;
+        min-width: 22px !important;
+        height: 22px !important;
+        padding: 0 7px !important;
+        border-radius: 999px !important;
+        font-family: var(--font-display), sans-serif !important;
+        font-size: 12px !important;
+        font-weight: 800 !important;
+        line-height: 22px !important;
+        text-align: center !important;
+        flex-shrink: 0 !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Inactive Tab Badge: subtle gold-tinted background with gold text */
+      .portal-tab-btn:not(.is-active) .portal-tab-badge {
+        background: rgba(217, 180, 90, 0.18) !important;
+        color: #d9b45a !important;
+      }
+
+      /* Active Tab Badge: navy background with gold text */
+      .portal-tab-btn.is-active .portal-tab-badge {
+        background: #080a1e !important;
+        color: #d9b45a !important;
+      }
+
+      /* Tablet & Desktop: wrap onto rows cleanly, no scrolling, no scrollbar, no mask */
+      @media (min-width: 768px) {
+        .portal-tab-bar {
+          flex-wrap: wrap !important;
+          overflow-x: visible !important;
+          overflow-y: visible !important;
+          -webkit-mask-image: none !important;
+          mask-image: none !important;
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+        }
+      }
+
+      /* ----------------------------------------------------
          TEAM APPLICATION VIEW (#view-team-apply)
          ---------------------------------------------------- */
       #view-team-apply {
