@@ -5,6 +5,7 @@ import {
   signInWithEmail,
   signOut,
   refreshCurrentUserProfile,
+  isAuthReady,
   type CurrentUser
 } from './auth';
 import { supabase } from './lib/supabase';
@@ -72,43 +73,111 @@ import {
 } from './super_admin';
 
 export function isStaffRoute(): boolean {
-  const path = window.location.pathname.toLowerCase();
   const hash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
-  return path.endsWith('/staff') || path.endsWith('/staff/') || hash === 'staff';
+  if (hash === 'staff') return true;
+  if (hash === 'admin' || hash === 'scanner' || hash === 'team-head' || hash === 'my-team' || hash === 'team-apply' || hash === 'join-team' || hash === 'committees' || hash === 'apply') return false;
+  const path = window.location.pathname.toLowerCase();
+  return path.endsWith('/staff') || path.endsWith('/staff/');
 }
 
 export function isAdminRoute(): boolean {
-  const path = window.location.pathname.toLowerCase();
   const hash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
-  return path.endsWith('/admin') || path.endsWith('/admin/') || hash === 'admin';
+  if (hash === 'admin') return true;
+  if (hash === 'staff' || hash === 'scanner' || hash === 'team-head' || hash === 'my-team' || hash === 'team-apply' || hash === 'join-team' || hash === 'committees' || hash === 'apply') return false;
+  const path = window.location.pathname.toLowerCase();
+  return path.endsWith('/admin') || path.endsWith('/admin/');
 }
 
 export function isScannerRoute(): boolean {
-  const path = window.location.pathname.toLowerCase();
   const hash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
-  return path.endsWith('/scanner') || path.endsWith('/scanner/') || hash === 'scanner';
+  if (hash === 'scanner') return true;
+  if (hash === 'admin' || hash === 'staff' || hash === 'team-head' || hash === 'my-team' || hash === 'team-apply' || hash === 'join-team' || hash === 'committees' || hash === 'apply') return false;
+  const path = window.location.pathname.toLowerCase();
+  return path.endsWith('/scanner') || path.endsWith('/scanner/');
 }
 
 export function isTeamHeadRoute(): boolean {
-  const path = window.location.pathname.toLowerCase();
   const hash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
+  if (hash === 'team-head' || hash === 'my-team') return true;
+  if (hash === 'admin' || hash === 'staff' || hash === 'scanner' || hash === 'team-apply' || hash === 'join-team' || hash === 'committees' || hash === 'apply') return false;
+  const path = window.location.pathname.toLowerCase();
   return (
     path.endsWith('/team-head') ||
-    path.endsWith('/team-head/') ||
-    hash === 'team-head' ||
-    hash === 'my-team'
+    path.endsWith('/team-head/')
   );
 }
 
 export function isTeamApplyRoute(): boolean {
-  const path = window.location.pathname.toLowerCase();
   const hash = window.location.hash.toLowerCase().replace(/^#\/?/, '');
+  if (hash === 'team-apply' || hash === 'join-team') return true;
+  if (hash === 'admin' || hash === 'staff' || hash === 'scanner' || hash === 'team-head' || hash === 'my-team' || hash === 'committees' || hash === 'apply') return false;
+  const path = window.location.pathname.toLowerCase();
   return (
     path.endsWith('/team-apply') ||
-    path.endsWith('/team-apply/') ||
-    hash === 'team-apply' ||
-    hash === 'join-team'
+    path.endsWith('/team-apply/')
   );
+}
+
+/**
+ * Programmatically navigate to a route.
+ * If pathname is not '/', replaces history state with '/#/' + name
+ * so that stale pathnames like /admin do not keep matching.
+ */
+export function navigateToRoute(name: 'staff' | 'admin' | 'scanner' | 'team-head'): void {
+  if (window.location.pathname !== '/') {
+    history.replaceState(null, '', '/#/' + name);
+  } else {
+    window.location.hash = '#/' + name;
+  }
+
+  const user = getCachedUser();
+  const loading = !isAuthReady();
+
+  // Clear leftover content of views being navigated away from
+  if (name !== 'admin') {
+    const v = document.getElementById('view-admin');
+    if (v) {
+      v.innerHTML = '';
+      v.classList.remove('active-view');
+    }
+  }
+  if (name !== 'staff') {
+    const v = document.getElementById('view-staff');
+    if (v) {
+      v.innerHTML = '';
+      v.classList.remove('active-view');
+    }
+  }
+  if (name !== 'scanner') {
+    cleanupScanner();
+    const v = document.getElementById('view-scanner');
+    if (v) {
+      v.innerHTML = '';
+      v.classList.remove('active-view');
+    }
+  }
+  if (name !== 'team-head') {
+    const v = document.getElementById('view-team-head');
+    if (v) {
+      v.innerHTML = '';
+      v.classList.remove('active-view');
+    }
+  }
+
+  const win = window as unknown as { switchView?: (hash: string) => void };
+  if (typeof win.switchView === 'function') {
+    win.switchView('#/' + name);
+  } else {
+    if (name === 'staff') {
+      renderStaffRoute(user, loading);
+    } else if (name === 'admin') {
+      renderAdminRoute(user, loading);
+    } else if (name === 'scanner') {
+      renderScannerRoute(user, loading);
+    } else if (name === 'team-head') {
+      renderTeamHeadRoute(user, loading);
+    }
+  }
 }
 
 export { renderTeamApplyPage, initAllCustomSelects, renderScannerRoute };
@@ -1415,7 +1484,9 @@ export async function renderAdminRoute(user: CurrentUser | null, loading: boolea
 
   // 2. Logged in, but NOT an admin -> redirect to /staff (never show admin content!)
   if (user.role !== 'admin') {
-    window.location.hash = '#/staff';
+    viewAdmin.innerHTML = '';
+    viewAdmin.classList.remove('active-view');
+    navigateToRoute('staff');
     return;
   }
 
@@ -1647,7 +1718,7 @@ function renderAdminAuth(container: HTMLElement): void {
       if (currentUser.role === 'admin') {
         renderAdminRoute(currentUser, false);
       } else {
-        window.location.hash = '#/staff';
+        navigateToRoute('staff');
       }
     }
   });
@@ -1746,7 +1817,9 @@ export async function renderStaffRoute(user: CurrentUser | null, loading: boolea
 
   // 2. Logged in as Admin -> redirect to /admin
   if (user.role === 'admin') {
-    window.location.hash = '#/admin';
+    viewStaff.innerHTML = '';
+    viewStaff.classList.remove('active-view');
+    navigateToRoute('admin');
     return;
   }
 
@@ -1987,7 +2060,7 @@ function renderStaffAuth(container: HTMLElement): void {
       setTriggerPassRevealAnimation(true);
 
       if (currentUser.role === 'admin') {
-        window.location.hash = '#/admin';
+        navigateToRoute('admin');
       } else {
         renderStaffRoute(currentUser, false);
       }
@@ -2045,7 +2118,7 @@ function renderStaffAuth(container: HTMLElement): void {
       setTriggerPassRevealAnimation(true);
 
       if (currentUser.role === 'admin') {
-        window.location.hash = '#/admin';
+        navigateToRoute('admin');
       } else {
         renderStaffRoute(currentUser, false);
       }
@@ -2152,7 +2225,7 @@ function renderPortalBadge(count: number | undefined | null): string {
   if (count === undefined || count === null || count <= 0) {
     return '';
   }
-  return `<span class="portal-tab-badge">${count}</span>`;
+  return ` <span class="portal-tab-badge">${count}</span>`;
 }
 
 /**
@@ -2180,6 +2253,12 @@ function setupPortalTabBar(container: HTMLElement): void {
 
   updateFades();
   scroller.addEventListener('scroll', updateFades, { passive: true });
+
+  if (document.fonts) {
+    document.fonts.ready.then(() => {
+      updateFades();
+    });
+  }
 
   // Mouse wheel horizontal scrolling for narrow / mobile viewports
   scroller.addEventListener('wheel', (e) => {
@@ -2251,19 +2330,16 @@ function renderStaffPanel(container: HTMLElement, user: CurrentUser): void {
       <div class="portal-tab-bar-wrapper">
         <div class="portal-tab-bar" id="staff-tabs-scroller">
           <button type="button" id="staff-tab-team-apps-btn" class="portal-tab-btn btn-interactive ${staffActiveTab === 'team-applications' ? 'is-active' : ''}">
-            <span class="portal-tab-label">Team Applications</span>
-            ${renderPortalBadge(pendingTeamApps)}
+            <span class="portal-tab-label">Team Applications${renderPortalBadge(pendingTeamApps)}</span>
           </button>
 
           <button type="button" id="staff-tab-delegates-btn" class="portal-tab-btn btn-interactive ${staffActiveTab === 'delegates' ? 'is-active' : ''}">
-            <span class="portal-tab-label">Delegates (View Only)</span>
-            ${renderPortalBadge(regStats.total)}
+            <span class="portal-tab-label">Delegates (View Only)${renderPortalBadge(regStats.total)}</span>
           </button>
 
           ${isHead ? `
             <button type="button" id="staff-tab-team-btn" class="portal-tab-btn btn-interactive ${staffActiveTab === 'team' ? 'is-active' : ''}">
-              <span class="portal-tab-label">★ My Team: ${escapeHtml(staffHeadTeam?.name || 'Assigned Team')}</span>
-              ${renderPortalBadge(staffHeadTeamMembers.length)}
+              <span class="portal-tab-label">★ My Team: ${escapeHtml(staffHeadTeam?.name || 'Assigned Team')}${renderPortalBadge(staffHeadTeamMembers.length)}</span>
             </button>
           ` : ''}
         </div>
@@ -3502,28 +3578,23 @@ function renderAdminDashboard(container: HTMLElement, user: CurrentUser): void {
       <div class="portal-tab-bar-wrapper">
         <div class="portal-tab-bar" id="admin-tabs-scroller">
           <button type="button" id="admin-tab-delegates" class="portal-tab-btn btn-interactive ${adminActiveTab === 'delegates' ? 'is-active' : ''}">
-            <span class="portal-tab-label">Delegate Applications</span>
-            ${renderPortalBadge(regStats.total)}
+            <span class="portal-tab-label">Delegate Applications${renderPortalBadge(regStats.total)}</span>
           </button>
 
           <button type="button" id="admin-tab-team-apps" class="portal-tab-btn btn-interactive ${adminActiveTab === 'team-apps' ? 'is-active' : ''}">
-            <span class="portal-tab-label">Team Applications</span>
-            ${renderPortalBadge(adminTeamApplications.filter((a) => a.status === 'pending').length)}
+            <span class="portal-tab-label">Team Applications${renderPortalBadge(adminTeamApplications.filter((a) => a.status === 'pending').length)}</span>
           </button>
 
           <button type="button" id="admin-tab-eb" class="portal-tab-btn btn-interactive ${adminActiveTab === 'eb' ? 'is-active' : ''}">
-            <span class="portal-tab-label">EB Members & Heads</span>
-            ${renderPortalBadge(ebStats.total)}
+            <span class="portal-tab-label">EB Members &amp; Heads${renderPortalBadge(ebStats.total)}</span>
           </button>
 
           <button type="button" id="admin-tab-teams" class="portal-tab-btn btn-interactive ${adminActiveTab === 'teams' ? 'is-active' : ''}">
-            <span class="portal-tab-label">Teams</span>
-            ${renderPortalBadge(adminTeams.length)}
+            <span class="portal-tab-label">Teams${renderPortalBadge(adminTeams.length)}</span>
           </button>
 
           <button type="button" id="admin-tab-allowlist" class="portal-tab-btn btn-interactive ${adminActiveTab === 'allowlist' ? 'is-active' : ''}">
-            <span class="portal-tab-label">Team Email List</span>
-            ${renderPortalBadge(adminStaffAllowlist.length)}
+            <span class="portal-tab-label">Team Email List${renderPortalBadge(adminStaffAllowlist.length)}</span>
           </button>
 
           <button type="button" id="admin-tab-pass" class="portal-tab-btn btn-interactive ${adminActiveTab === 'pass' ? 'is-active' : ''}">

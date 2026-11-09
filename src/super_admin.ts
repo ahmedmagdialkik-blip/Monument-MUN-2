@@ -195,9 +195,8 @@ export function bindSuperAdminLoginAsButtons(container: HTMLElement): void {
         clearStaffTicketCache();
         resetSuperAdminCache();
 
-        // 5. Set window.location.hash = '#/staff' and reload so the whole app loads as target person
-        window.location.hash = '#/staff';
-        window.location.reload();
+        // 5. Navigate with a full path-free address: origin + '/#/staff'
+        window.location.assign(window.location.origin + '/#/staff');
       } catch (err: unknown) {
         sessionStorage.removeItem('superAdminReturn');
         const msg = err instanceof Error ? err.message : 'Unknown error';
@@ -271,8 +270,7 @@ export function initSuperAdminReturnBanner(): void {
       try {
         const stored = sessionStorage.getItem('superAdminReturn');
         if (!stored) {
-          window.location.hash = '#/staff';
-          window.location.reload();
+          window.location.assign(window.location.origin + '/#/admin');
           return;
         }
         const parsed = JSON.parse(stored);
@@ -296,8 +294,7 @@ export function initSuperAdminReturnBanner(): void {
           return;
         }
 
-        window.location.hash = '#/staff';
-        window.location.reload();
+        window.location.assign(window.location.origin + '/#/admin');
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Unknown error';
         alert(`Failed to return to original account: ${msg}`);

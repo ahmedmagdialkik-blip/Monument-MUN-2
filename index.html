@@ -2599,16 +2599,15 @@
       }
 
       .portal-tab-btn {
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 10px !important;
+        display: inline-block !important;
+        vertical-align: middle !important;
         white-space: nowrap !important;
         flex-shrink: 0 !important;
         scroll-snap-align: center;
         height: 44px !important;
         min-height: 44px !important;
-        padding: 12px 22px !important;
+        line-height: 44px !important;
+        padding: 0 22px !important;
         border-radius: 9999px !important;
         font-family: var(--font-display) !important;
         font-size: 0.82rem !important;
@@ -2620,6 +2619,13 @@
         box-sizing: border-box !important;
         position: static !important;
         margin: 0 !important;
+        border: 1px solid transparent !important;
+      }
+
+      .portal-tab-btn::before,
+      .portal-tab-btn::after {
+        display: none !important;
+        content: none !important;
       }
 
       /* Inactive Tab Pill */
@@ -2643,24 +2649,27 @@
         box-shadow: 0 0 16px rgba(217, 180, 90, 0.25) !important;
       }
 
-      /* Normal-flow Label - Never overlapped */
+      /* Normal-flow Label - Contains text and badge in identical inline flow */
       .portal-tab-label {
-        display: inline-block !important;
+        display: inline !important;
         position: static !important;
         margin: 0 !important;
         padding: 0 !important;
-        line-height: 1 !important;
+        line-height: inherit !important;
         white-space: nowrap !important;
         font-family: inherit !important;
       }
 
       /* Normal-flow Badge Pill */
       .portal-tab-badge {
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
+        display: inline-block !important;
+        vertical-align: middle !important;
+        margin-left: 10px !important;
         position: static !important;
-        margin: 0 !important;
+        margin-top: 0 !important;
+        margin-right: 0 !important;
+        margin-bottom: 0 !important;
+        transform: none !important;
         min-width: 22px !important;
         height: 22px !important;
         padding: 0 7px !important;
@@ -2670,7 +2679,6 @@
         font-weight: 800 !important;
         line-height: 22px !important;
         text-align: center !important;
-        flex-shrink: 0 !important;
         box-sizing: border-box !important;
       }
 
@@ -6456,11 +6464,20 @@
         function switchView(hash) {
           const path = window.location.pathname.toLowerCase();
           const cleanHash = (hash || window.location.hash || '').replace(/^#\/?/, '').toLowerCase();
-          const isTargetAdmin = path.endsWith('/admin') || path.endsWith('/admin/') || cleanHash === 'admin';
-          const isTargetStaff = path.endsWith('/staff') || path.endsWith('/staff/') || cleanHash === 'staff';
-          const isTargetTeamHead = path.endsWith('/team-head') || path.endsWith('/team-head/') || cleanHash === 'team-head' || cleanHash === 'my-team';
-          const isTargetTeamApply = isTeamApplyRoute() || cleanHash === 'team-apply' || cleanHash === 'join-team';
-          const isTargetScanner = isScannerRoute() || path.endsWith('/scanner') || path.endsWith('/scanner/') || cleanHash === 'scanner';
+
+          // Hash explicitly takes priority over stale pathnames
+          let target = '';
+          if (cleanHash === 'scanner' || (cleanHash === '' && (path.endsWith('/scanner') || path.endsWith('/scanner/')))) {
+            target = 'scanner';
+          } else if (cleanHash === 'admin' || (cleanHash === '' && (path.endsWith('/admin') || path.endsWith('/admin/')))) {
+            target = 'admin';
+          } else if (cleanHash === 'staff' || (cleanHash === '' && (path.endsWith('/staff') || path.endsWith('/staff/')))) {
+            target = 'staff';
+          } else if (cleanHash === 'team-head' || cleanHash === 'my-team' || (cleanHash === '' && (path.endsWith('/team-head') || path.endsWith('/team-head/')))) {
+            target = 'team-head';
+          } else if (cleanHash === 'team-apply' || cleanHash === 'join-team' || (cleanHash === '' && (path.endsWith('/team-apply') || path.endsWith('/team-apply/')))) {
+            target = 'team-apply';
+          }
 
           [viewHome, viewCommittees, viewApply, viewTeamApply, viewAdmin, viewStaff, viewTeamHead, viewScanner].forEach((view) => {
             if (view) view.classList.remove('active-view');
@@ -6468,7 +6485,7 @@
 
           window.scrollTo(0, 0);
 
-          if (isTargetScanner) {
+          if (target === 'scanner') {
             document.body.classList.remove('team-apply-active');
             document.body.classList.add('admin-mode-active');
             if (dotNav) dotNav.classList.add('nav-hidden');
@@ -6478,7 +6495,7 @@
             return;
           }
 
-          if (isTargetAdmin) {
+          if (target === 'admin') {
             document.body.classList.remove('team-apply-active');
             document.body.classList.add('admin-mode-active');
             if (dotNav) dotNav.classList.add('nav-hidden');
@@ -6488,7 +6505,7 @@
             return;
           }
 
-          if (isTargetStaff) {
+          if (target === 'staff') {
             document.body.classList.remove('team-apply-active');
             document.body.classList.add('admin-mode-active');
             if (dotNav) dotNav.classList.add('nav-hidden');
@@ -6498,7 +6515,7 @@
             return;
           }
 
-          if (isTargetTeamHead) {
+          if (target === 'team-head') {
             document.body.classList.remove('team-apply-active');
             document.body.classList.add('admin-mode-active');
             if (dotNav) dotNav.classList.add('nav-hidden');
@@ -6511,7 +6528,7 @@
           document.body.classList.remove('admin-mode-active');
           document.body.classList.remove('team-apply-active');
 
-          if (isTargetTeamApply) {
+          if (target === 'team-apply') {
             document.body.classList.add('team-apply-active');
             if (viewTeamApply) {
               viewTeamApply.classList.add('active-view');
@@ -6556,7 +6573,7 @@
           }
 
           if (typeof isTorchBeaconActive !== 'undefined' && isTorchBeaconActive) {
-            const isHome = !isTargetAdmin && !isTargetStaff && !isTargetTeamHead && !isTargetTeamApply && !isTargetScanner && cleanHash !== 'committees' && cleanHash !== 'apply';
+            const isHome = !target && cleanHash !== 'committees' && cleanHash !== 'apply';
             const beaconEl = document.getElementById('hero-torch-beacon');
             if (beaconEl) {
               if (isHome) {
@@ -6570,6 +6587,8 @@
 
           refreshReveals();
         }
+
+        window.switchView = switchView;
 
         window.addEventListener('hashchange', () => {
           switchView(window.location.hash);
