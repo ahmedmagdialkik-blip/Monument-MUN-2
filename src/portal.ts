@@ -51,7 +51,7 @@ import type {
 import {
   fetchTeamApplications,
   reviewTeamApplication,
-  sendAcceptanceEmail,
+  fetchAcceptanceEmailDraft,
   VOLUNTEER_QUESTIONS,
   SECURITY_QUESTIONS
 } from './team_applications';
@@ -2707,34 +2707,14 @@ function renderTeamApplicationsList(applications: TeamApplication[], isStaffView
       app.status === 'accepted' ? 'rgba(52, 211, 153, 0.14)' :
       app.status === 'denied' ? 'rgba(248, 113, 113, 0.14)' : 'rgba(251, 191, 36, 0.14)';
 
-    // Acceptance email status pill
+    // Send Acceptance Email button (only shown when app.status === 'accepted')
     let emailStatusMarkup = '';
     if (app.status === 'accepted') {
-      if (app.email_sent) {
-        emailStatusMarkup = `
-          <div style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; color: #34d399; font-weight: 700; background: rgba(52, 211, 153, 0.1); border: 1px solid rgba(52, 211, 153, 0.3); padding: 0.2rem 0.55rem; border-radius: 9999px;">
-            <span>✓</span>
-            <span>Acceptance Email Sent</span>
-          </div>
-        `;
-      } else if (app.email_error) {
-        emailStatusMarkup = `
-          <div style="display: inline-flex; align-items: center; gap: 0.4rem;">
-            <span style="font-size: 0.72rem; color: #f87171; background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.3); padding: 0.2rem 0.55rem; border-radius: 9999px;">
-              ⚠ Delivery Issue
-            </span>
-            <button type="button" class="btn-interactive team-app-resend-btn" data-id="${app.id}" title="${escapeHtml(app.email_error)}" style="padding: 0.2rem 0.65rem; border-radius: 9999px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fecaca; font-family: var(--font-display); font-size: 0.68rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
-              ↺ Resend
-            </button>
-          </div>
-        `;
-      } else {
-        emailStatusMarkup = `
-          <button type="button" class="btn-interactive team-app-resend-btn" data-id="${app.id}" style="padding: 0.25rem 0.7rem; border-radius: 9999px; background: rgba(217, 180, 90, 0.15); border: 1px solid var(--gold); color: var(--gold); font-family: var(--font-display); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
-            ✉ Send Acceptance Email
-          </button>
-        `;
-      }
+      emailStatusMarkup = `
+        <button type="button" class="btn-interactive team-app-send-email-btn" data-id="${app.id}" style="padding: 0.25rem 0.7rem; border-radius: 9999px; background: rgba(217, 180, 90, 0.15); border: 1px solid var(--gold); color: var(--gold); font-family: var(--font-display); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">
+          ✉ Send Acceptance Email
+        </button>
+      `;
     }
 
     return `
@@ -2913,8 +2893,106 @@ function attachTeamApplicationsHandlers(container: HTMLElement, currentUser: Cur
   bindTeamCardActions(container, currentUser, isStaffView);
 }
 
+let portalToastTimer: ReturnType<typeof setTimeout> | null = null;
+
+function showPortalToast(
+  message: string,
+  variant: 'success' | 'warning' | 'error' = 'success',
+  actionLink?: { label: string; href: string }
+): void {
+  const existing = document.getElementById('portal-action-toast');
+  if (existing) existing.remove();
+  if (portalToastTimer) {
+    clearTimeout(portalToastTimer);
+    portalToastTimer = null;
+  }
+
+  const toast = document.createElement('div');
+  toast.id = 'portal-action-toast';
+  toast.setAttribute('role', variant === 'error' ? 'alert' : 'status');
+
+  const isError = variant === 'error';
+  const bg = isError ? 'rgba(127, 29, 29, 0.96)' : 'rgba(11, 15, 42, 0.98)';
+  const border = isError ? '#ef4444' : 'var(--gold)';
+  const color = isError ? '#fecaca' : '#f2f4ff';
+
+  toast.style.cssText = `
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000001;
+    max-width: min(440px, calc(100vw - 32px));
+    background: ${bg};
+    border: 1.5px solid ${border};
+    color: ${color};
+    border-radius: 12px;
+    padding: 0.85rem 1.1rem;
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 700;
+    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+  `;
+
+  const textSpan = document.createElement('span');
+  textSpan.style.flex = '1';
+  textSpan.textContent = message;
+  toast.appendChild(textSpan);
+
+  if (actionLink) {
+    const link = document.createElement('a');
+    link.href = actionLink.href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = actionLink.label;
+    link.style.cssText = `
+      background: var(--gold);
+      color: #080a1e;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      text-decoration: none;
+      white-space: nowrap;
+    `;
+    link.addEventListener('click', () => {
+      toast.remove();
+    });
+    toast.appendChild(link);
+  }
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.textContent = '✕';
+  closeBtn.setAttribute('aria-label', 'Dismiss notification');
+  closeBtn.style.cssText = `
+    background: transparent;
+    border: none;
+    color: ${color};
+    opacity: 0.7;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0.1rem 0.25rem;
+  `;
+  closeBtn.addEventListener('click', () => toast.remove());
+  toast.appendChild(closeBtn);
+
+  document.body.appendChild(toast);
+
+  const duration = actionLink ? 15000 : 6000;
+  portalToastTimer = setTimeout(() => {
+    toast.remove();
+    portalToastTimer = null;
+  }, duration);
+}
+
 /**
- * Bind actions on cards: View Answers, Accept, Deny, Resend Email
+ * Bind actions on cards: View Answers, Accept, Deny, Send Acceptance Email
  */
 function bindTeamCardActions(container: HTMLElement, currentUser: CurrentUser, isStaffView: boolean): void {
   const feedback = document.getElementById(isStaffView ? 'staff-panel-action-feedback' : 'admin-action-feedback');
@@ -2968,7 +3046,7 @@ function bindTeamCardActions(container: HTMLElement, currentUser: CurrentUser, i
       if (!target || !id) return;
 
       const ok = window.confirm(
-        `Confirm Acceptance:\n\nAre you sure you want to ACCEPT ${name} into the ${team.toUpperCase()} team?\n\nThis will record your staff approval and automatically trigger an official acceptance email to ${target.email}.`
+        `Confirm Acceptance:\n\nAre you sure you want to ACCEPT ${name} into the ${team.toUpperCase()} team?\n\nOnce accepted, you can use "Send Acceptance Email" on the card to open Gmail with the pre-written acceptance message for ${target.email}.`
       );
       if (!ok) return;
 
@@ -2976,15 +3054,16 @@ function bindTeamCardActions(container: HTMLElement, currentUser: CurrentUser, i
       button.disabled = true;
       button.textContent = 'Accepting...';
 
-      // Save status update in Supabase table & automatically dispatch acceptance email
+      // Save status update in Supabase table
       const reviewRes = await reviewTeamApplication(target, 'accepted', currentUser);
 
       if (reviewRes.error) {
         if (feedback) {
-          feedback.className = 'status-banner status-error';
+          feedback.className = 'status-banner error';
           feedback.textContent = reviewRes.error;
           feedback.style.display = 'block';
         }
+        showPortalToast(reviewRes.error, 'error');
         button.disabled = false;
         button.textContent = '✓ Accept into Team';
         return;
@@ -2994,24 +3073,17 @@ function bindTeamCardActions(container: HTMLElement, currentUser: CurrentUser, i
         Object.assign(target, reviewRes.data);
       }
 
-      if (reviewRes.emailStatus?.success) {
-        if (feedback) {
-          feedback.className = 'status-banner status-success';
-          feedback.textContent = `✓ ${name} has been accepted into the ${team} team! Official acceptance email dispatched to ${target.email}.`;
-          feedback.style.display = 'block';
-        }
-      } else if (reviewRes.emailStatus && !reviewRes.emailStatus.success) {
-        if (feedback) {
-          feedback.className = 'status-banner status-error';
-          feedback.innerHTML = `Application accepted, but the acceptance email failed to send: <em>${escapeHtml(reviewRes.emailStatus.error || 'Failed to dispatch email')}</em>. You can retry anytime via the <strong>Resend</strong> button.`;
-          feedback.style.display = 'block';
-        }
-      }
-
       if (isStaffView) {
         renderStaffPanel(container, currentUser);
       } else {
         renderAdminDashboard(container, currentUser);
+      }
+
+      const refreshedFeedback = document.getElementById(isStaffView ? 'staff-panel-action-feedback' : 'admin-action-feedback');
+      if (refreshedFeedback) {
+        refreshedFeedback.className = 'status-banner success';
+        refreshedFeedback.textContent = `✓ ${name} has been accepted into the ${team} team! Click "Send Acceptance Email" to compose in Gmail.`;
+        refreshedFeedback.style.display = 'block';
       }
     });
   });
@@ -3093,45 +3165,63 @@ function bindTeamCardActions(container: HTMLElement, currentUser: CurrentUser, i
     });
   });
 
-  // 5. Resend Acceptance Email Button
-  const resendBtns = container.querySelectorAll('.team-app-resend-btn');
-  resendBtns.forEach((btn) => {
+  // 5. Send Acceptance Email Button (opens pre-composed Gmail draft via RPC)
+  const sendEmailBtns = container.querySelectorAll('.team-app-send-email-btn');
+  sendEmailBtns.forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
       const target = applications.find((a) => String(a.id) === String(id));
-      if (!target) return;
+      if (!target || target.status !== 'accepted') return;
 
       const button = btn as HTMLButtonElement;
+      if (button.disabled) return;
+      const originalLabel = button.textContent || '✉ Send Acceptance Email';
       button.disabled = true;
-      button.textContent = 'Sending...';
+      button.textContent = 'Preparing Draft...';
 
-      const emailRes = await sendAcceptanceEmail(target, currentUser);
+      try {
+        const { data: draft, error } = await fetchAcceptanceEmailDraft(target.id);
 
-      if (emailRes.success) {
-        target.email_sent = true;
-        target.email_sent_at = new Date().toISOString();
-        target.email_error = undefined;
+        if (error || !draft) {
+          const errMsg = error || 'Failed to prepare acceptance email draft.';
+          if (feedback) {
+            feedback.className = 'status-banner error';
+            feedback.textContent = errMsg;
+            feedback.style.display = 'block';
+          }
+          showPortalToast(errMsg, 'error');
+          return;
+        }
 
+        const url = 'https://mail.google.com/mail/?view=cm&fs=1'
+          + '&to=' + encodeURIComponent(draft.to)
+          + '&su=' + encodeURIComponent(draft.subject)
+          + '&body=' + encodeURIComponent(draft.body);
+
+        const popup = window.open(url, '_blank');
+        if (popup && !popup.closed) {
+          try {
+            popup.opener = null;
+          } catch {}
+          showPortalToast(`Gmail opened - press Send to email ${draft.to}`, 'success');
+        } else {
+          showPortalToast(
+            `Popup blocked — open Gmail to email ${draft.to}`,
+            'warning',
+            { label: 'Open Gmail', href: url }
+          );
+        }
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : 'Unexpected error preparing Gmail draft.';
         if (feedback) {
-          feedback.className = 'status-banner status-success';
-          feedback.textContent = `✓ Acceptance email successfully delivered to ${target.email}.`;
+          feedback.className = 'status-banner error';
+          feedback.textContent = errMsg;
           feedback.style.display = 'block';
         }
-      } else {
-        target.email_sent = false;
-        target.email_error = emailRes.error;
-
-        if (feedback) {
-          feedback.className = 'status-banner status-error';
-          feedback.textContent = `Email delivery attempt failed: ${emailRes.error}`;
-          feedback.style.display = 'block';
-        }
-      }
-
-      if (isStaffView) {
-        renderStaffPanel(container, currentUser);
-      } else {
-        renderAdminDashboard(container, currentUser);
+        showPortalToast(errMsg, 'error');
+      } finally {
+        button.disabled = false;
+        button.textContent = originalLabel;
       }
     });
   });

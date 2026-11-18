@@ -256,54 +256,42 @@ export async function fetchTeamApplications(): Promise<{ data: TeamApplication[]
   }
 }
 
+export interface AcceptanceEmailDraft {
+  to: string;
+  subject: string;
+  body: string;
+  pass_url?: string;
+  name?: string;
+  role?: string;
+}
+
 /**
- * Trigger acceptance email via Supabase Edge Function 'send-team-acceptance'
- * Uses Resend on the server side (never exposes Resend key on client)
+ * Fetch pre-composed acceptance email draft from Supabase RPC 'acceptance_email_draft'
  */
-export async function sendAcceptanceEmail(
-  app: TeamApplication,
-  _staffUser?: CurrentUser
-): Promise<{ success: boolean; error?: string }> {
+export async function fetchAcceptanceEmailDraft(
+  applicationId: string
+): Promise<{ data: AcceptanceEmailDraft | null; error: string | null }> {
   try {
-    const { data, error } = await supabase.functions.invoke('send-team-acceptance', {
-      body: {
-        applicationId: app.id,
-        recipientEmail: app.email,
-        recipientName: app.full_name,
-        team: app.team
-      }
+    const { data, error } = await supabase.rpc('acceptance_email_draft', {
+      p_application_id: applicationId
     });
 
     if (error) {
       const errMsg = typeof error === 'object' && 'message' in error ? String(error.message) : String(error);
-      // Record email failure on the application row
-      await supabase
-        .from('team_applications')
-        .update({ email_sent: false, email_error: errMsg })
-        .eq('id', app.id);
-
-      return { success: false, error: errMsg };
+      return { data: null, error: errMsg || 'Failed to load acceptance email draft.' };
     }
 
-    // Record email success on the application row
-    await supabase
-      .from('team_applications')
-      .update({
-        email_sent: true,
-        email_sent_at: new Date().toISOString(),
-        email_error: null
-      })
-      .eq('id', app.id);
+    const draft = (Array.isArray(data) ? data[0] : data) as AcceptanceEmailDraft | null;
+    if (!draft || !draft.to || typeof draft.subject !== 'string' || typeof draft.body !== 'string') {
+      return { data: null, error: 'Email draft returned incomplete data.' };
+    }
 
-    return { success: true };
+    return { data: draft, error: null };
   } catch (err) {
-    const errMsg = err instanceof Error ? err.message : 'Edge Function call failed';
-    await supabase
-      .from('team_applications')
-      .update({ email_sent: false, email_error: errMsg })
-      .eq('id', app.id);
-
-    return { success: false, error: errMsg };
+    return {
+      data: null,
+      error: err instanceof Error ? err.message : 'Failed to fetch acceptance email draft.'
+    };
   }
 }
 
@@ -311,13 +299,12 @@ export async function sendAcceptanceEmail(
  * Review a team application (Accept or Deny)
  * Requires staff confirmation before calling.
  * Records reviewed_by and reviewed_at.
- * If accepted, automatically sends the acceptance email via the Supabase Edge Function.
  */
 export async function reviewTeamApplication(
   app: TeamApplication,
   decision: 'accepted' | 'denied' | 'pending',
   staffUser: CurrentUser
-): Promise<{ data: TeamApplication | null; error: string | null; emailStatus?: { success: boolean; error?: string } }> {
+): Promise<{ data: TeamApplication | null; error: string | null }> {
   try {
     const nowIso = new Date().toISOString();
     const updatePayload: Partial<TeamApplication> = {
@@ -343,21 +330,7 @@ export async function reviewTeamApplication(
       ...updatePayload
     };
 
-    // If decision is accepted, send automatic acceptance email
-    let emailStatus: { success: boolean; error?: string } | undefined;
-    if (decision === 'accepted') {
-      emailStatus = await sendAcceptanceEmail(updatedApp, staffUser);
-      if (emailStatus.success) {
-        updatedApp.email_sent = true;
-        updatedApp.email_sent_at = nowIso;
-        updatedApp.email_error = null;
-      } else {
-        updatedApp.email_sent = false;
-        updatedApp.email_error = emailStatus.error;
-      }
-    }
-
-    return { data: updatedApp, error: null, emailStatus };
+    return { data: updatedApp, error: null };
   } catch (err) {
     return {
       data: null,
