@@ -103,6 +103,13 @@ async function syncUserState(sessionUser: { id: string; email?: string; user_met
   notifyListeners();
 }
 
+export const TEAM_ONLY_SIGNUP_MESSAGE = 'Accounts are only available to accepted team members.';
+
+export function isEmailNotAllowedError(message?: string | null): boolean {
+  if (!message) return false;
+  return message.toUpperCase().includes('EMAIL_NOT_ALLOWED');
+}
+
 /**
  * Instant sign up with email and password without confirmation step.
  * Automatically logs the user in immediately.
@@ -125,7 +132,7 @@ export async function signUpWithEmail(
     if (rpcError || !allowed) {
       return {
         user: null,
-        error: "You can't sign up because your email wasn't found in the Monument MUN team list. Use the exact email you gave the Secretariat, or contact an admin."
+        error: TEAM_ONLY_SIGNUP_MESSAGE
       };
     }
 
@@ -142,12 +149,12 @@ export async function signUpWithEmail(
 
     if (signUpError) {
       if (
-        signUpError.message.includes('Database error saving new user') ||
+        isEmailNotAllowedError(signUpError.message) ||
         signUpError.message.toLowerCase().includes('database error saving new user')
       ) {
         return {
           user: null,
-          error: "You can't sign up because your email wasn't found in the Monument MUN team list. Use the exact email you gave the Secretariat, or contact an admin."
+          error: TEAM_ONLY_SIGNUP_MESSAGE
         };
       }
       return { user: null, error: signUpError.message };
@@ -166,6 +173,9 @@ export async function signUpWithEmail(
     });
 
     if (signInError) {
+      if (isEmailNotAllowedError(signInError.message)) {
+        return { user: null, error: TEAM_ONLY_SIGNUP_MESSAGE };
+      }
       if (signUpData.user) {
         await syncUserState(signUpData.user);
         return { user: currentUserState };
@@ -181,6 +191,9 @@ export async function signUpWithEmail(
     return { user: null, error: 'Sign up succeeded but session could not be established.' };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'An unexpected error occurred during sign up.';
+    if (isEmailNotAllowedError(message)) {
+      return { user: null, error: TEAM_ONLY_SIGNUP_MESSAGE };
+    }
     return { user: null, error: message };
   }
 }

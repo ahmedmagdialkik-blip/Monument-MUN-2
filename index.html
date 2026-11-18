@@ -5501,6 +5501,11 @@
           <li><a href="#about" class="section-link">About</a></li>
           <li><a href="#board" class="section-link">EB</a></li>
           <li><a href="#updates" class="section-link">Updates</a></li>
+          <li id="header-qr-pass-item" style="display: none;">
+            <button type="button" id="header-my-qr-pass-btn" class="btn-interactive" style="background: rgba(217, 180, 90, 0.16); border: 1px solid rgba(217, 180, 90, 0.65); color: var(--gold); padding: 0.36rem 0.78rem; border-radius: 6px; font-family: var(--font-display); font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; white-space: nowrap;">
+              ★ My QR Pass
+            </button>
+          </li>
           <li id="header-auth-container">
             <a href="#/apply" class="apply-pill-btn magnetic-btn route-link">
               Apply Now
@@ -5519,6 +5524,7 @@
       <button class="mobile-close-btn" id="mobile-close" aria-label="Close navigation menu">Close ✕</button>
       <a href="#/apply" class="mobile-link route-link">Apply (Delegates &amp; Chairs)</a>
       <a href="#/team-apply" class="mobile-link route-link" style="color: var(--gold); font-weight: 800;">★ Join Team (Volunteers &amp; Security)</a>
+      <button type="button" id="mobile-qr-pass-link" class="mobile-link" style="display: none; background: transparent; border: none; color: var(--gold); font-weight: 800; font-family: var(--font-display); font-size: 1.45rem; cursor: pointer; padding: 0;">★ My QR Pass</button>
       <a href="#/committees" class="mobile-link route-link">Committees</a>
       <a href="#about" class="mobile-link section-link">About Monument MUN</a>
       <a href="#board" class="mobile-link section-link">EB Members</a>
@@ -8434,7 +8440,9 @@
               const result = await signUpWithEmail(name, email, password, role);
 
               if (result.error) {
-                if (result.error.toLowerCase().includes('already registered')) {
+                if (result.error.toUpperCase().includes('EMAIL_NOT_ALLOWED')) {
+                  showEBStatus('error', 'Accounts are only available to accepted team members.');
+                } else if (result.error.toLowerCase().includes('already registered')) {
                   showEBStatus(
                     'error',
                     `An account with the email <strong>${email}</strong> already exists. Please click the <strong>Sign In</strong> tab to log in.`
@@ -9088,13 +9096,15 @@
 
         function runIntro() {
           let hasPlayed = false;
+          let hasWelcomeLink = false;
           try {
             hasPlayed = sessionStorage.getItem('monument_intro_played_27') === 'true';
+            hasWelcomeLink = Boolean(new URLSearchParams(window.location.search).get('welcome')?.trim());
           } catch (e) {
             hasPlayed = false;
           }
 
-          if (hasPlayed) {
+          if (hasPlayed || hasWelcomeLink) {
             if (introOverlay) {
               introOverlay.classList.add('hidden');
               introOverlay.remove();

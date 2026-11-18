@@ -236,16 +236,28 @@ export function downloadQrAsPng(svgElement: SVGSVGElement, attendeeName = 'staff
   }
 }
 
+function getDisplayPosition(user: CurrentUser): string {
+  if (user.profile?.eb_position && user.profile.eb_position.trim()) {
+    return user.profile.eb_position.trim();
+  }
+  if (user.role === 'admin') return 'Administrator';
+  if (user.role === 'security') return 'Security Team';
+  if (user.role === 'head') return 'Department Head';
+  if (user.role === 'eb') return 'Executive Board Member';
+  return 'Monument MUN Team Member';
+}
+
 /**
  * Open Full-Screen Entry Pass Modal with Maximum Contrast and Screen Wake Lock
  */
 export function openFullScreenPassModal(token: string, user: CurrentUser): void {
+  ensurePassStyles();
   requestScreenWakeLock();
 
   const existing = document.getElementById('pass-fullscreen-modal');
   if (existing) existing.remove();
 
-  const position = user.profile?.eb_position || (user.role === 'admin' ? 'Administrator' : 'Executive Board Member');
+  const position = getDisplayPosition(user);
   const roleDisplay = user.role.toUpperCase();
 
   const modal = document.createElement('div');
@@ -276,7 +288,7 @@ export function openFullScreenPassModal(token: string, user: CurrentUser): void 
       <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(8, 10, 30, 0.08); padding: 0.35rem 0.85rem; border-radius: 9999px; margin-bottom: 1.25rem;">
         <span style="color: #d9b45a; font-size: 0.85rem;">★</span>
         <span style="font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #080a1e;">
-          VENUE ENTRANCE PASS · ${escapeHtml(roleDisplay)}
+          MY QR PASS · ${escapeHtml(roleDisplay)}
         </span>
       </div>
 
@@ -293,13 +305,18 @@ export function openFullScreenPassModal(token: string, user: CurrentUser): void 
         ${escapeHtml(position)}
       </div>
 
-      <p style="font-size: 0.88rem; color: rgba(8, 10, 30, 0.7); max-width: 360px; line-height: 1.5; margin-bottom: 2rem;">
-        Tilt screen toward scanner. Screen Wake Lock is active to keep display bright at the checkpoint.
+      <p style="font-size: 0.88rem; color: rgba(8, 10, 30, 0.7); max-width: 360px; line-height: 1.5; margin-bottom: 1.5rem;">
+        Show this QR pass at the venue entrance. Security will scan it to check you in. Screen Wake Lock is active while open.
       </p>
 
-      <button type="button" id="pass-fullscreen-done-btn" class="btn-interactive" style="width: 100%; max-width: 320px; background: #080a1e; color: #ffffff; border: none; padding: 0.85rem 1.5rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.9rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer;">
-        Back to Dashboard
-      </button>
+      <div style="display: flex; gap: 0.75rem; width: 100%; max-width: 340px; flex-wrap: wrap;">
+        <button type="button" id="pass-fullscreen-save-btn" class="btn-interactive" style="flex: 1; min-width: 130px; background: rgba(217, 180, 90, 0.22); color: #080a1e; border: 1.5px solid #d9b45a; padding: 0.85rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer;">
+          ↓ Save Image
+        </button>
+        <button type="button" id="pass-fullscreen-done-btn" class="btn-interactive" style="flex: 1; min-width: 130px; background: #080a1e; color: #ffffff; border: none; padding: 0.85rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.82rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer;">
+          Done
+        </button>
+      </div>
     </div>
   `;
 
@@ -341,8 +358,121 @@ export function openFullScreenPassModal(token: string, user: CurrentUser): void 
   }
 
   window.addEventListener('keydown', handleEsc);
+  document.getElementById('pass-fullscreen-save-btn')?.addEventListener('click', () => {
+    const svg = document.querySelector('#fullscreen-qr-mount svg') as SVGSVGElement | null;
+    if (svg) {
+      downloadQrAsPng(svg, user.fullName || 'staff-pass');
+    }
+  });
   document.getElementById('pass-fullscreen-close-btn')?.addEventListener('click', closeModal);
   document.getElementById('pass-fullscreen-done-btn')?.addEventListener('click', closeModal);
+}
+
+/**
+ * Open "My QR Pass" modal for any logged-in user directly from main navigation or welcome flow.
+ * Fetches token from staff_tickets and preserves exact QR generation.
+ */
+export async function openMyQrPassModal(user: CurrentUser): Promise<void> {
+  ensurePassStyles();
+
+  if (cachedTicketToken) {
+    openFullScreenPassModal(cachedTicketToken, user);
+    return;
+  }
+
+  const existing = document.getElementById('pass-fullscreen-modal');
+  if (existing) existing.remove();
+
+  const loadingModal = document.createElement('div');
+  loadingModal.id = 'pass-fullscreen-modal';
+  loadingModal.style.cssText = `
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    background: rgba(8, 10, 30, 0.96);
+    color: #f2f4ff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    overflow-y: auto;
+    animation: passCardFadeIn 0.2s ease forwards;
+  `;
+
+  loadingModal.innerHTML = `
+    <div style="width: 100%; max-width: 440px; background: rgba(12, 16, 44, 0.96); border: 1px solid rgba(217, 180, 90, 0.4); border-radius: 22px; padding: 2.25rem 1.5rem; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.65);">
+      <div style="display: inline-block; width: 34px; height: 34px; border: 3px solid rgba(217, 180, 90, 0.22); border-top-color: #d9b45a; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 1rem;"></div>
+      <p style="font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #d9b45a; margin: 0 0 1.25rem;">
+        Loading My QR Pass...
+      </p>
+      <button type="button" id="my-qr-loading-close" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2); color: #f2f4ff; padding: 0.5rem 1.15rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; cursor: pointer;">
+        Close
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(loadingModal);
+
+  let cancelled = false;
+  const closeLoading = () => {
+    cancelled = true;
+    window.removeEventListener('keydown', onEsc);
+    loadingModal.remove();
+  };
+  const onEsc = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') closeLoading();
+  };
+  window.addEventListener('keydown', onEsc);
+  document.getElementById('my-qr-loading-close')?.addEventListener('click', closeLoading);
+
+  const ticketRes = await fetchStaffTicketToken(user.role);
+  if (cancelled) return;
+
+  window.removeEventListener('keydown', onEsc);
+
+  if (ticketRes.token) {
+    loadingModal.remove();
+    openFullScreenPassModal(ticketRes.token, user);
+    return;
+  }
+
+  const isError = Boolean(ticketRes.error);
+  loadingModal.innerHTML = `
+    <div style="width: 100%; max-width: 440px; background: rgba(12, 16, 44, 0.98); border: 1px solid ${isError ? 'rgba(239, 68, 68, 0.45)' : 'rgba(217, 180, 90, 0.4)'}; border-radius: 22px; padding: 2.25rem 1.75rem; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.65);">
+      <div style="width: 48px; height: 48px; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center; background: ${isError ? 'rgba(239,68,68,0.16)' : 'rgba(217,180,90,0.15)'}; border: 1px solid ${isError ? 'rgba(239,68,68,0.45)' : '#d9b45a'}; color: ${isError ? '#fca5a5' : '#d9b45a'}; font-size: 1.25rem;">
+        ${isError ? '!' : '★'}
+      </div>
+      <h3 style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 800; text-transform: uppercase; color: #ffffff; margin: 0 0 0.6rem;">
+        ${isError ? 'Unable to Load QR Pass' : 'No QR Pass Generated Yet'}
+      </h3>
+      <p style="font-size: 0.9rem; color: rgba(242, 244, 255, 0.74); line-height: 1.55; margin: 0 0 1.5rem;">
+        ${
+          isError
+            ? escapeHtml(ticketRes.error)
+            : 'No QR pass is currently associated with your account. Please check back shortly or contact the Monument MUN Secretariat.'
+        }
+      </p>
+      <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+        ${
+          isError
+            ? `<button type="button" id="my-qr-retry-btn" style="background: #d9b45a; color: #080a1e; border: none; padding: 0.65rem 1.35rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; cursor: pointer;">Retry</button>`
+            : ''
+        }
+        <button type="button" id="my-qr-empty-close" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.22); color: #ffffff; padding: 0.65rem 1.35rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; cursor: pointer;">
+          Close
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('my-qr-empty-close')?.addEventListener('click', () => {
+    loadingModal.remove();
+  });
+  document.getElementById('my-qr-retry-btn')?.addEventListener('click', () => {
+    loadingModal.remove();
+    void openMyQrPassModal(user);
+  });
 }
 
 /**
@@ -423,7 +553,7 @@ export async function renderEntryPassCard(
 
   // 3. Verified pass state
   const token = ticketRes.token;
-  const position = user.profile?.eb_position || (user.role === 'admin' ? 'Administrator' : 'Executive Board Member');
+  const position = getDisplayPosition(user);
   const roleDisplay = user.role.toUpperCase();
 
   const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

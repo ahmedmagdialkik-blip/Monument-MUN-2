@@ -6,6 +6,8 @@ import {
   signOut,
   refreshCurrentUserProfile,
   isAuthReady,
+  TEAM_ONLY_SIGNUP_MESSAGE,
+  isEmailNotAllowedError,
   type CurrentUser
 } from './auth';
 import { supabase } from './lib/supabase';
@@ -59,9 +61,14 @@ import { renderTeamApplyPage } from './team_apply_ui';
 import { initAllCustomSelects } from './custom_select';
 import { playWelcomeAnimation } from './welcome';
 import {
+  getWelcomeTokenFromUrl,
+  startTeamWelcomeFlow
+} from './team_welcome';
+import {
   renderEntryPassCard,
   setTriggerPassRevealAnimation,
-  openFullScreenPassModal
+  openFullScreenPassModal,
+  openMyQrPassModal
 } from './ticket';
 import { renderScannerRoute, cleanupScanner } from './scanner';
 import {
@@ -233,12 +240,43 @@ let currentRegistration: Registration | null = null;
 let cachedTeamsList: Team[] = [];
 let cachedHeadTeamName = '';
 
+let pendingApplySignInEmail: string | null = null;
+let pendingAutoOpenQrPass = false;
+
 /**
  * Initialize all auth, apply portal, join team panel, head dashboard, and admin board listeners
  */
 export function initPortal(): void {
   // Initialize super admin return banner if session is saved
   initSuperAdminReturnBanner();
+
+  // Check for accepted team member ?welcome=<TOKEN> link (route-independent)
+  const welcomeToken = getWelcomeTokenFromUrl();
+  if (welcomeToken) {
+    void startTeamWelcomeFlow(welcomeToken, {
+      onGoToMainSite: () => {
+        window.location.hash = '#/';
+      },
+      onGoToSignIn: (email: string) => {
+        pendingApplySignInEmail = email;
+        window.location.hash = '#/apply';
+        const user = getCachedUser();
+        if (!user && isAuthReady()) {
+          void renderApplyPortal(null, false);
+        }
+      },
+      onAccountActivated: async () => {
+        pendingAutoOpenQrPass = true;
+        window.location.hash = '#/';
+        showPortalToast('Welcome to the team!', 'success');
+        const activeUser = getCachedUser();
+        if (activeUser && isAuthReady()) {
+          pendingAutoOpenQrPass = false;
+          void openMyQrPassModal(activeUser);
+        }
+      }
+    });
+  }
 
   // Subscribe to auth state updates
   subscribeAuth(async (user, loading) => {
@@ -248,6 +286,11 @@ export function initPortal(): void {
     updateHeaderAuthUI(user, loading);
     await renderApplyPortal(user, loading);
     await renderJoinTeamPanel(user);
+
+    if (pendingAutoOpenQrPass && user && !loading) {
+      pendingAutoOpenQrPass = false;
+      void openMyQrPassModal(user);
+    }
 
     if (isScannerRoute()) {
       renderScannerRoute(user, loading);
@@ -314,10 +357,45 @@ export function initPortal(): void {
   });
 }
 
+function syncNavQrPassButtons(user: CurrentUser | null, loading: boolean): void {
+  const headerItem = document.getElementById('header-qr-pass-item');
+  const headerBtn = document.getElementById('header-my-qr-pass-btn');
+  const mobileBtn = document.getElementById('mobile-qr-pass-link');
+  const mobilePanel = document.getElementById('mobile-nav-panel');
+
+  const visible = Boolean(user && !loading);
+
+  if (headerItem) {
+    headerItem.style.display = visible ? 'inline-flex' : 'none';
+  }
+  if (mobileBtn) {
+    mobileBtn.style.display = visible ? 'block' : 'none';
+  }
+
+  if (visible && user) {
+    if (headerBtn) {
+      headerBtn.onclick = () => {
+        void openMyQrPassModal(user);
+      };
+    }
+    if (mobileBtn) {
+      mobileBtn.onclick = () => {
+        mobilePanel?.classList.remove('open');
+        void openMyQrPassModal(user);
+      };
+    }
+  } else {
+    if (headerBtn) headerBtn.onclick = null;
+    if (mobileBtn) mobileBtn.onclick = null;
+  }
+}
+
 /**
  * Update Header with dynamic user status, My Team pill (if Head), or Sign In trigger
  */
 function updateHeaderAuthUI(user: CurrentUser | null, loading: boolean): void {
+  syncNavQrPassButtons(user, loading);
+
   const container = document.getElementById('header-auth-container');
   if (!container) return;
 
@@ -539,6 +617,16 @@ function renderApplyAuthForms(mount: HTMLElement): void {
     if (formSignup) formSignup.style.display = 'none';
   });
 
+  if (pendingApplySignInEmail) {
+    const prefillEmail = pendingApplySignInEmail;
+    pendingApplySignInEmail = null;
+    tabSignin?.click();
+    const signinEmailInput = document.getElementById('signin-email') as HTMLInputElement | null;
+    const signinPassInput = document.getElementById('signin-password') as HTMLInputElement | null;
+    if (signinEmailInput) signinEmailInput.value = prefillEmail;
+    signinPassInput?.focus();
+  }
+
   // Handle instant sign up
   formSignup?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -580,7 +668,10 @@ function renderApplyAuthForms(mount: HTMLElement): void {
     const result = await signUpWithEmail(fullName, email, password);
 
     if (result.error) {
-      showFeedback('error', result.error);
+      const displayErr = isEmailNotAllowedError(result.error)
+        ? TEAM_ONLY_SIGNUP_MESSAGE
+        : result.error;
+      showFeedback('error', displayErr);
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Create Account & Log In Instantly';
@@ -2011,7 +2102,7 @@ function renderStaffAuth(container: HTMLElement): void {
     const allowRes = await isEmailAllowedRpc(email);
     if (!allowRes.allowed) {
       feedback.className = 'status-banner status-error';
-      feedback.textContent = "You can't sign up because your email wasn't found in the Monument MUN team list. Use the exact email you gave the Secretariat, or contact an admin.";
+      feedback.textContent = TEAM_ONLY_SIGNUP_MESSAGE;
       feedback.style.display = 'block';
       if (signupSubmitBtn) {
         signupSubmitBtn.disabled = false;
@@ -2030,10 +2121,11 @@ function renderStaffAuth(container: HTMLElement): void {
     if (res.error) {
       feedback.className = 'status-banner status-error';
       if (
-        res.error.includes('Database error saving new user') ||
+        isEmailNotAllowedError(res.error) ||
+        res.error.toLowerCase().includes('database error saving new user') ||
         res.error.includes("wasn't found in the Monument MUN team list")
       ) {
-        feedback.textContent = "You can't sign up because your email wasn't found in the Monument MUN team list. Use the exact email you gave the Secretariat, or contact an admin.";
+        feedback.textContent = TEAM_ONLY_SIGNUP_MESSAGE;
       } else {
         feedback.textContent = res.error;
       }
@@ -3649,7 +3741,7 @@ function renderAdminDashboard(container: HTMLElement, user: CurrentUser): void {
           </a>
           <button type="button" id="admin-my-pass-btn" class="btn-interactive" style="background: rgba(217, 180, 90, 0.2); border: 1.5px solid var(--gold); color: var(--gold); padding: 0.45rem 1rem; border-radius: 9999px; font-family: var(--font-display); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 0 12px rgba(217, 180, 90, 0.25);">
             <span>★</span>
-            <span>My Entry Pass</span>
+            <span>My QR Pass</span>
           </button>
           <div style="text-align: right;">
             <div style="font-size: 0.85rem; font-weight: 700; color: #ffffff; white-space: nowrap;">${escapeHtml(user.fullName)}</div>
@@ -3664,7 +3756,7 @@ function renderAdminDashboard(container: HTMLElement, user: CurrentUser): void {
         </div>
       </div>
 
-      <!-- Main Navigation Tabs: Delegate Applications vs Team Applications vs EB Members vs Teams vs Allowlist vs Entry Pass -->
+      <!-- Main Navigation Tabs: Delegate Applications vs Team Applications vs EB Members vs Teams vs Allowlist vs My QR Pass -->
       <div class="portal-tab-bar-wrapper">
         <div class="portal-tab-bar" id="admin-tabs-scroller">
           <button type="button" id="admin-tab-delegates" class="portal-tab-btn btn-interactive ${adminActiveTab === 'delegates' ? 'is-active' : ''}">
@@ -3688,7 +3780,7 @@ function renderAdminDashboard(container: HTMLElement, user: CurrentUser): void {
           </button>
 
           <button type="button" id="admin-tab-pass" class="portal-tab-btn btn-interactive ${adminActiveTab === 'pass' ? 'is-active' : ''}">
-            <span class="portal-tab-label">★ My Entry Pass</span>
+            <span class="portal-tab-label">★ My QR Pass</span>
           </button>
         </div>
       </div>
