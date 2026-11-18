@@ -1,5 +1,5 @@
 import { supabase } from './lib/supabase';
-import type { TeamApplication, TeamAppRole, TeamAppStatus } from './types/database';
+import type { TeamApplication, TeamAppRole } from './types/database';
 import type { CurrentUser } from './auth';
 
 export interface QuestionDef {
@@ -160,92 +160,75 @@ export function isValidEmail(email: string): boolean {
 
 /**
  * Submit a new team application (Volunteer or Security only)
- * Enforces email validation, required answers, and prevents duplicate submissions
+ * Validates fields and performs a plain insert returning nothing (anon-safe).
  */
 export async function submitTeamApplication(
   input: SubmitTeamAppInput
-): Promise<{ data: TeamApplication | null; error: string | null }> {
-  const fullName = input.full_name?.trim();
-  const cleanEmail = input.email?.trim().toLowerCase();
-  const phone = input.phone?.trim();
+): Promise<{ error: string | null }> {
+  const fullName = input.full_name?.trim() || '';
+  const cleanEmail = input.email?.trim().toLowerCase() || '';
+  const phone = input.phone?.trim() || '';
   const team = input.team;
 
-  if (!fullName) {
-    return { data: null, error: 'Please enter your full name.' };
+  if (!fullName || fullName.length < 1 || fullName.length > 200) {
+    return { error: 'Please enter a valid full name (1–200 characters).' };
   }
-  if (!cleanEmail || !isValidEmail(cleanEmail)) {
-    return { data: null, error: 'Please enter a valid email address.' };
+  if (!cleanEmail || cleanEmail.length > 320 || !isValidEmail(cleanEmail)) {
+    return { error: 'Please enter a valid email address (max 320 characters).' };
   }
-  if (!phone || phone.length < 6) {
-    return { data: null, error: 'Please enter a valid phone number.' };
+  if (!phone || phone.length < 3 || phone.length > 40) {
+    return { error: 'Please enter a valid phone number (max 40 characters).' };
   }
   if (team !== 'volunteer' && team !== 'security') {
-    return { data: null, error: 'Only Volunteer and Security applications are currently open.' };
+    return { error: 'Only Volunteer and Security applications are currently open.' };
   }
 
-  // Validate questions
+  // Validate required role questions
   const questionDefs = team === 'volunteer' ? VOLUNTEER_QUESTIONS : SECURITY_QUESTIONS;
   for (const q of questionDefs) {
     if (q.required) {
-      const val = input.answers?.[q.id]?.trim();
+      const val = String(input.answers?.[q.id] ?? '').trim();
       if (!val) {
-        return { data: null, error: `Please answer: "${q.label}"` };
+        return { error: `Please answer: "${q.label}"` };
       }
     }
   }
 
-  // Check for duplicate applications for the same team from this email
-  try {
-    const { data: existing, error: checkError } = await supabase
-      .from('team_applications')
-      .select('id, status, created_at')
-      .eq('email', cleanEmail)
-      .eq('team', team);
-
-    if (checkError) {
-      console.warn('Error checking existing team application:', checkError);
-    } else if (existing && (existing as unknown as TeamApplication[]).length > 0) {
-      const teamLabel = team === 'volunteer' ? 'Volunteer' : 'Security';
-      return {
-        data: null,
-        error: `An application for the ${teamLabel} team has already been submitted with this email (${cleanEmail}). Duplicate submissions for the same team are not permitted.`
-      };
-    }
-  } catch (err) {
-    console.warn('Duplicate check caught exception:', err);
+  const answers = input.answers && typeof input.answers === 'object' ? input.answers : {};
+  const answersLength = JSON.stringify(answers).length;
+  if (answersLength > 20000) {
+    return { error: 'Your answers exceed the 20,000-character limit. Please shorten your responses.' };
   }
 
-  // Insert application with status forced to 'pending'
-  try {
-    const payload = {
-      team,
-      full_name: fullName,
-      email: cleanEmail,
-      phone,
-      answers: input.answers || {},
-      proof_files: input.proof_files || [],
-      status: 'pending' as TeamAppStatus,
-      created_at: new Date().toISOString(),
-      email_sent: false
-    };
+  const proof_files = Array.isArray(input.proof_files) ? input.proof_files.slice(0, 10) : [];
 
-    const res = await supabase.from('team_applications').insert(payload);
-    if (res && 'error' in res && res.error) {
-      return { data: null, error: (res.error as { message: string }).message || 'Failed to submit application' };
+  try {
+    const { error } = await supabase
+      .from('team_applications')
+      .insert({
+        team,
+        full_name: fullName,
+        email: cleanEmail,
+        phone,
+        answers,
+        proof_files
+      });
+
+    if (error) {
+      console.error('team_applications insert error:', error);
+      const errCode = (error as { code?: string }).code;
+      const errMessage = (error as { message?: string }).message || 'Unknown error';
+      if (errCode === '23505') {
+        return { error: 'You have already applied.' };
+      }
+      return { error: `Submission failed: ${errMessage}` };
     }
 
-    return {
-      data: {
-        id: 'app_' + Math.random().toString(36).substring(2, 9),
-        ...payload
-      },
-      error: null
-    };
+    return { error: null };
   } catch (err) {
-    return {
-      data: null,
-      error: err instanceof Error ? err.message : 'An unexpected error occurred while saving your application.'
-    };
+    console.error('team_applications submit exception:', err);
+    const errMessage = err instanceof Error ? err.message : 'An unexpected error occurred while saving your application.';
+    return { error: `Submission failed: ${errMessage}` };
   }
 }
 

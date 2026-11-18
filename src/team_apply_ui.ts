@@ -3,6 +3,7 @@ import {
   SECURITY_QUESTIONS,
   OTHER_TEAMS,
   submitTeamApplication,
+  isValidEmail,
   type QuestionDef
 } from './team_applications';
 import type { TeamAppRole } from './types/database';
@@ -177,6 +178,7 @@ export function renderTeamApplyPage(container: HTMLElement | null): void {
           </h2>
 
           <p style="font-size: 1.1rem; color: #f2f4ff; line-height: 1.6; max-width: 540px; margin: 0 auto 1.5rem;">
+            <strong style="color: #ffffff;">Application submitted! We'll contact you by email.</strong><br />
             Your application for the <strong style="color: var(--gold); text-transform: capitalize;">${escapeHtml(formSubmittedSuccess.team)} Team</strong> has been successfully received by the Monument MUN Secretariat.
           </p>
 
@@ -443,6 +445,9 @@ export function renderTeamApplyPage(container: HTMLElement | null): void {
               </label>
             </div>
           ` : ''}
+
+          <!-- Error Message Above Submit Button -->
+          <div id="team-form-submit-error" class="status-banner error" role="alert" style="display: none; margin-bottom: 1rem;"></div>
 
           <!-- Submit Button -->
           <button type="submit" id="ta-submit-btn" class="form-submit-btn btn-interactive" style="width: 100%; padding: 1rem; font-size: 0.95rem; font-weight: 800; letter-spacing: 0.08em;">
@@ -742,172 +747,215 @@ export function renderTeamApplyPage(container: HTMLElement | null): void {
   const form = document.getElementById('team-application-form') as HTMLFormElement | null;
   const submitBtn = document.getElementById('ta-submit-btn') as HTMLButtonElement | null;
   const feedback = document.getElementById('team-form-feedback');
+  const submitErrorEl = document.getElementById('team-form-submit-error');
+  const defaultSubmitBtnText = `Submit ${isVolunteer ? 'Volunteer' : 'Security'} Application`;
+  let isSubmitting = false;
+
+  const showSubmitError = (msg: string) => {
+    if (submitErrorEl) {
+      submitErrorEl.className = 'status-banner error';
+      submitErrorEl.textContent = msg;
+      submitErrorEl.style.display = 'block';
+    }
+    if (feedback) {
+      feedback.className = 'status-banner error';
+      feedback.textContent = msg;
+      feedback.style.display = 'none';
+    }
+  };
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!feedback) return;
+    if (isSubmitting) return;
+    if (submitBtn?.disabled) return;
 
-    feedback.style.display = 'none';
-
-    const fullName = (document.getElementById('ta-fullname') as HTMLInputElement | null)?.value || '';
-    const email = (document.getElementById('ta-email') as HTMLInputElement | null)?.value || '';
-    const phone = (document.getElementById('ta-phone') as HTMLInputElement | null)?.value || '';
-
-    // Agreement checkbox is only required for the Security application
-    if (!isVolunteer) {
-      const agreement = (document.getElementById('ta-agreement') as HTMLInputElement | null)?.checked;
-      if (!agreement) {
-        feedback.className = 'status-banner status-error';
-        feedback.textContent = 'Please confirm the agreement checkbox to submit your application.';
-        feedback.style.display = 'block';
-        return;
-      }
-    }
-
-    // Collect answers
-    const answers: Record<string, any> = {};
-    for (const q of questions) {
-      const el = document.getElementById(`ta-${q.id}`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null;
-      if (el) {
-        answers[q.id] = el.value.trim();
-      }
-    }
-
-    // Additional experiences validation & collection (Volunteer only)
-    if (isVolunteer) {
-      const expContainer = document.getElementById('ta-additional-experiences-container');
-      const extraExperiences: Array<{ event: string; role?: string; when?: string; description?: string }> = [];
-
-      if (expContainer) {
-        const cards = expContainer.querySelectorAll('.extra-exp-card');
-        for (let i = 0; i < cards.length; i++) {
-          const card = cards[i] as HTMLElement;
-          const expNumber = i + 2;
-          const eventInput = card.querySelector('.exp-event-input') as HTMLInputElement | null;
-          const roleInput = card.querySelector('.exp-role-input') as HTMLInputElement | null;
-          const whenInput = card.querySelector('.exp-when-input') as HTMLInputElement | null;
-          const descInput = card.querySelector('.exp-desc-input') as HTMLTextAreaElement | null;
-          const cardError = card.querySelector('.exp-card-error') as HTMLElement | null;
-
-          if (cardError) {
-            cardError.textContent = '';
-            cardError.style.display = 'none';
-          }
-
-          const eventVal = eventInput?.value.trim() || '';
-          const roleVal = roleInput?.value.trim() || '';
-          const whenVal = whenInput?.value.trim() || '';
-          const descVal = descInput?.value.trim() || '';
-
-          // Completely empty cards are ignored and not saved
-          if (!eventVal && !roleVal && !whenVal && !descVal) {
-            continue;
-          }
-
-          // If a card is started but "Event or organisation" is empty, show a red message and block submit
-          if (!eventVal) {
-            const errorMsg = `Please enter the Event or organisation name for Experience ${expNumber}.`;
-            if (cardError) {
-              cardError.textContent = errorMsg;
-              cardError.style.display = 'block';
-            }
-            feedback.className = 'status-banner status-error';
-            feedback.textContent = errorMsg;
-            feedback.style.display = 'block';
-            eventInput?.focus();
-            return; // Block submit!
-          }
-
-          extraExperiences.push({
-            event: eventVal,
-            ...(roleVal ? { role: roleVal } : {}),
-            ...(whenVal ? { when: whenVal } : {}),
-            ...(descVal ? { description: descVal } : {})
-          });
-        }
-      }
-
-      answers['additional_experiences'] = extraExperiences;
-    }
-
-    // Upload proof files if any (volunteer form only)
-    const uploadedProofPaths: string[] = [];
-    if (isVolunteer && selectedProofFiles.length > 0) {
-      const progressContainer = document.getElementById('ta-proof-progress-container');
-      const progressBar = document.getElementById('ta-proof-progress-bar');
-      const progressLabel = document.getElementById('ta-proof-progress-label');
-      const progressPercent = document.getElementById('ta-proof-progress-percent');
-
-      if (progressContainer) progressContainer.style.display = 'block';
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Uploading Proof Files...';
-      }
-
-      try {
-        for (let i = 0; i < selectedProofFiles.length; i++) {
-          const file = selectedProofFiles[i];
-          const pct = Math.round((i / selectedProofFiles.length) * 100);
-          if (progressBar) progressBar.style.width = `${pct}%`;
-          if (progressPercent) progressPercent.textContent = `${pct}%`;
-          if (progressLabel) progressLabel.textContent = `Uploading ${file.name} (${i + 1}/${selectedProofFiles.length})...`;
-
-          const uuid = typeof crypto !== 'undefined' && crypto.randomUUID
-            ? crypto.randomUUID()
-            : `${Math.random().toString(36).substring(2, 10)}-${Date.now()}`;
-          const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-          const storagePath = `uploads/${uuid}-${sanitizedName}`;
-
-          const { error: uploadErr } = await supabase.storage
-            .from('application-proofs')
-            .upload(storagePath, file, { cacheControl: '3600', upsert: false });
-
-          if (uploadErr) {
-            throw new Error(`Upload failed for "${file.name}": ${uploadErr.message || 'Storage upload error'}`);
-          }
-
-          uploadedProofPaths.push(storagePath);
-        }
-
-        if (progressBar) progressBar.style.width = '100%';
-        if (progressPercent) progressPercent.textContent = '100%';
-        if (progressLabel) progressLabel.textContent = 'Uploads complete! Saving application...';
-      } catch (uploadErr: any) {
-        if (progressContainer) progressContainer.style.display = 'none';
-        feedback.className = 'status-banner status-error';
-        feedback.textContent = uploadErr?.message || 'Failed to upload proof files. Please try again.';
-        feedback.style.display = 'block';
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = `Submit ${activeTeamTab === 'volunteer' ? 'Volunteer' : 'Security'} Application`;
-        }
-        return; // Do NOT submit the application if an upload fails!
-      }
-    }
-
+    isSubmitting = true;
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Submitting Application...';
+      submitBtn.textContent = 'Submitting application...';
     }
 
-    const res = await submitTeamApplication({
-      team: activeTeamTab,
-      full_name: fullName,
-      email,
-      phone,
-      answers,
-      proof_files: uploadedProofPaths
-    });
+    if (feedback) {
+      feedback.style.display = 'none';
+      feedback.textContent = '';
+    }
+    if (submitErrorEl) {
+      submitErrorEl.style.display = 'none';
+      submitErrorEl.textContent = '';
+    }
 
-    if (res.error) {
-      feedback.className = 'status-banner status-error';
-      feedback.textContent = res.error;
-      feedback.style.display = 'block';
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = `Submit ${activeTeamTab === 'volunteer' ? 'Volunteer' : 'Security'} Application`;
+    let didSucceed = false;
+
+    try {
+      const fullName = ((document.getElementById('ta-fullname') as HTMLInputElement | null)?.value || '').trim();
+      const email = ((document.getElementById('ta-email') as HTMLInputElement | null)?.value || '').trim().toLowerCase();
+      const phone = ((document.getElementById('ta-phone') as HTMLInputElement | null)?.value || '').trim();
+
+      // Validate contact fields before submitting
+      if (!fullName || fullName.length < 1 || fullName.length > 200) {
+        showSubmitError('Please enter your full name (1–200 characters).');
+        return;
       }
-    } else {
+      if (!email || email.length > 320 || !isValidEmail(email)) {
+        showSubmitError('Please enter a valid email address (max 320 characters).');
+        return;
+      }
+      if (!phone || phone.length < 3 || phone.length > 40) {
+        showSubmitError('Please enter a valid phone number (max 40 characters).');
+        return;
+      }
+
+      // Agreement checkbox is only required for the Security application
+      if (!isVolunteer) {
+        const agreement = (document.getElementById('ta-agreement') as HTMLInputElement | null)?.checked;
+        if (!agreement) {
+          showSubmitError('Please confirm the agreement checkbox to submit your application.');
+          return;
+        }
+      }
+
+      // Collect and validate answers
+      const answers: Record<string, any> = {};
+      for (const q of questions) {
+        const el = document.getElementById(`ta-${q.id}`) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null;
+        const val = el ? el.value.trim() : '';
+        if (q.required && !val) {
+          showSubmitError(`Please answer: "${q.label}"`);
+          el?.focus();
+          return;
+        }
+        answers[q.id] = val;
+      }
+
+      // Additional experiences validation & collection (Volunteer only)
+      if (isVolunteer) {
+        const expContainer = document.getElementById('ta-additional-experiences-container');
+        const extraExperiences: Array<{ event: string; role?: string; when?: string; description?: string }> = [];
+
+        if (expContainer) {
+          const cards = expContainer.querySelectorAll('.extra-exp-card');
+          for (let i = 0; i < cards.length; i++) {
+            const card = cards[i] as HTMLElement;
+            const expNumber = i + 2;
+            const eventInput = card.querySelector('.exp-event-input') as HTMLInputElement | null;
+            const roleInput = card.querySelector('.exp-role-input') as HTMLInputElement | null;
+            const whenInput = card.querySelector('.exp-when-input') as HTMLInputElement | null;
+            const descInput = card.querySelector('.exp-desc-input') as HTMLTextAreaElement | null;
+            const cardError = card.querySelector('.exp-card-error') as HTMLElement | null;
+
+            if (cardError) {
+              cardError.textContent = '';
+              cardError.style.display = 'none';
+            }
+
+            const eventVal = eventInput?.value.trim() || '';
+            const roleVal = roleInput?.value.trim() || '';
+            const whenVal = whenInput?.value.trim() || '';
+            const descVal = descInput?.value.trim() || '';
+
+            // Completely empty cards are ignored and not saved
+            if (!eventVal && !roleVal && !whenVal && !descVal) {
+              continue;
+            }
+
+            // If a card is started but "Event or organisation" is empty, show a red message and block submit
+            if (!eventVal) {
+              const errorMsg = `Please enter the Event or organisation name for Experience ${expNumber}.`;
+              if (cardError) {
+                cardError.textContent = errorMsg;
+                cardError.style.display = 'block';
+              }
+              showSubmitError(errorMsg);
+              eventInput?.focus();
+              return;
+            }
+
+            extraExperiences.push({
+              event: eventVal,
+              ...(roleVal ? { role: roleVal } : {}),
+              ...(whenVal ? { when: whenVal } : {}),
+              ...(descVal ? { description: descVal } : {})
+            });
+          }
+        }
+
+        answers['additional_experiences'] = extraExperiences;
+      }
+
+      // Validate total answers payload size (< 20,000 characters)
+      if (JSON.stringify(answers).length >= 20000) {
+        showSubmitError('Your answers exceed the 20,000-character total limit. Please shorten your responses.');
+        return;
+      }
+
+      // Upload proof files if any (volunteer form only)
+      const uploadedProofPaths: string[] = [];
+      if (isVolunteer && selectedProofFiles.length > 0) {
+        const progressContainer = document.getElementById('ta-proof-progress-container');
+        const progressBar = document.getElementById('ta-proof-progress-bar');
+        const progressLabel = document.getElementById('ta-proof-progress-label');
+        const progressPercent = document.getElementById('ta-proof-progress-percent');
+
+        if (progressContainer) progressContainer.style.display = 'block';
+        if (submitBtn) {
+          submitBtn.textContent = 'Uploading Proof Files...';
+        }
+
+        try {
+          for (let i = 0; i < selectedProofFiles.length; i++) {
+            const file = selectedProofFiles[i];
+            const pct = Math.round((i / selectedProofFiles.length) * 100);
+            if (progressBar) progressBar.style.width = `${pct}%`;
+            if (progressPercent) progressPercent.textContent = `${pct}%`;
+            if (progressLabel) progressLabel.textContent = `Uploading ${file.name} (${i + 1}/${selectedProofFiles.length})...`;
+
+            const uuid = typeof crypto !== 'undefined' && crypto.randomUUID
+              ? crypto.randomUUID()
+              : `${Math.random().toString(36).substring(2, 10)}-${Date.now()}`;
+            const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const storagePath = `uploads/${uuid}-${sanitizedName}`;
+
+            const { error: uploadErr } = await supabase.storage
+              .from('application-proofs')
+              .upload(storagePath, file, { cacheControl: '3600', upsert: false });
+
+            if (uploadErr) {
+              throw new Error(`Upload failed for "${file.name}": ${uploadErr.message || 'Storage upload error'}`);
+            }
+
+            uploadedProofPaths.push(storagePath);
+          }
+
+          if (progressBar) progressBar.style.width = '100%';
+          if (progressPercent) progressPercent.textContent = '100%';
+          if (progressLabel) progressLabel.textContent = 'Uploads complete! Saving application...';
+        } catch (uploadErr: any) {
+          console.error('Proof file upload error:', uploadErr);
+          if (progressContainer) progressContainer.style.display = 'none';
+          showSubmitError(`Submission failed: ${uploadErr?.message || 'Failed to upload proof files. Please try again.'}`);
+          return;
+        }
+      }
+
+      if (submitBtn) {
+        submitBtn.textContent = 'Submitting application...';
+      }
+
+      const res = await submitTeamApplication({
+        team: activeTeamTab,
+        full_name: fullName,
+        email,
+        phone,
+        answers,
+        proof_files: uploadedProofPaths.slice(0, 10)
+      });
+
+      if (res.error) {
+        showSubmitError(res.error);
+        return;
+      }
+
+      didSucceed = true;
       selectedProofFiles = [];
       formSubmittedSuccess = {
         name: fullName,
@@ -915,6 +963,16 @@ export function renderTeamApplyPage(container: HTMLElement | null): void {
         email
       };
       renderTeamApplyPage(container);
+    } catch (err: unknown) {
+      console.error('Unexpected error during team application submission:', err);
+      const errMsg = err instanceof Error ? err.message : 'An unexpected error occurred.';
+      showSubmitError(`Submission failed: ${errMsg}`);
+    } finally {
+      isSubmitting = false;
+      if (!didSucceed && submitBtn && submitBtn.isConnected) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = defaultSubmitBtnText;
+      }
     }
   });
 }
